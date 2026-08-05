@@ -1,0 +1,6 @@
+# One author, three identities across local commits and the GitHub web editor.
+# This maps them together for `git shortlog`, `git log --author` and anything that
+# counts contributors, without rewriting history.
+Shivam Lalakiya <shivamlalakiya151299@gmail.com>
+Shivam Lalakiya <shivamlalakiya151299@gmail.com> <lalakiya@wustl.edu>
+Shivam Lalakiya <shivamlalakiya151299@gmail.com> <50960482+shivamlalakiya@users.noreply.github.com>
