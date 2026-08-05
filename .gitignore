@@ -36,3 +36,7 @@ cp-src/
 superseded-probes/
 scratchpad/
 dewolf*
+
+# work in progress, attribution not yet valid (see paper1-knowledge-base.md 8.1.6a)
+probes/run_real_data.py
+outputs/probe_output_real_data.txt

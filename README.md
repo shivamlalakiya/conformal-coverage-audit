@@ -21,8 +21,10 @@ outputs/      committed output of each harness, one file per script
 | `probes/convention_probe.py` | Structural branch identification, coverage sweeps with paired standard errors, threshold extraction |
 | `probes/run_sktime_river.py` | sktime `ConformalIntervals` via `predict_interval`, river `RegressionJackknife` via `predict_one`, with an oracle independent of both |
 | `probes/run_darts.py` | Exact rank arithmetic, paired Monte Carlo on identical draws, and an end-to-end run through a real `ConformalNaiveModel` |
-| `probes/run_statsforecast.py` | `ConformalSeasonalPool._oriented_index` window mapping |
-| `probes/verify_statsforecast_rebuttal.py` | Adjudicates a finding of this author's own that turned out to be wrong, and records the corrected verdict |
+| `probes/verify_statsforecast_rebuttal.py` | `ConformalSeasonalPool._oriented_index`: window mapping, and the adjudication of a finding of this author's own that turned out to be wrong |
+
+**The research plan is in [`PLAN.md`](PLAN.md)** — the question, the method, the protocol, phase status,
+and what has *not* been established.
 
 ## Running them
 
@@ -44,9 +46,10 @@ python3 -m venv .venv-darts && .venv-darts/bin/pip install "darts==0.46.1"
 Environment: Python 3.13 · sktime 1.1.0 · river 0.25.0 · statsforecast 2.1.1 · numpy 2.4.6 · pandas 2.3.3
 · scikit-learn 1.7.2. Each script writes into `outputs/`.
 
-Two outputs — `probe_output_sf_rebuttal.txt` and `probe_output_v5.txt` — are not committed yet. Run
+Two outputs — `probe_output_sf_rebuttal.txt` and `probe_output_v5.txt` — are not committed. Run
 `probes/verify_statsforecast_rebuttal.py` and `probes/convention_probe.py` to generate them; both are
-deterministic under the pinned environment.
+deterministic under the pinned environment. One of them prints a mechanism that has not yet been reported
+to the maintainers of the package concerned, which is the only reason it is absent.
 
 ## One convention worth knowing before reading the code
 
