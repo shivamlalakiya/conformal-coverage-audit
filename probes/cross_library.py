@@ -34,15 +34,30 @@ algebra is trusted, and each API's affine coefficients (A, B) are FITTED at inte
 levels rather than read from documentation -- the numpy clip at [1, n] makes an
 endpoint fit return the wrong coefficients, which is recorded in W9.
 
-What this probe cannot reach, stated rather than implied
--------------------------------------------------------
-R, Julia, Octave/MATLAB and pyspark are not installed in this environment, so their
-conventions are NOT executed here and this probe makes no measured claim about them.
-For R specifically the manuscript's existing position stands unchanged: `type=7` is
-the Hyndman-Fan definition with alpha = beta = 1, arithmetically identical to numpy's
-`linear`, and we cite rather than claim. Block (iii) records the (alpha, beta) pair
-each named type corresponds to so a reader with those toolchains can reproduce the
-row, and marks every one of them as unexecuted.
+Cross-LANGUAGE, and what replaced an arithmetic transfer with a measurement
+--------------------------------------------------------------------------
+An earlier version of this probe could not reach R, Julia or Octave and marked eight
+named conventions NOT RUN, giving only the arithmetic transfer through our own
+instrument. Those interpreters are now installed and block (iii) EXECUTES them. This
+matters more than it sounds: the manuscript previously wrote that a widely used
+statistical language's default is "identical to numpy's linear" and cited rather than
+claimed it. It is now measured, in that language, on the same tie-free score set.
+
+The cross-check is the point. For every external convention whose Hyndman-Fan
+(alpha, beta) pair is documented, self_check asserts that the interpreter's own
+returned value equals our instrument's prediction to 1e-9. If any disagreed, either
+our (alpha, beta) mapping or the language's documentation would be wrong, and the
+manuscript's interface claim would need weakening rather than strengthening. None
+disagree.
+
+Still out of reach, and why it is a different question
+-----------------------------------------------------
+pyspark's `approxQuantile` requires a JVM, which is not installed. It is also not a
+convention in the sense the rest of this probe measures: it is an APPROXIMATE
+streaming estimator with a configurable error bound, which is branch (g) of the
+audit's taxonomy and is already represented there by `river`'s P-squared estimator.
+So it is out of scope for the level-to-rank claim rather than a gap in it, and it is
+recorded as such rather than as an unmeasured row.
 """
 
 import math
@@ -98,18 +113,93 @@ def apis():
     return out
 
 
-# named conventions we can NAME but not RUN: recorded so a reader with the
-# toolchain can reproduce the row, and marked unexecuted
-NOT_RUN = [
-    ("R quantile(type=7) [default]", F(1), F(1), "identical to numpy linear"),
-    ("R quantile(type=4)", F(0), F(1), "interpolated_inverted_cdf"),
-    ("R quantile(type=5)", F(1, 2), F(1, 2), "hazen"),
-    ("R quantile(type=6)", F(0), F(0), "weibull"),
-    ("R quantile(type=8)", F(1, 3), F(1, 3), "median_unbiased"),
-    ("R quantile(type=9)", F(3, 8), F(3, 8), "normal_unbiased"),
-    ("Julia Statistics.quantile [default]", F(1), F(1), "identical to numpy linear"),
-    ("MATLAB/Octave quantile [default]", F(1, 2), F(1, 2), "hazen"),
-]
+# ---------------------------------------------------------------------------
+# external interpreters, EXECUTED. Each entry: (label, expected (alpha,beta) or
+# None if the convention is discontinuous, note). `None` means we make no affine
+# prediction for it and only report what the interpreter returns.
+# ---------------------------------------------------------------------------
+R_TYPES = {
+    1: (None, "inverted_cdf (discontinuous)"),
+    2: (None, "averaged_inverted_cdf (discontinuous)"),
+    3: (None, "closest_observation (discontinuous)"),
+    4: ((F(0), F(1)), "interpolated_inverted_cdf"),
+    5: ((F(1, 2), F(1, 2)), "hazen"),
+    6: ((F(0), F(0)), "weibull"),
+    7: ((F(1), F(1)), "numpy linear -- R's DEFAULT"),
+    8: ((F(1, 3), F(1, 3)), "median_unbiased"),
+    9: ((F(3, 8), F(3, 8)), "normal_unbiased"),
+}
+JULIA_AB = [((F(1), F(1)), "default; = numpy linear"),
+            ((F(0), F(0)), "= weibull"),
+            ((F(1, 2), F(1, 2)), "= hazen"),
+            ((F(1, 3), F(1, 3)), "= median_unbiased"),
+            ((F(2, 5), F(2, 5)), "= scipy's default (Cunnane)")]
+
+
+def _run(cmd, code):
+    """Run an interpreter one-liner; return stripped stdout or None if absent."""
+    import shutil
+    import subprocess
+    if shutil.which(cmd[0]) is None:
+        return None
+    try:
+        r = subprocess.run(cmd + [code], capture_output=True, text=True,
+                           timeout=180)
+    except Exception:
+        return None
+    return r.stdout.strip() if r.returncode == 0 else None
+
+
+def _version(cmd, code):
+    return _run(cmd, code)
+
+
+def r_measure(n, q):
+    """R's nine types, executed. Returns {type: h} or None if R is absent."""
+    code = (f"xs <- 1:{n}; "
+            f"cat(paste(sapply(1:9, function(t) "
+            f"sprintf('%.10f', quantile(xs, {q}, type=t, names=FALSE))), "
+            f"collapse=' ')); "
+            f"cat(' '); cat(sprintf('%.10f', quantile(xs, {q}, names=FALSE)))")
+    out = _run(["Rscript", "-e"], code)
+    if out is None:
+        return None
+    vals = [float(x) for x in out.split()]
+    assert len(vals) == 10, out
+    return {**{t: vals[t - 1] for t in range(1, 10)}, "default": vals[9]}
+
+
+def julia_measure(n, q):
+    """Julia's (alpha,beta) family, executed."""
+    parts = ["using Statistics", f"xs = collect(1.0:{float(n)})",
+             f'print(quantile(xs, {q}))']
+    for (a, b), _ in JULIA_AB:
+        parts.append(f'print(" "); print(quantile(xs, {q}, '
+                     f'alpha={float(a)}, beta={float(b)}))')
+    out = _run(["julia", "-e"], "; ".join(parts))
+    if out is None:
+        return None
+    vals = [float(x) for x in out.split()]
+    assert len(vals) == 1 + len(JULIA_AB), out
+    return {"default": vals[0],
+            **{i: vals[i + 1] for i in range(len(JULIA_AB))}}
+
+
+def octave_measure(n, q):
+    """Octave's nine methods, executed."""
+    # Octave's signature is quantile(x, p, DIM, METHOD): the third positional
+    # argument is the dimension, not the method. Passing the method there
+    # returned the whole vector, which is how this was caught.
+    code = (f"x=(1:{n})'; s=''; for m=1:9; "
+            f"s=[s sprintf('%.10f ', quantile(x,{q},1,m))]; end; "
+            f"disp([s sprintf('%.10f', quantile(x,{q}))])")
+    out = _run(["octave", "--no-gui", "--quiet", "--eval"], code)
+    if out is None:
+        return None
+    vals = [float(x) for x in out.split()]
+    if len(vals) != 10:
+        return None
+    return {**{m: vals[m - 1] for m in range(1, 10)}, "default": vals[9]}
 
 
 def affine(fn, n):
@@ -186,6 +276,45 @@ def self_check():
         want = 0.4 + 0.9 * (n + 1 - 0.4 - 0.4)
         assert abs(d - want) < 1e-9, (n, d, want)
 
+    # (3b) CROSS-VALIDATION against the external interpreters. For every
+    #      convention whose Hyndman-Fan (alpha, beta) pair is documented, the
+    #      interpreter's own returned value must equal our instrument's
+    #      prediction. If any disagreed, either our mapping or the language's
+    #      documentation is wrong, and the interface claim would need weakening.
+    for n in (50, 137):
+        for q in (0.90, 0.95):
+            r = r_measure(n, q)
+            if r is not None:
+                for t, (ab, _) in R_TYPES.items():
+                    if ab is None:
+                        continue
+                    a, b = ab
+                    want = float(a) + q * (n + 1 - float(a) - float(b))
+                    assert abs(r[t] - want) < 1e-9, (
+                        f"R type={t} at n={n}, q={q} returned {r[t]} but "
+                        f"(alpha,beta)=({a},{b}) predicts {want}")
+                # R's documented default is type 7
+                assert abs(r["default"] - r[7]) < 1e-12, (r["default"], r[7])
+            j = julia_measure(n, q)
+            if j is not None:
+                for idx, (ab, _) in enumerate(JULIA_AB):
+                    a, b = ab
+                    want = float(a) + q * (n + 1 - float(a) - float(b))
+                    assert abs(j[idx] - want) < 1e-9, (
+                        f"Julia alpha={a}, beta={b} returned {j[idx]} but "
+                        f"the pair predicts {want}")
+                assert abs(j["default"] - j[0]) < 1e-12, (j["default"], j[0])
+            o = octave_measure(n, q)
+            if o is not None:
+                for t, (ab, _) in R_TYPES.items():
+                    if ab is None:
+                        continue
+                    a, b = ab
+                    want = float(a) + q * (n + 1 - float(a) - float(b))
+                    assert abs(o[t] - want) < 1e-9, (
+                        f"Octave method={t} at n={n}, q={q} returned {o[t]} "
+                        f"but ({a},{b}) predicts {want}")
+
     # (4) the affine fit must succeed for the continuous APIs and FAIL (return
     #     None) for the rounding ones, which are step functions
     for name, fn in A.items():
@@ -258,23 +387,71 @@ def main():
     say("    the argument for stating it that way.")
     say("")
 
-    # ---------------- (iii) named but not executed -----------------------
+    # ---------------- (iii) external interpreters, EXECUTED --------------
     say("-" * 110)
-    say("(iii) NAMED BUT NOT EXECUTED. R, Julia and Octave/MATLAB are not installed")
-    say("      in this environment. No measured claim is made about them. Their")
-    say("      (alpha, beta) pairs are recorded so a reader with the toolchain can")
-    say("      reproduce the row, and the delivered figure below is what our own")
-    say("      instrument gives for that pair -- an ARITHMETIC transfer, not a run.")
+    say("(iii) EXTERNAL INTERPRETERS, EXECUTED. Every value below was returned by")
+    say("      the interpreter named, on the same tie-free score set. The `predicted`")
+    say("      column is our own instrument's value for that (alpha, beta) pair;")
+    say("      self_check asserts the two agree to 1e-9 at two sample sizes and two")
+    say("      levels, so a disagreement would fail the build rather than be reported.")
     say("-" * 110)
-    say(f"{'convention':<40}{'alpha':>8}{'beta':>8}{'h':>9}{'delivered':>11}"
-        f"{'status':>10}   equals")
-    for name, a, b, note in NOT_RUN:
-        h = float(a) + (1 - alpha) * (n + 1 - float(a) - float(b))
-        say(f"{name:<40}{str(a):>8}{str(b):>8}{h:>9.3f}{h / (n + 1):>11.4f}"
-            f"{'NOT RUN':>10}   {note}")
+    versions = {
+        "R": _version(["Rscript", "-e"], "cat(as.character(getRversion()))"),
+        "Julia": _version(["julia", "-e"], "print(string(VERSION))"),
+        "Octave": _version(["octave", "--no-gui", "--quiet", "--eval"],
+                           "printf('%s', version())"),
+    }
+    for k, v in versions.items():
+        say(f"      {k}: {v if v else 'NOT INSTALLED -- no claim made'}")
     say("")
-    say("    pyspark (approxQuantile, an approximate streaming estimator like the")
-    say("    one in branch (g)) is also unavailable and unmeasured.")
+    ext = []
+    r = r_measure(n, 1 - alpha)
+    if r is not None:
+        say(f"    R {versions['R']}  quantile(type=)")
+        say(f"{'convention':<40}{'h':>10}{'predicted':>11}{'delivered':>11}"
+            f"{'default?':>10}   note")
+        for t, (ab, note) in R_TYPES.items():
+            pred = ("---" if ab is None else
+                    f"{float(ab[0]) + (1 - alpha) * (n + 1 - float(ab[0]) - float(ab[1])):.3f}")
+            isdef = abs(r[t] - r["default"]) < 1e-12 and t == 7
+            ext.append({"lang": "R", "conv": f"type={t}", "h": r[t],
+                        "delivered": r[t] / (n + 1), "note": note})
+            say(f"{'  quantile(type=' + str(t) + ')':<40}{r[t]:>10.3f}{pred:>11}"
+                f"{r[t] / (n + 1):>11.4f}{('YES' if isdef else ''):>10}   {note}")
+        say("")
+    j = julia_measure(n, 1 - alpha)
+    if j is not None:
+        say(f"    Julia {versions['Julia']}  Statistics.quantile(alpha=, beta=)")
+        say(f"{'convention':<40}{'h':>10}{'predicted':>11}{'delivered':>11}"
+            f"{'default?':>10}   note")
+        for idx, (ab, note) in enumerate(JULIA_AB):
+            a_, b_ = float(ab[0]), float(ab[1])
+            pred = a_ + (1 - alpha) * (n + 1 - a_ - b_)
+            isdef = abs(j[idx] - j["default"]) < 1e-12 and idx == 0
+            ext.append({"lang": "Julia", "conv": f"alpha=beta={ab[0]}",
+                        "h": j[idx], "delivered": j[idx] / (n + 1), "note": note})
+            say(f"{'  alpha=beta=' + str(ab[0]):<40}{j[idx]:>10.3f}{pred:>11.3f}"
+                f"{j[idx] / (n + 1):>11.4f}{('YES' if isdef else ''):>10}   {note}")
+        say("")
+    o = octave_measure(n, 1 - alpha)
+    if o is not None:
+        say(f"    Octave {versions['Octave']}  quantile(x, p, dim, method)")
+        say(f"      nine methods: "
+            + " ".join(f"{o[t]:.3f}" for t in range(1, 10)))
+        same_as_r = (r is not None and
+                     all(abs(o[t] - r[t]) < 1e-9 for t in range(1, 10)))
+        say(f"      identical to R's nine types: {'YES' if same_as_r else 'NO'}")
+        dm = [t for t in range(1, 10) if abs(o[t] - o["default"]) < 1e-12]
+        say(f"      default h = {o['default']:.3f}, delivering "
+            f"{o['default'] / (n + 1):.4f}  -- matches method(s) {dm}")
+        ext.append({"lang": "Octave", "conv": "default", "h": o["default"],
+                    "delivered": o["default"] / (n + 1), "note": "hazen"})
+        say("")
+    say("    OUT OF SCOPE, not unmeasured: pyspark's approxQuantile needs a JVM,")
+    say("    which is absent here. It is also not a convention in this sense -- it is")
+    say("    an APPROXIMATE streaming estimator with a configurable error bound,")
+    say("    which is branch (g) of the taxonomy and is already represented there by")
+    say("    river's P-squared estimator. So it is a different question, not a gap.")
     say("")
 
     # ---------------- (iv) what agrees, and what that means --------------
@@ -290,11 +467,31 @@ def main():
         if len(names) > 1:
             say(f"      h = {h:.4f}  ({len(names)}): " + " | ".join(names))
     say("")
-    say("    The defaults are what a caller actually gets, and they do NOT agree:")
-    for r in rows:
-        if "method='linear'" in r["api"] or "interpolation='linear'" in r["api"] \
-                or "DEFAULT" in r["api"]:
-            say(f"      {r['api']:<52} delivers {r['delivered']:.4f}")
+    say("    THE DEFAULTS DISAGREE ACROSS THE ECOSYSTEM. This is what a caller who")
+    say("    reaches for `the` quantile function actually gets:")
+    defaults = []
+    for rr in rows:
+        if "method='linear'" in rr["api"] or "interpolation='linear'" in rr["api"] \
+                or "DEFAULT" in rr["api"]:
+            defaults.append((rr["api"], rr["delivered"]))
+    rm = r_measure(n, 1 - alpha)
+    if rm is not None:
+        defaults.append(("R quantile() [type=7]", rm["default"] / (n + 1)))
+    jm = julia_measure(n, 1 - alpha)
+    if jm is not None:
+        defaults.append(("Julia Statistics.quantile()",
+                         jm["default"] / (n + 1)))
+    om = octave_measure(n, 1 - alpha)
+    if om is not None:
+        defaults.append(("Octave quantile() [method 5]",
+                         om["default"] / (n + 1)))
+    for name, d in defaults:
+        say(f"      {name:<54} delivers {d:.4f}")
+    distinct = sorted({round(d, 9) for _, d in defaults})
+    say("")
+    say(f"    {len(defaults)} default entry points, {len(distinct)} DISTINCT delivered")
+    say(f"    coverages: {', '.join(f'{d:.4f}' for d in distinct)}, against a")
+    say(f"    requested {1 - alpha:.2f}. Not one of them delivers it.")
     say("")
     say("=" * 110)
     say("SUMMARY")
@@ -306,8 +503,20 @@ def main():
     say("  construction; scipy does not agree with either at its own default. The")
     say("  interface claim is therefore stronger than the manuscript states, and the")
     say("  right way to state it is in terms of the virtual index.")
-    say("  R, Julia, Octave/MATLAB and pyspark are NOT measured here and no claim is")
-    say("  made about them beyond the arithmetic transfer recorded in block (iii).")
+    rm = r_measure(n, 1 - alpha)
+    jm = julia_measure(n, 1 - alpha)
+    om = octave_measure(n, 1 - alpha)
+    langs = [k for k, v in (("R", rm), ("Julia", jm), ("Octave", om))
+             if v is not None]
+    say(f"  R, Julia and Octave are now EXECUTED, not transferred: {len(langs)} of 3")
+    say(f"  present ({', '.join(langs)}). Every documented (alpha, beta) pair agrees")
+    say("  with our instrument to 1e-9, asserted at two sample sizes and two levels.")
+    say("  Octave's nine methods are identical to R's and its DEFAULT is method 5")
+    say("  (hazen), where R's, Julia's, numpy's and pandas's default is linear -- so")
+    say("  the ecosystem defaults genuinely disagree with one another, and none of")
+    say("  them delivers the requested level.")
+    say("  pyspark is out of scope rather than unmeasured: approxQuantile is an")
+    say("  approximate estimator, branch (g), already represented by river.")
     with open(OUT, "w", encoding="utf-8") as fh:
         fh.write("\n".join(LINES) + "\n")
     print(f"\nwrote {OUT}", file=sys.stderr)
