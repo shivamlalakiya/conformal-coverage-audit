@@ -105,6 +105,7 @@ import math
 import os
 import sys
 import warnings
+from fractions import Fraction
 
 import numpy as np
 
@@ -123,8 +124,26 @@ def say(s=""):
 
 
 def floor_n(alpha_eff):
-    """Smallest n admitting a valid finite bound at effective miscoverage alpha_eff."""
-    return math.ceil(1.0 / alpha_eff - 1.0)
+    """Smallest n admitting a valid finite bound at effective miscoverage alpha_eff.
+
+    Exact. Pass a Fraction; floats are converted through their shortest decimal
+    form, which is what 0.10 and 0.05 mean here but is a guess in general -- a float
+    cannot say whether it stands for 1/3 or for 0.3333333333333333.
+
+    This used to be `math.ceil(1.0 / alpha_eff - 1.0)`, and the float subtraction
+    cost a whole rank. Block (ii) recovered alpha_eff as `1 - level`, and
+    `1 - 0.90` is 0.09999999999999998, whose floor genuinely IS 10 -- so the probe
+    printed 10 in block (ii) against 9 in block (i) for the same quantity, and the
+    two manuscripts' tables each picked up a different one. 0.95 happened to round
+    the other way, which is why only some rows disagreed.
+    """
+    a = alpha_eff if isinstance(alpha_eff, Fraction) else Fraction(str(alpha_eff))
+    return math.ceil(Fraction(1) / a - 1)
+
+
+def alpha_eff_exact(coverage, H):
+    """(1 - coverage)/H as a rational, so no caller has to subtract in floating point."""
+    return (Fraction(1) - Fraction(str(coverage))) / H
 
 
 def required_rank(n, coverage):
@@ -139,16 +158,25 @@ def virtual_index(n, q, method="linear"):
 # ---------------------------------------------------------------------------
 def self_check():
     # the floor, stated against its own boundary rather than at round numbers
-    for alpha, first in ((0.10, 9), (0.05, 19), (0.01, 99), (1 / 3, 2)):
+    # Fraction(1, 3), not 1/3: the float is not one third, and the floor of the
+    # float really is 3. Writing it exactly is the point of the exercise.
+    for alpha, first in ((0.10, 9), (0.05, 19), (0.01, 99), (Fraction(1, 3), 2)):
         assert floor_n(alpha) == first, (alpha, floor_n(alpha), first)
         assert required_rank(first - 1, 1 - alpha) is None
         assert required_rank(first, 1 - alpha) is not None
     # the Bonferroni floor is the plain floor in the DIVIDED level, not a new law
     for alpha in (0.10, 0.05):
         for H in (1, 2, 6, 12, 24):
-            assert floor_n(alpha / H) == floor_n(alpha / H)
-            assert required_rank(floor_n(alpha / H), 1 - alpha / H) is not None
-            assert required_rank(floor_n(alpha / H) - 1, 1 - alpha / H) is None
+            fl = floor_n(Fraction(str(alpha)) / H)
+            # The floor recovered from the LEVEL must equal the floor computed from
+            # alpha. This assertion used to read `floor_n(alpha / H) ==
+            # floor_n(alpha / H)` -- both sides identical, so it could not fail, and
+            # the +1 it exists to catch shipped underneath it for that reason. A
+            # probe about tests that cannot catch anything had one of its own.
+            level = Fraction(1) - Fraction(str(alpha)) / H
+            assert floor_n(Fraction(1) - level) == fl, (alpha, H, fl)
+            assert required_rank(fl, 1 - alpha / H) is not None
+            assert required_rank(fl - 1, 1 - alpha / H) is None
     # H=1 must reduce to the ordinary floor, or the parameterisation is wrong
     assert floor_n(0.10 / 1) == 9 and floor_n(0.05 / 1) == 19
     # and the divided level goes through `linear`, which never lands on an integer
@@ -306,7 +334,9 @@ def run_cell(rng, H, initial_window, n_cal_target, coverages, n_series=SERIES):
                     "total": total, "coverage": coverage, "req_rank": k,
                     "h": h, "pred": h / (n_al + 1),
                     "feasible": k is not None,
-                    "floor": floor_n(1 - level),
+                    # from the nominal coverage and H, not from `level` -- `level` is
+                    # a median of measured levels and 1 - level costs a rank
+                    "floor": floor_n(alpha_eff_exact(coverage, H)),
                     **{f"step1_{a}": step1[a][j] / total for a in ARMS},
                     **{f"sim_{a}": sim[a][j] / total for a in ARMS},
                     **{f"finite_{a}": finite[a][j] / total for a in ARMS}})
@@ -404,7 +434,7 @@ def main():
     for alpha in (0.10, 0.05, 0.01):
         base = floor_n(alpha)
         for H in (1, 3, 6, 12, 24, 52):
-            fl = floor_n(alpha / H)
+            fl = floor_n(Fraction(str(alpha)) / H)
             note = ""
             if H == 1:
                 note = "the audit's stated floor"
