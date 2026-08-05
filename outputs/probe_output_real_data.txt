@@ -1,0 +1,58 @@
+================================================================================================
+DELIVERED COVERAGE ON REAL DATA -- paired, both arms off the same fitted object
+================================================================================================
+self_check() passed at import
+dataset: m1_monthly_dataset   series cap: 250
+arm A: sktime ConformalIntervals via predict_interval, its own defaults
+arm B: sktime's OWN residuals (residuals_matrix_, offset-1 diagonal) and
+       its OWN point forecast, thresholded at rank ceil((n+1)*coverage)
+
+series loaded: 250   frequency: monthly
+
+  empirical  nominal 0.90  initial_window=20  series=250  n_resid median=74
+      arm A (shipped)        coverage 0.8920   width    19097.643   lands on rank 67 of 74
+      arm B (required rank)  coverage 0.9160   width    20949.874   median required rank 68 of 74
+      paired delta (B - A)   +0.0240  (s.e. 0.0112)
+
+  empirical  nominal 0.90  initial_window=40  series=250  n_resid median=54
+      arm A (shipped)        coverage 0.8880   width    17789.092   lands on rank 49 of 54
+      arm B (required rank)  coverage 0.9400   width      (+inf mixed)   median required rank 52 of 54   [21/250 infeasible -> +inf]
+      paired delta (B - A)   +0.0520  (s.e. 0.0152)
+      feasible cells only (229):  A 0.8908 (width 19162.348)   B 0.9345 (width 22125.502)   delta +0.0437 (s.e. 0.0149)
+
+  empirical  nominal 0.95  initial_window=20  series=250  n_resid median=74
+      arm A (shipped)        coverage 0.9560   width    21879.007   lands on rank 71 of 74
+      arm B (required rank)  coverage 0.9640   width    26097.046   median required rank 72 of 74
+      paired delta (B - A)   +0.0080  (s.e. 0.0080)
+
+  empirical  nominal 0.95  initial_window=40  series=250  n_resid median=54
+      arm A (shipped)        coverage 0.9400   width    19852.526   lands on rank 52 of 54
+      arm B (required rank)  coverage 0.9760   width      (+inf mixed)   median required rank 57 of 54   [37/250 infeasible -> +inf]
+      paired delta (B - A)   +0.0360  (s.e. 0.0118)
+      feasible cells only (213):  A 0.9531 (width 11054.255)   B 0.9718 (width 12447.153)   delta +0.0188 (s.e. 0.0093)
+
+  conformal  nominal 0.90  initial_window=20  series=250  n_resid median=74
+      arm A (shipped)        coverage 0.9000   width    19319.840   lands on rank 67 of 74
+      arm B (required rank)  coverage 0.9160   width    20949.874   median required rank 68 of 74
+      paired delta (B - A)   +0.0160  (s.e. 0.0080)
+
+  conformal  nominal 0.90  initial_window=40  series=250  n_resid median=54
+      arm A (shipped)        coverage 0.9160   width    18770.714   lands on rank 49 of 54
+      arm B (required rank)  coverage 0.9400   width      (+inf mixed)   median required rank 52 of 54   [21/250 infeasible -> +inf]
+      paired delta (B - A)   +0.0240  (s.e. 0.0097)
+      feasible cells only (229):  A 0.9214 (width 20181.095)   B 0.9345 (width 22125.502)   delta +0.0131 (s.e. 0.0075)
+
+  conformal  nominal 0.95  initial_window=20  series=250  n_resid median=74
+      arm A (shipped)        coverage 0.9480   width    22344.763   lands on rank 71 of 74
+      arm B (required rank)  coverage 0.9640   width    26097.046   median required rank 72 of 74
+      paired delta (B - A)   +0.0160  (s.e. 0.0080)
+
+  conformal  nominal 0.95  initial_window=40  series=250  n_resid median=54
+      arm A (shipped)        coverage 0.9400   width    20735.488   lands on rank 52 of 54
+      arm B (required rank)  coverage 0.9760   width      (+inf mixed)   median required rank 57 of 54   [37/250 infeasible -> +inf]
+      paired delta (B - A)   +0.0360  (s.e. 0.0118)
+      feasible cells only (213):  A 0.9484 (width 11368.476)   B 0.9718 (width 12447.153)   delta +0.0235 (s.e. 0.0104)
+
+A positive delta means the required rank covers more than the shipped call.
+Real series are not exchangeable, so an absolute miss is not attributable to
+the convention on its own -- the paired delta is what carries the claim.
