@@ -5,9 +5,10 @@ type: software
 authors:
   - family-names: Lalakiya
     given-names: Shivam
-    # TODO: add orcid if you have one, e.g. orcid: "https://orcid.org/0000-0000-0000-0000"
-    # TODO: decide affiliation. Leaving it out avoids implying institutional endorsement
-    #       of an independent research artifact. Add only if you want it attached.
+    # TODO (only you can fill this): add orcid if you have one, e.g.
+    #   orcid: "https://orcid.org/0000-0000-0000-0000"
+    # Affiliation is deliberately omitted: leaving it out avoids implying
+    # institutional endorsement of an independent research artifact.
 license: MIT
 # all-versions (concept) DOI — always resolves to the latest release
 doi: 10.5281/zenodo.21799203
@@ -18,15 +19,24 @@ identifiers:
   - type: doi
     value: 10.5281/zenodo.21799204
     description: "Version v1.0.0"
-# TODO: confirm the owner — change if the repo lives under an org rather than your personal account
+# verified against the live remote
 repository-code: "https://github.com/shivamlalakiya/conformal-coverage-audit"
 abstract: >-
   Measurement harnesses used to audit how Python conformal-prediction
   implementations resolve the conformal quantile at finite sample sizes. Each
   script validates its closed forms against exact rational arithmetic at import
   time, and each writes a plain-text output file that is committed alongside it.
-  Covers the convention in isolation, sktime, river, darts, statsforecast, and a
-  rebuttal probe that adjudicates a retracted finding of the authors' own.
+  Covers the convention in isolation; the nine Hyndman-Fan quantile definitions
+  read as carriers of a coverage guarantee; end-to-end runs through sktime,
+  river, darts and statsforecast; paired real-data coverage on two Monash
+  collections and two OpenML suites, in which the library arm and a
+  required-rank arm are built from the same scores and the same point
+  prediction; a census of the level-to-rank resolution sites across the audited
+  packages, verified on disk; a conformance suite that classifies any quantile
+  helper and reports what it delivers; a check of whether the mechanism
+  generalises beyond conformal prediction to value-at-risk, tolerance bounds and
+  bootstrap intervals; and a rebuttal probe that adjudicates a retracted finding
+  of the author's own.
 keywords:
   - conformal prediction
   - uncertainty quantification

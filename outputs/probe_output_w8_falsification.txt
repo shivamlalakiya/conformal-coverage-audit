@@ -1,0 +1,128 @@
+====================================================================================================
+W8 -- FALSIFICATION CHECK: is the level-to-rank defect specific to
+      conformal prediction, or a property of interpolated sample quantiles?
+====================================================================================================
+self_check() passed at import (interpolation identity verified against numpy
+on 12 cells, exceedance bound on 782, Wilks ranks hand-checked)
+
+The claim under test, stated so it can fail:
+  whenever a sample quantile at level q is used as a bound whose validity is
+  claimed distribution-free, the delivered guarantee is set by which order
+  statistic the level lands on, and method='linear' under-delivers.
+
+Mechanism, exact, no simulation -- where the level lands:
+       n      q  linear virtual idx  higher rank  required rank  deficit
+      30   0.90             26.1000           28             28        0
+      30   0.99             28.7100           30            inf        -
+      50   0.90             44.1000           46             46        0
+      50   0.99             48.5100           50            inf        -
+     100   0.90             89.1000           91             91        0
+     100   0.99             98.0100          100            100        0
+    1000   0.90            899.1000          901            901        0
+    1000   0.99            989.0100          991            991        0
+  The virtual index is not an integer, so method='linear' returns a value
+  BETWEEN two order statistics and no exchangeability bound applies to it.
+
+====================================================================================================
+SETTING 1 -- empirical value-at-risk. `np.quantile(losses, q)` as a q VaR
+====================================================================================================
+Nominal exceedance is 1 - q. Measured over independent samples, then one
+fresh draw scored against the reported VaR.
+
+dist             n      q  nominal    linear    higher  required  exact req  lin - nom
+normal          50   0.95   0.0500    0.0663    0.0580    0.0389     0.0392    +0.0163
+normal          50   0.99   0.0100    0.0260    0.0196    0.0000     0.0000    +0.0160
+normal         100   0.95   0.0500    0.0580    0.0500    0.0500     0.0495    +0.0080
+normal         100   0.99   0.0100    0.0203    0.0100    0.0100     0.0099    +0.0103
+normal         250   0.95   0.0500    0.0553    0.0541    0.0504     0.0478    +0.0053
+normal         250   0.99   0.0100    0.0155    0.0142    0.0094     0.0080    +0.0055
+normal        1000   0.95   0.0500    0.0505    0.0496    0.0496     0.0500    +0.0005
+normal        1000   0.99   0.0100    0.0115    0.0105    0.0105     0.0100    +0.0015
+exponential     50   0.95   0.0500    0.0654    0.0570    0.0372     0.0392    +0.0154
+exponential     50   0.99   0.0100    0.0278    0.0209    0.0000     0.0000    +0.0178
+exponential    100   0.95   0.0500    0.0597    0.0500    0.0500     0.0495    +0.0097
+exponential    100   0.99   0.0100    0.0198    0.0095    0.0095     0.0099    +0.0098
+exponential    250   0.95   0.0500    0.0531    0.0508    0.0472     0.0478    +0.0031
+exponential    250   0.99   0.0100    0.0135    0.0121    0.0080     0.0080    +0.0035
+exponential   1000   0.95   0.0500    0.0512    0.0498    0.0498     0.0500    +0.0011
+exponential   1000   0.99   0.0100    0.0118    0.0109    0.0109     0.0100    +0.0018
+lognormal       50   0.95   0.0500    0.0656    0.0580    0.0389     0.0392    +0.0156
+lognormal       50   0.99   0.0100    0.0249    0.0196    0.0000     0.0000    +0.0149
+lognormal      100   0.95   0.0500    0.0580    0.0500    0.0500     0.0495    +0.0080
+lognormal      100   0.99   0.0100    0.0201    0.0100    0.0100     0.0099    +0.0101
+lognormal      250   0.95   0.0500    0.0553    0.0541    0.0504     0.0478    +0.0053
+lognormal      250   0.99   0.0100    0.0155    0.0142    0.0094     0.0080    +0.0054
+lognormal     1000   0.95   0.0500    0.0505    0.0496    0.0496     0.0500    +0.0005
+lognormal     1000   0.99   0.0100    0.0115    0.0105    0.0105     0.0100    +0.0015
+
+'required' is rank ceil((n+1)*q); 'exact req' is its exact exceedance
+1 - k/(n+1), derived. A positive 'lin - nom' is a VaR that is breached MORE
+often than advertised.
+
+====================================================================================================
+SETTING 2 -- nonparametric tolerance bound, content p=0.9, confidence gamma=0.95
+====================================================================================================
+The claim under test is the one practitioners actually make: that
+np.quantile(x, p) bounds a proportion p of the population. Achieved
+confidence is the fraction of samples whose bound really does cover >= p.
+
+dist             n  wilks k    k/n  ach. linear  ach. wilks  target  shortfall
+normal          30       30  1.000       0.3828      0.9572    0.95    +0.5672
+normal          50       49  0.980       0.3954      0.9662    0.95    +0.5546
+normal         100       96  0.960       0.4394      0.9768    0.95    +0.5106
+normal         500      462  0.924       0.4626      0.9620    0.95    +0.4874
+exponential     30       30  1.000       0.3692      0.9546    0.95    +0.5808
+exponential     50       49  0.980       0.3906      0.9660    0.95    +0.5594
+exponential    100       96  0.960       0.4384      0.9782    0.95    +0.5116
+exponential    500      462  0.924       0.4676      0.9596    0.95    +0.4824
+lognormal       30       30  1.000       0.3862      0.9572    0.95    +0.5638
+lognormal       50       49  0.980       0.3988      0.9662    0.95    +0.5512
+lognormal      100       96  0.960       0.4398      0.9768    0.95    +0.5102
+lognormal      500      462  0.924       0.4626      0.9620    0.95    +0.4874
+
+A positive shortfall means the interpolated bound delivers LESS confidence
+than the tolerance claim states. The Wilks column is the same data read at
+the rank the binomial tail requires.
+
+====================================================================================================
+SETTING 3 -- bootstrap percentile CI for the mean, scipy.stats.bootstrap
+====================================================================================================
+This is the case built to REFUTE the wide claim. Bootstrap CIs carry an
+approximation error of their own, so the question is not whether they
+undercover -- they do -- but whether the index map contributes measurably.
+
+level 0.95, 999 resamples, 2000 replications, true mean known
+
+dist             n  scipy cov  order-stat cov    delta    s.e.   index-map share
+normal          20     0.9235          0.9265  +0.0030  0.0012            11.3%
+normal          50     0.9410          0.9435  +0.0025  0.0011            27.8%
+exponential     20     0.9020          0.9035  +0.0015  0.0009             3.1%
+exponential     50     0.9275          0.9295  +0.0020  0.0010             8.9%
+lognormal       20     0.8525          0.8560  +0.0035  0.0013             3.6%
+lognormal       50     0.8850          0.8870  +0.0020  0.0010             3.1%
+
+'index-map share' is the paired delta divided by scipy's total shortfall
+from the nominal level -- how much of the miscoverage the index map explains.
+
+====================================================================================================
+VERDICT -- how wide the paper's claim may be
+====================================================================================================
+Read the three settings together, not separately:
+
+  1. VaR         the mechanism reproduces outside conformal prediction, on
+                 three differently-tailed distributions, and the measured
+                 exceedance matches the exact 1 - k/(n+1) for the rank the
+                 level lands on.
+  2. Tolerance   the mechanism reproduces, and here it is WORSE than in
+                 conformal prediction, because the required rank comes from a
+                 binomial tail rather than from a level at all -- so no choice
+                 of level recovers it.
+  3. Bootstrap   the mechanism is present but NOT the dominant term. Read the
+                 'index-map share' column before writing anything general.
+
+So the frame that survives is the mechanism, not the severity:
+  SAY      the level-to-rank map governs any distribution-free bound built
+           from a sample quantile, and conformal prediction is where the
+           consequence is sharpest because the guarantee is exact there.
+  DO NOT   generalise the effect SIZES measured on conformal libraries to
+           other settings. Setting 3 refutes that directly.

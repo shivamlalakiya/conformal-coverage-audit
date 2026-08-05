@@ -1,3 +1,24 @@
+# THREE ENVIRONMENTS, because the audited libraries do not agree on numpy/pandas.
+# Each probe's docstring names the one it needs. Nothing here is redistributed --
+# these are the versions the audit read and ran.
+#
+#   [1] forecasting   sktime, statsforecast, river
+#                     probes: convention_probe, branch_d_check, rank_map,
+#                             run_sktime_river, verify_statsforecast_rebuttal,
+#                             run_real_data, run_real_data_statsforecast,
+#                             export_series, w8_falsification,
+#                             conformance_suite (forecasting run)
+#   [2] darts         darts pins pandas 3.x, which sktime 1.1.0 rejects
+#                     probes: run_darts, run_darts_tighten, darts_scoring_path,
+#                             run_real_data_darts, helper_census
+#   [3] tabular       mapie, crepes, puncc, openml. puncc pins numpy 1.26.x
+#                     probes: run_real_data_tabular,
+#                             conformance_suite (tabular run)
+#
+# helper_census reads source text only, so it runs under any of the three; it
+# reports which packages it could not locate rather than skipping them silently.
+
+# ----------------------------------------------------------------- [1] forecasting
 adagio==0.2.6
 altair==6.2.2
 attrs==26.1.0
@@ -34,3 +55,26 @@ triad==1.0.2
 typing_extensions==4.16.0
 tzdata==2026.3
 utilsforecast==0.2.16
+
+# ----------------------------------------------------------------------- [2] darts
+# python -m venv .venv-darts && .venv-darts/bin/pip install \
+#     darts==0.46.1 numpy==2.4.6 pandas==3.0.5 scikit-learn==1.9.0
+# darts==0.46.1
+# numpy==2.4.6
+# pandas==3.0.5
+# scikit-learn==1.9.0
+
+# --------------------------------------------------------------------- [3] tabular
+# python -m venv .venv-tabular && .venv-tabular/bin/pip install \
+#     mapie==1.4.1 openml==0.15.1 scikit-learn==1.7.2 crepes==0.9.1 puncc==0.9.3
+# Installing puncc last is deliberate: it pins numpy down to 1.26.4, and mapie,
+# crepes and scikit-learn 1.7.2 all still import and run against that pin --
+# verified, not assumed.
+# MAPIE==1.4.1
+# openml==0.15.1
+# crepes==0.9.1
+# puncc==0.9.3
+# scikit-learn==1.7.2
+# numpy==1.26.4
+# pandas==3.0.5
+# scipy==1.18.0

@@ -36,12 +36,23 @@ from fractions import Fraction
 import numpy as np
 
 LEVELS = (0.90, 0.95)
-OUT = "outputs/probe_output_real_data.txt"
+OUT_TEMPLATE = "outputs/probe_output_real_data{suffix}.txt"
 
 
 # --------------------------------------------------------------------------
 # arithmetic + self-check
 # --------------------------------------------------------------------------
+def out_path(template, dataset):
+    """Dataset-suffixed output path, so a second dataset cannot clobber the first.
+
+    m1_monthly is the primary and keeps the unsuffixed name that earlier commits
+    and write-ups already reference.
+    """
+    if dataset == "m1_monthly_dataset":
+        return template.format(suffix="")
+    return template.format(suffix="_" + dataset.replace("_dataset", ""))
+
+
 def required_rank(n, coverage):
     """1-based rank k = ceil((n+1) * coverage), exact. None when k > n."""
     k = math.ceil(Fraction(n + 1) * Fraction(coverage).limit_denominator(10**6))
@@ -238,9 +249,10 @@ def main():
     say("Real series are not exchangeable, so an absolute miss is not attributable to")
     say("the convention on its own -- the paired delta is what carries the claim.")
 
-    with open(OUT, "w") as fh:
+    out = out_path(OUT_TEMPLATE, name)
+    with open(out, "w") as fh:
         fh.write("\n".join(lines) + "\n")
-    print(f"\nwritten -> {OUT}")
+    print(f"\nwritten -> {out}")
 
 
 if __name__ == "__main__":

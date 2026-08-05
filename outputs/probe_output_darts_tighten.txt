@@ -5,15 +5,22 @@ self_check() passed at import (rank model verified against numpy on 594 cells)
 2000 independent fits per cell, iid Gaussian series, LinearRegressionModel(lags=1), quantiles=[0.05, 0.5, 0.95]
 requested two-sided coverage: 0.9000
 
-  cal_len   measured     s.e.  predicted   gap/s.e.       ranks      width
-       10     0.9065   0.0065     0.7273     +27.52      [2,10]     3.7351
-       15     0.8770   0.0073     0.8125      +8.78      [2,15]     3.2143
-       30     0.8980   0.0068     0.8387      +8.76      [3,29]     3.4281
-       50     0.8835   0.0072     0.8627      +2.89      [4,48]     3.3420
+  cal_len   measured     s.e.  predicted   gap/s.e.  k_np  k_req      width  2-rail (dead)
+       10     0.9065   0.0065     0.9091      -0.40    10     10     3.7351         0.7273
+       15     0.8770   0.0073     0.8750      +0.27    14     15     3.2143         0.8125
+       30     0.8980   0.0068     0.9032      -0.77    28     28     3.4281         0.8387
+       50     0.8835   0.0072     0.9020      -2.57    46     46     3.3420         0.8627
 
-'predicted' is the exact coverage of the ranks darts lands on, r/(n+1) --
+'predicted' is the exact coverage of the rank darts lands on, k_np/(n+1) --
 derived, not fitted. 'gap/s.e.' is how far the measurement sits from it.
 A gap within about +/-2 means the convention explains the coverage fully.
+'2-rail (dead)' is the falsified hypothesis, printed for the contrast.
+
+k_req - k_np is 0 at cal_length 10, 30 and 50 and 1 at 15, so three of these
+four cells are coincidence cells where darts lands on the correct rank by
+arithmetic accident. That is why this four-cell table looked non-monotonic.
+darts_scoring_path.py samples both bands and separates the in-sample
+residual bias that remains at cal_length=50 from the convention.
 
 Honest scope, unchanged: iid by construction, so the guarantee SHOULD hold
 exactly here. This is not a claim about real dependent series.

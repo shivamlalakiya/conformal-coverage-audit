@@ -1,0 +1,92 @@
+====================================================================================================
+W3, DARTS ARM -- delivered coverage on real data, paired
+====================================================================================================
+self_check() passed at import
+dataset: m3_monthly_dataset   frequency: monthly   series: 250
+arm A: darts ConformalNaiveModel(LinearRegressionModel(lags=1)), its own
+       defaults, via predict(predict_likelihood_parameters=True)
+arm B: the SAME captured calibration scores and the SAME centre,
+       thresholded at rank ceil((n+1)*coverage)
+
+cal_length cells, and the exact deficit at each (k_req - k_np, no simulation):
+    coverage 0.90   10:0   15:1   30:0   35:1   50:0   55:1
+    coverage 0.95   10:inf   15:inf   30:1   35:1   50:1   55:1
+    0 = darts lands on the required rank by arithmetic coincidence
+    1 = it lands one rank short;  inf = no valid finite bound exists at that n
+
+
+nominal 0.90   quantiles=[0.05, 0.5, 0.95]
+  cal_length=10    series=250  median n=10
+      arm A (shipped)        coverage 0.9040   lands on median rank 10 of 10
+      arm B (required rank)  coverage 0.9040   median required rank 10 of 10
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2462   B 2462
+  cal_length=15    series=250  median n=15
+      arm A (shipped)        coverage 0.8760   lands on median rank 14 of 15
+      arm B (required rank)  coverage 0.9400   median required rank 15 of 15
+      paired delta (B - A)   +0.0640  (s.e. 0.0155)  4.1 s.e.  <- >=2 s.e.
+      widths:  A 2016   B 2663
+  cal_length=30    series=250  median n=30
+      arm A (shipped)        coverage 0.8920   lands on median rank 28 of 30
+      arm B (required rank)  coverage 0.8920   median required rank 28 of 30
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2162   B 2162
+  cal_length=35    series=250  median n=35
+      arm A (shipped)        coverage 0.8800   lands on median rank 32 of 35
+      arm B (required rank)  coverage 0.8960   median required rank 33 of 35
+      paired delta (B - A)   +0.0160  (s.e. 0.0080)  2.0 s.e.  <- >=2 s.e.
+      widths:  A 2031   B 2231
+  cal_length=50    series=250  median n=50
+      arm A (shipped)        coverage 0.8880   lands on median rank 46 of 50
+      arm B (required rank)  coverage 0.8880   median required rank 46 of 50
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2118   B 2118
+  cal_length=55    series=250  median n=55
+      arm A (shipped)        coverage 0.8840   lands on median rank 50 of 55
+      arm B (required rank)  coverage 0.8960   median required rank 51 of 55
+      paired delta (B - A)   +0.0120  (s.e. 0.0069)  1.7 s.e.
+      widths:  A 2066   B 2206
+
+nominal 0.95   quantiles=[0.025, 0.5, 0.975]
+  cal_length=10    series=250  median n=10
+      arm A (shipped)        coverage 0.9040   lands on median rank 10 of 10
+      arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
+      paired delta (B - A)   +0.0960  (s.e. 0.0187)  5.1 s.e.  <- >=2 s.e.
+      ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
+        not the level->rank map. 1 - A is the shortfall against a level no finite
+        interval can deliver at this n.
+  cal_length=15    series=250  median n=15
+      arm A (shipped)        coverage 0.9400   lands on median rank 15 of 15
+      arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
+      paired delta (B - A)   +0.0600  (s.e. 0.0151)  4.0 s.e.  <- >=2 s.e.
+      ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
+        not the level->rank map. 1 - A is the shortfall against a level no finite
+        interval can deliver at this n.
+  cal_length=30    series=250  median n=30
+      arm A (shipped)        coverage 0.9120   lands on median rank 29 of 30
+      arm B (required rank)  coverage 0.9560   median required rank 30 of 30
+      paired delta (B - A)   +0.0440  (s.e. 0.0130)  3.4 s.e.  <- >=2 s.e.
+      widths:  A 2499   B 3054
+  cal_length=35    series=250  median n=35
+      arm A (shipped)        coverage 0.9200   lands on median rank 34 of 35
+      arm B (required rank)  coverage 0.9560   median required rank 35 of 35
+      paired delta (B - A)   +0.0360  (s.e. 0.0118)  3.0 s.e.  <- >=2 s.e.
+      widths:  A 2550   B 3146
+  cal_length=50    series=250  median n=50
+      arm A (shipped)        coverage 0.9080   lands on median rank 48 of 50
+      arm B (required rank)  coverage 0.9360   median required rank 49 of 50
+      paired delta (B - A)   +0.0280  (s.e. 0.0105)  2.7 s.e.  <- >=2 s.e.
+      widths:  A 2498   B 2879
+  cal_length=55    series=250  median n=55
+      arm A (shipped)        coverage 0.9240   lands on median rank 53 of 55
+      arm B (required rank)  coverage 0.9400   median required rank 54 of 55
+      paired delta (B - A)   +0.0160  (s.e. 0.0080)  2.0 s.e.  <- >=2 s.e.
+      widths:  A 2582   B 3002
+
+A positive delta means the required rank covers more than the shipped call.
+Real series are not exchangeable, so an absolute miss is not attributable to
+the convention on its own -- the paired delta is what carries the claim.
+
+Where the deficit above is 0 the two arms are the same interval and the delta
+is exactly 0.0000 by construction, not by measurement. Those rows are the
+control: they show the harness returns zero when there is nothing to find.

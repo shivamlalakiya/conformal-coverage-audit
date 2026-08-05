@@ -1,0 +1,74 @@
+========================================================================================================
+CONFORMANCE SUITE -- what does this quantile helper actually deliver?
+========================================================================================================
+self_check() passed at import: the classifier labelled reference
+implementations of branches a, b, c, d and g correctly, and threshold
+extraction recovered the exact rank on a tie-free score set.
+
+requested coverage: 0.90
+feasibility floor:  n >= 9  (below it, ceil((n+1)*0.90) exceeds n and NO finite bound is valid)
+probe at n=8 (infeasible) and n=40 (interior)
+
+Scores are 1..n with no ties, so a returned threshold IS the rank it
+landed on -- a non-integer value means the helper interpolated between
+two order statistics.
+
+helper                                                br   at n_bad  rank@n_ok  delivered  n_min  warn?
+--------------------------------------------------------------------------------------------------------
+reference a                                            a     raises     38.000     0.9000      9      -
+reference b                                            b      8.000     38.000     0.9000      9      -
+reference c                                            c       +inf     37.000     0.9000      9      -
+reference d                                            d      7.300     36.100        nan  >2000      -
+reference g                                            g      1.310      2.700        nan  >2000      -
+numpy method='linear' (sktime, statsforecast, neuralforecast)   d      7.300     36.100        nan  >2000      -
+numpy method='higher' (darts)                          d      8.000     37.000     0.9000      9      -
+statsforecast _oriented_index                          b      8.000     37.075     0.9000      9      -
+
+Evidence per helper
+--------------------------------------------------------------------------------------------------------
+  a
+      branch (a): rule fitted over 6 interior n: corrected, method='higher' (max deviation 0.000 ranks); corrects, then raises at n=8
+      first delivers 0.90 at n=9, as 9/10 = 0.9000
+  b
+      branch (b): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: corrected, method='higher' (max deviation 0.000 ranks); corrects, then returns max(scores) at n=8 where the corrected level exceeds 1 -- the clamp
+      first delivers 0.90 at n=9, as 9/10 = 0.9000
+  c
+      branch (c): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: corrected, order statistic (max deviation 0.000 ranks); corrects, then returns +inf at n=8
+      first delivers 0.90 at n=9, as 9/10 = 0.9000
+  d
+      branch (d): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: uncorrected, interpolating (max deviation 0.000 ranks); no (n+1)/n correction, so the boundary is never reached and no choice is ever made there; threshold lands BETWEEN order statistics, so no exchangeability bound applies to it directly
+      never delivers 0.90 for any n <= 2000
+  g
+      branch (g): silent at the boundary: no warning emitted at n=8; no candidate rule fits: closest is uncorrected, interpolating off by 102.7 ranks over 6 interior n -- an approximate estimator, not an order statistic of the calibration set
+      never delivers 0.90 for any n <= 2000
+  numpy method='linear' (sktime, statsforecast, neuralforecast)
+      branch (d): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: uncorrected, interpolating (max deviation 0.000 ranks); no (n+1)/n correction, so the boundary is never reached and no choice is ever made there; threshold lands BETWEEN order statistics, so no exchangeability bound applies to it directly
+      never delivers 0.90 for any n <= 2000
+  numpy method='higher' (darts)
+      branch (d): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: uncorrected, method='higher' (max deviation 0.000 ranks); no (n+1)/n correction, so the boundary is never reached and no choice is ever made there; NOTE it does return max(scores) at n=8, but that is the uncorrected level landing on rank n by arithmetic, NOT a clamp -- the fitted rule settles it
+      first delivers 0.90 at n=9, as 9/10 = 0.9000
+  statsforecast _oriented_index
+      branch (b): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: corrected, interpolating (max deviation 0.000 ranks); corrects, then returns max(scores) at n=8 where the corrected level exceeds 1 -- the clamp; threshold lands BETWEEN order statistics, so no exchangeability bound applies to it directly
+      first delivers 0.90 at n=9, as 9/10 = 0.9000
+
+adapters not loaded here (4) -- reported, not dropped:
+      mapie get_quantile                           ModuleNotFoundError
+      crepes predict_int                           ModuleNotFoundError
+      puncc compute_quantile                       ModuleNotFoundError
+      torchcp calculate_conformal_value            ModuleNotFoundError
+      run this file again in the other probe venv to cover them
+
+========================================================================================================
+THE THREE-ITEM REPORTING CHECKLIST
+========================================================================================================
+Any paper or library that claims a distribution-free coverage level should
+report these three numbers. They are short enough that a reviewer can demand
+them and cheap enough that no author can object.
+
+  1. The DELIVERED coverage, not the requested one: the rank the implementation lands on, divided by n+1.
+  2. The RANK itself, as k of n, so a reader can check the arithmetic without rerunning anything.
+  3. The CALIBRATION SET SIZE n, and whether any valid finite bound exists at that n for the requested level.
+
+The point of the third item is that it is the only one that can say 'no valid
+bound exists here'. Items 1 and 2 are always answerable; item 3 is the one
+that catches a finite interval returned where none is possible.

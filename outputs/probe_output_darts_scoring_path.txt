@@ -1,0 +1,61 @@
+====================================================================================================
+DARTS SCORING PATH -- instrumented, and it replaces a falsified prediction
+====================================================================================================
+self_check() passed at import (rank model verified against numpy on 792 cells)
+
+What the source does (conformal_models.py:1681, :1717, :165-167):
+  scores = |residual|            (metrics.ae, symmetric=True is the default)
+  level  = interval_range_sym    = q_high - q_low = 0.90, UNCORRECTED
+  q_hat  = np.quantile(scores, 0.90, method='higher')
+  interval = centre -/+ q_hat    -- ONE threshold, not two rails
+
+Every fit below asserts all three links: scores non-negative, q_hat equals
+the order statistic method='higher' selects, and the interval is symmetric
+about the median. Any failure aborts the run.
+
+2000 fits per cell, iid Gaussian series of 120, LinearRegressionModel(lags=1), quantiles=[0.05, 0.5, 0.95]
+requested two-sided coverage: 0.9000
+
+Deficit map, exact and complete over n = 9..60 -- k_req - k_np, no simulation:
+  0 0  1 1 1 1 1 1 1 1 0 0  1 1 1 1 1 1 1 1 0 0  1 1 1 1 1 1 1 1 0 0  1 1 1 1 1 1 1 1 0 0  1 1 1 1 1 1 1 1 0 0  
+  n=9 ......................................................... n=60
+  coincidence cells (deficit 0): [9, 10, 19, 20, 29, 30, 39, 40, 49, 50, 59, 60]
+  the deficit is 0 or 1 and never 2, verified to n=2000 in self_check()
+  below n=9 no valid finite 0.90 symmetric bound exists at all (k_req > n for n <= 8)
+
+----------------------------------------------------------------------------------------------------
+BLOCK 1 -- base model fitted on the whole history (what a user does)
+           calibration scores are IN-SAMPLE, so optimistically small
+----------------------------------------------------------------------------------------------------
+   cal    n  k_np  k_req    A meas   k/(n+1)   gap/s.e.    B meas     delta   d s.e.   A half   B half
+    10   10    10     10    0.9065    0.9091      -0.40    0.9065   +0.0000   0.0000   1.8676   1.8676
+    15   15    14     15    0.8770    0.8750      +0.27    0.9365   +0.0595   0.0053   1.6072   2.0277
+    30   30    28     28    0.8980    0.9032      -0.77    0.8980   +0.0000   0.0000   1.7140   1.7140
+    35   35    32     33    0.8805    0.8889      -1.16    0.9035   +0.0230   0.0034   1.6127   1.7641
+    50   50    46     46    0.8835    0.9020      -2.57    0.8835   +0.0000   0.0000   1.6710   1.6710
+    55   55    50     51    0.8920    0.8929      -0.12    0.9070   +0.0150   0.0027   1.6404   1.7359
+
+----------------------------------------------------------------------------------------------------
+BLOCK 2 -- base model fitted on y[:60], calibrated on the held-out remainder
+           calibration scores are OUT-OF-SAMPLE, so exchangeable with the test point
+----------------------------------------------------------------------------------------------------
+   cal    n  k_np  k_req    A meas   k/(n+1)   gap/s.e.    B meas     delta   d s.e.   A half   B half
+    10   10    10     10    0.9080    0.9091      -0.17    0.9080   +0.0000   0.0000   1.9020   1.9020
+    15   15    14     15    0.8790    0.8750      +0.55    0.9400   +0.0610   0.0054   1.6427   2.0693
+    30   30    28     28    0.9090    0.9032      +0.90    0.9090   +0.0000   0.0000   1.7593   1.7593
+    35   35    32     33    0.8870    0.8889      -0.27    0.9085   +0.0215   0.0032   1.6719   1.8270
+    50   50    46     46    0.9110    0.9020      +1.42    0.9110   +0.0000   0.0000   1.7264   1.7264
+    55   55    50     51    0.8905    0.8929      -0.34    0.9095   +0.0190   0.0031   1.6681   1.7630
+
+Reading the table
+-----------------
+k_np    the rank darts lands on: ceil(0.90*(n-1)) + 1
+k_req   the rank a valid 0.90 bound needs: ceil((n+1)*0.90)
+A       darts as shipped;  B       same scores, same centre, required rank
+k/(n+1) exact coverage of rank k_np under exchangeability -- derived, not fitted
+gap     (A - k/(n+1)) in standard errors. Within about +/-2 means the
+        level->rank map explains darts' coverage completely.
+
+The falsified column in run_darts_tighten.py predicted 0.7273 at cal_length=10
+from a two-rail model. The one-threshold model above predicts 10/11 = 0.9091
+for the same cell. Compare both against the measurement in that file.

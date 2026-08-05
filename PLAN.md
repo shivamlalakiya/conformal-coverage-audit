@@ -1,8 +1,8 @@
 # Research plan
 
-**Status: measurement in progress. No prose written yet.** This file is the scientific plan — the
-question, the method, the protocol, and what is finished versus what is not. It is deliberately explicit
-about what has *not* been established.
+**Status: measurement complete, no prose written yet.** This file is the scientific plan — the question,
+the method, the protocol, and what is finished versus what is not. It is deliberately explicit about what
+has *not* been established.
 
 ---
 
@@ -74,8 +74,8 @@ model, the delta is meaningless — see §8.
 
 | Domain | Source | Rule |
 |---|---|---|
-| Forecasting | Monash Time Series Forecasting Archive; M4 | Selection rule stated before running; minimum series length fixed by the largest calibration window |
-| Tabular | OpenML-CC18, or a documented subset | Same |
+| Forecasting | Monash Time Series Forecasting Archive — **M1 monthly and M3 monthly, 250 series each** | Selection rule stated before running; minimum series length fixed by the largest calibration window. Two independent collections, because "you picked the series" is the one objection a single archive cannot answer |
+| Tabular | **OpenML-CC18** (classification) and **OpenML-CTR23** (regression) | ≤ 5000 rows, ≤ 100 features after one-hot encoding, no missing values, first *N* by dataset id. Every skipped dataset is reported with its reason |
 | Synthetic | iid draws | Retained deliberately: where the guarantee *should* hold exactly, any miss is unambiguous |
 
 ## 7. Reporting standard proposed by this work
@@ -92,13 +92,26 @@ Three items, short enough to be asked for in review:
 |---|---|
 | Convention in isolation, synthetic, exact-rational oracle | ✅ Complete |
 | Structural branch identification and threshold extraction (M4) | ✅ Complete |
-| Per-helper survey of thirteen packages, versions pinned, read at source | ✅ Complete; two counts pending re-audit against a stated criterion |
+| Per-helper survey of thirteen packages, versions pinned, read at source | ✅ Complete |
 | End-to-end synthetic runs for four libraries | ✅ Complete |
-| **M1 rank map over the nine definitions** | 🔲 Not started |
-| **M2 delivered `n_min` table** | 🔲 Arithmetic exists, table not assembled |
-| **M3 paired real-data coverage** | ⚠️ **Harness written and running; v1's attribution is INVALID and its numbers are not reportable.** The two arms did not share a residual set or a centre, which showed up as arm A landing on ranks above `n` and as a negative paired delta between intervals that are not nested. Fix identified: build arm B from the library's own residual matrix and point forecast, as an existing probe in this repository already does. **Not committed until that holds** |
-| Tightening the one null result to ≥2000 fits across several calibration sizes | 🔲 Not started |
-| Conformance suite and the §7 checklist as installable tooling | 🔲 Not started |
+| **M1 rank map over the nine definitions** | ✅ Complete. Only 4 of 13 definitions deliver the requested guarantee at an uncorrected level; numpy's default `linear` and Hyndman–Fan's own recommendation deliver it at **no n ≤ 2000** |
+| **M2 delivered `n_min` table** | ✅ Complete |
+| **M3 paired real-data coverage** | ✅ Complete, four library arms on two independent Monash collections plus two OpenML suites. v1's attribution was invalid — its two arms did not share a residual set or a centre — and that failure is documented in the probe that replaced it rather than deleted |
+| Tightening the one null result to ≥2000 fits across several calibration sizes | ✅ Complete. **There is no null**: the deficit alternates between 0 and 1 on a residue pattern, and a four-cell table that lands on the coincidence band shows zeros for arithmetic reasons |
+| Conformance suite and the §7 checklist | ✅ Complete, `probes/conformance_suite.py` |
+| Whether the mechanism generalises beyond conformal prediction | ✅ Complete, `probes/w8_falsification.py`. It reproduces in value-at-risk and in nonparametric tolerance bounds; it is **not** the dominant term in bootstrap percentile intervals |
+| Per-helper count under a stated criterion | ✅ Complete, `probes/helper_census.py` |
+
+### 8.1 What the measurement found, in one paragraph
+
+The level→rank map, not the presence of the `(n+1)/n` correction, predicts whether an interval covers.
+**Six tabular implementations resolving the same bound from the same scores on the same split show a
+paired delta of exactly zero in five cases**; the sixth over-covers. The forecasting libraries are where
+the deficit lives, and there the size of it is set by which order statistic the level lands on — one
+library's deficit alternates between zero and one rank on a residue pattern in `n`, so the same code path
+is exact at some calibration sizes and short at others. Separately, one library's **default**
+configuration calibrates on two residuals, where no valid finite bound exists at any conventional level,
+and returns a finite interval regardless.
 
 ## 9. Verification rules applied to everything here
 
@@ -123,12 +136,24 @@ These are not aspirations; they have each already caught a real error in this wo
 
 - Synthetic harnesses use iid draws with a deliberately simple base model. They establish that a miss
   occurs where the guarantee should hold exactly; they say nothing about dependent real-world series.
-  That is what M3 is for, and M3 is not finished.
+  That is what M3 is for.
 - Non-exchangeability generally biases toward **over**coverage, so a synthetic result understates rather
   than overstates.
+- On real data the **absolute** coverage is not attributable to the convention. Only the paired delta is.
+  Every real-data table here reports the delta and its standard error for that reason.
 - Findings are version-pinned. The rank map (M1) is not, which is why it is the theory core.
+- One library's calibration residuals are computed from a model already fitted on the whole input series,
+  so they are in-sample and optimistically small. That bias is measured **separately** from the level→rank
+  map, in `probes/darts_scoring_path.py`, rather than being folded into a single number.
+- The generalisation check found the mechanism present but **not dominant** in bootstrap percentile
+  intervals. The mechanism generalises; the effect sizes measured here do not.
+- R is not installed on the machine these probes ran on, so `quantile(type = 7)` — R's default, and
+  identical to numpy's `linear` — is cited rather than run.
 - One finding previously asserted in this work was **retracted** after three independent checks
-  contradicted it. The probe that adjudicated it is in this repository.
+  contradicted it. The probe that adjudicated it is in this repository. Several later claims were
+  retracted the same day they were made, by exact-arithmetic checks written to test them; the most
+  instructive is that a returned threshold equal to `max(scores)` is **not** evidence of a clamped level,
+  because where the required rank *is* `n`, the maximum is the correct answer.
 
 ## 11. Out of scope
 
@@ -140,6 +165,9 @@ These are not aspirations; they have each already caught a real error in this wo
 
 ## 12. What is in this repository
 
-Five probes and three committed outputs. Two outputs are intentionally absent: one prints a mechanism that
-has not yet been reported to the maintainers of the package concerned, and both regenerate exactly by
-running the committed probes under the pinned environment.
+Seventeen probes and their committed outputs, listed by purpose in `README.md`. Every closed form
+self-checks against exact rational arithmetic at import, and a failing check aborts the run.
+
+Not included, each for a stated reason: third-party library sources (pinned in
+`probe-requirements.txt` instead of redistributed), and the `.npz` series cache one probe writes (the two
+commands that regenerate it are in `README.md`).

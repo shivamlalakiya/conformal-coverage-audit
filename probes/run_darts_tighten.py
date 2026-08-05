@@ -13,6 +13,16 @@ that standard error.
 The prediction is exact, not fitted: darts passes an uncorrected level to
 np.quantile with method="higher", which lands on 1-based rank ceil(c*(n-1)) + 1,
 and a bound built on rank r covers with probability exactly r/(n+1).
+
+The prediction column was WRONG in the first version of this file, and is fixed
+--------------------------------------------------------------------------------
+It modelled the interval as two independent uncorrected rails, one at level 0.05
+and one at 0.95, spanning ranks [r_lo, r_hi]. The measurement falsified that by
+up to 27 standard errors. `darts_scoring_path.py` read the source and
+instrumented it: with `symmetric=True` (the default) darts scores ABSOLUTE
+errors, takes ONE uncorrected level `interval_range_sym` = 0.90, and returns
+centre +/- that single threshold. The corrected column below uses that model,
+and every link in it is asserted per fit in the other probe.
 """
 
 import math
@@ -38,26 +48,30 @@ def required_rank(c, n):
     return math.ceil(F(n + 1) * F(c))
 
 
-def predicted_two_sided(n):
-    """A HYPOTHESIS about darts' two-sided interval, and the run FALSIFIES it.
+def predicted_two_rail_FALSIFIED(n):
+    """The original hypothesis, kept because a falsified prediction beside a
+    measurement is evidence and a silently deleted one is not.
 
-    The model: the lower rail takes level 0.05 and the upper 0.95, both
-    uncorrected; with method='higher' each lands on a rank, the interval spans
-    ranks [r_lo, r_hi], and coverage is (r_hi - r_lo)/(n+1).
-
-    Measured against 2000 fits per cell this is wrong by up to 27 standard
-    errors -- at n=10 it predicts 0.7273 where 0.9065 is observed. So
-    ConformalNaiveModel does NOT build its interval from two independent rails
-    of the signed residuals in the way assumed here.
-
-    The column is retained, clearly labelled, because a falsified prediction
-    with a measurement beside it is evidence; a silently deleted one is not.
-    Resolving what the model actually does is an open item -- read
-    ConformalNaiveModel's own scoring path rather than guessing again.
+    The model: lower rail at level 0.05, upper at 0.95, both uncorrected, the
+    interval spanning ranks [r_lo, r_hi], coverage (r_hi - r_lo)/(n+1).
+    Wrong by up to 27 standard errors -- at n=10 it predicts 0.7273 where
+    0.9065 is observed. darts does not build the interval this way.
     """
     r_lo = darts_rank(F(1, 20), n)
     r_hi = darts_rank(F(19, 20), n)
     return F(r_hi - r_lo, n + 1), r_lo, r_hi
+
+
+def predicted_symmetric(n):
+    """The verified model. conformal_models.py:1681 with symmetric=True scores
+    |residual| (metrics.ae, :1717) and takes ONE uncorrected level,
+    interval_range_sym = 0.90 (:165-167), with method='higher'. So the rank is
+    ceil(0.90*(n-1)) + 1 and a symmetric bound there covers exactly k/(n+1).
+
+    Asserted link by link, per fit, in darts_scoring_path.py.
+    """
+    k = darts_rank(F(9, 10), n)
+    return F(k, n + 1), k, required_rank(F(9, 10), n)
 
 
 def self_check():
@@ -72,10 +86,15 @@ def self_check():
     assert required_rank(F(9, 10), 9) == 9
     assert required_rank(F(19, 20), 19) == 19
     assert required_rank(F(19, 20), 18) == 19  # > n, so infeasible at n=18
-    # the two-sided prediction is a probability
+    # both predictions are probabilities, and they disagree -- that is the point
     for n in CAL_LENGTHS:
-        p, lo, hi = predicted_two_sided(n)
+        p, lo, hi = predicted_two_rail_FALSIFIED(n)
         assert 0 <= p <= 1 and lo < hi, (n, p, lo, hi)
+        p2, k, k_req = predicted_symmetric(n)
+        assert 0 <= p2 <= 1 and 1 <= k <= n, (n, p2, k)
+        assert k_req - k in (0, 1), (n, k, k_req)
+    assert predicted_symmetric(10)[0] == F(10, 11)
+    assert predicted_symmetric(15)[0] == F(14, 16)
 
 
 self_check()
@@ -100,7 +119,7 @@ def main():
     say("requested two-sided coverage: 0.9000")
     say("")
     say(f"  {'cal_len':>7}  {'measured':>9}  {'s.e.':>7}  {'predicted':>9}  "
-        f"{'gap/s.e.':>9}  {'ranks':>10}  {'width':>9}")
+        f"{'gap/s.e.':>9}  {'k_np':>4}  {'k_req':>5}  {'width':>9}  {'2-rail (dead)':>13}")
 
     for cal in CAL_LENGTHS:
         rng = np.random.default_rng(SEED + cal)
@@ -117,15 +136,24 @@ def main():
 
         cov = float(np.mean(hits))
         se = float(np.std(hits, ddof=1) / math.sqrt(REPS))
-        pred, r_lo, r_hi = predicted_two_sided(cal)
+        pred, k_np, k_req = predicted_symmetric(cal)
+        dead = float(predicted_two_rail_FALSIFIED(cal)[0])
         gap = (cov - float(pred)) / se if se > 0 else float("nan")
         say(f"  {cal:>7}  {cov:>9.4f}  {se:>7.4f}  {float(pred):>9.4f}  "
-            f"{gap:>+9.2f}  {f'[{r_lo},{r_hi}]':>10}  {np.mean(widths):>9.4f}")
+            f"{gap:>+9.2f}  {k_np:>4}  {k_req:>5}  {np.mean(widths):>9.4f}  "
+            f"{dead:>13.4f}")
 
     say("")
-    say("'predicted' is the exact coverage of the ranks darts lands on, r/(n+1) --")
+    say("'predicted' is the exact coverage of the rank darts lands on, k_np/(n+1) --")
     say("derived, not fitted. 'gap/s.e.' is how far the measurement sits from it.")
     say("A gap within about +/-2 means the convention explains the coverage fully.")
+    say("'2-rail (dead)' is the falsified hypothesis, printed for the contrast.")
+    say("")
+    say("k_req - k_np is 0 at cal_length 10, 30 and 50 and 1 at 15, so three of these")
+    say("four cells are coincidence cells where darts lands on the correct rank by")
+    say("arithmetic accident. That is why this four-cell table looked non-monotonic.")
+    say("darts_scoring_path.py samples both bands and separates the in-sample")
+    say("residual bias that remains at cal_length=50 from the convention.")
     say("")
     say("Honest scope, unchanged: iid by construction, so the guarantee SHOULD hold")
     say("exactly here. This is not a claim about real dependent series.")

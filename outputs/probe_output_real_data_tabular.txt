@@ -1,0 +1,426 @@
+========================================================================================================
+W3, TABULAR ARM -- delivered coverage on OpenML data, paired, four libraries
+========================================================================================================
+self_check() passed at import (the clip window is derived, not assumed)
+
+SELECTION RULE, fixed before measurement:
+  classification  OpenML-CC18,  <= 5000 rows, <= 100 features after one-hot, no missing values, first 15 by dataset id
+  regression      OpenML-CTR23, same caps and ordering
+  split           train = half of the remainder, calibration = n_cal, test = rest capped at 1000
+  models          StandardScaler + LogisticRegression(max_iter=1000) / Ridge(), fitted on train only, shared by both arms
+  seed            20260805
+
+Coverage is measured per dataset over its test rows; the paired delta and its
+standard error are then taken ACROSS datasets, so one large dataset cannot
+dominate the result.
+
+Is mapie's np.clip in get_quantile reachable? Exhaustive, exact arithmetic,
+n = 2..5000 at five confidence levels and both sym settings:
+    coverage 0.80  sym=False  rail level 0.9000   guard floor n>=10   clip alters the level for n<9   overlap: 0
+    coverage 0.80  sym=True   rail level 0.8000   guard floor n>=5   clip alters the level for n<4   overlap: 0
+    coverage 0.90  sym=False  rail level 0.9500   guard floor n>=20   clip alters the level for n<19   overlap: 0
+    coverage 0.90  sym=True   rail level 0.9000   guard floor n>=10   clip alters the level for n<9   overlap: 0
+    coverage 0.95  sym=False  rail level 0.9750   guard floor n>=40   clip alters the level for n<39   overlap: 0
+    coverage 0.95  sym=True   rail level 0.9500   guard floor n>=20   clip alters the level for n<19   overlap: 0
+    coverage 0.98  sym=False  rail level 0.9900   guard floor n>=100   clip alters the level for n<99   overlap: 0
+    coverage 0.98  sym=True   rail level 0.9800   guard floor n>=50   clip alters the level for n<49   overlap: 0
+    coverage 0.99  sym=False  rail level 0.9950   guard floor n>=200   clip alters the level for n<199   overlap: 0
+    coverage 0.99  sym=True   rail level 0.9900   guard floor n>=100   clip alters the level for n<99   overlap: 0
+    total n where the guard passes AND the clip bites: 0 of 49990 scanned -> the clip is dead code on this path
+
+classification: 15 datasets kept from OpenML-CC18
+         3  kr-vs-kp                            3196 x 74  
+        11  balance-scale                        625 x 4   
+        14  mfeat-fourier                       2000 x 76  
+        16  mfeat-karhunen                      2000 x 64  
+        18  mfeat-morphological                 2000 x 6   
+        22  mfeat-zernike                       2000 x 47  
+        23  cmc                                 1473 x 24  
+        31  credit-g                            1000 x 63  
+        37  diabetes                             768 x 8   
+        44  spambase                            4601 x 57  
+        50  tic-tac-toe                          958 x 27  
+        54  vehicle                              846 x 18  
+       307  vowel                                990 x 27  
+       458  analcatdata_authorship               841 x 70  
+       469  analcatdata_dmft                     797 x 21  
+    skipped 12: 6(rows 20000), 12(features 216 after encoding), 15(missing values), 28(rows 5620), 29(missing values), 32(rows 10992), 38(missing values), 46(features 287 after encoding), 151(rows 45312), 182(rows 6430), 188(missing values), 300(rows 7797)
+
+regression: 14 datasets kept from 353
+     44956  abalone                             4177 x 10  
+     44957  airfoil_self_noise                  1503 x 5   
+     44958  auction_verification                2043 x 16  
+     44959  concrete_compressive_strength       1030 x 8   
+     44960  energy_efficiency                    768 x 8   
+     44962  forest_fires                         517 x 29  
+     44966  solar_flare                         1066 x 29  
+     44967  student_performance_por              649 x 56  
+     44970  QSAR_fish_toxicity                   908 x 6   
+     44971  white_wine                          4898 x 11  
+     44972  red_wine                            1599 x 11  
+     44987  socmob                              1156 x 39  
+     44994  cars                                 804 x 17  
+     45402  space_ga                            3107 x 6   
+    skipped 21: 41021(missing values), 44963(rows 45730), 44964(rows 21263), 44965(features 116 after encoding), 44969(rows 11934), 44973(rows 10000), 44974(rows 68784), 44975(rows 72000), 44976(rows 48933), 44977(rows 20640), 44978(rows 8192), 44979(rows 53940) ...
+
+
+========================================================================================================
+mapie SplitConformalClassifier (LAC)
+========================================================================================================
+  nominal 0.90
+  n_cal=20     series=15   median n=20
+      arm A (shipped)        coverage 0.8935   lands on median rank 19 of 20
+      arm B (required rank)  coverage 0.8935   median required rank 19 of 20
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 1.534   B 1.534
+  n_cal=30     series=15   median n=30
+      arm A (shipped)        coverage 0.8829   lands on median rank 28 of 30
+      arm B (required rank)  coverage 0.8829   median required rank 28 of 30
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 1.551   B 1.551
+  n_cal=50     series=15   median n=50
+      arm A (shipped)        coverage 0.8966   lands on median rank 46 of 50
+      arm B (required rank)  coverage 0.8966   median required rank 46 of 50
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 1.513   B 1.513
+  n_cal=200    series=15   median n=200
+      arm A (shipped)        coverage 0.9113   lands on median rank 181 of 200
+      arm B (required rank)  coverage 0.9113   median required rank 181 of 200
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 1.594   B 1.594
+
+  nominal 0.95
+  n_cal=20     series=15   median n=20
+      arm A (shipped)        coverage 0.9534   lands on median rank 20 of 20
+      arm B (required rank)  coverage 0.9534   median required rank 20 of 20
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2.084   B 2.084
+      a rail equals max|score| in 15/15 datasets, classified against that rail's own level 0.950:
+        15 where max IS the required order statistic for that level (CORRECT, not a clip), 0 where the clip altered it
+  n_cal=30     series=14   median n=30   [set_reproduction_failed x1]
+      arm A (shipped)        coverage 0.9581   lands on median rank 30 of 30
+      arm B (required rank)  coverage 0.9581   median required rank 30 of 30
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2.306   B 2.306
+      a rail equals max|score| in 14/14 datasets, classified against that rail's own level 0.950:
+        14 where max IS the required order statistic for that level (CORRECT, not a clip), 0 where the clip altered it
+  n_cal=50     series=15   median n=50
+      arm A (shipped)        coverage 0.9542   lands on median rank 49 of 50
+      arm B (required rank)  coverage 0.9542   median required rank 49 of 50
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 1.903   B 1.903
+  n_cal=200    series=15   median n=200
+      arm A (shipped)        coverage 0.9551   lands on median rank 191 of 200
+      arm B (required rank)  coverage 0.9551   median required rank 191 of 200
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 1.85   B 1.85
+
+
+========================================================================================================
+mapie SplitConformalRegressor sym=True
+========================================================================================================
+  nominal 0.90
+  n_cal=20     series=14   median n=20
+      arm A (shipped)        coverage 0.9195   lands on median rank 19 of 20
+      arm B (required rank)  coverage 0.9195   median required rank 19 of 20
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2727   B 2727
+  n_cal=30     series=14   median n=30
+      arm A (shipped)        coverage 0.9224   lands on median rank 28 of 30
+      arm B (required rank)  coverage 0.9224   median required rank 28 of 30
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2819   B 2819
+  n_cal=50     series=14   median n=50
+      arm A (shipped)        coverage 0.8913   lands on median rank 46 of 50
+      arm B (required rank)  coverage 0.8913   median required rank 46 of 50
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2373   B 2373
+  n_cal=200    series=14   median n=200
+      arm A (shipped)        coverage 0.9009   lands on median rank 181 of 200
+      arm B (required rank)  coverage 0.9009   median required rank 181 of 200
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2398   B 2398
+
+  nominal 0.95
+  n_cal=20     series=14   median n=20
+      arm A (shipped)        coverage 0.9489   lands on median rank 20 of 20
+      arm B (required rank)  coverage 0.9489   median required rank 20 of 20
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2821   B 2821
+      a rail equals max|score| in 14/14 datasets, classified against that rail's own level 0.950:
+        14 where max IS the required order statistic for that level (CORRECT, not a clip), 0 where the clip altered it
+  n_cal=30     series=14   median n=30
+      arm A (shipped)        coverage 0.9734   lands on median rank 30 of 30
+      arm B (required rank)  coverage 0.9734   median required rank 30 of 30
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 3498   B 3498
+      a rail equals max|score| in 14/14 datasets, classified against that rail's own level 0.950:
+        14 where max IS the required order statistic for that level (CORRECT, not a clip), 0 where the clip altered it
+  n_cal=50     series=14   median n=50
+      arm A (shipped)        coverage 0.9543   lands on median rank 49 of 50
+      arm B (required rank)  coverage 0.9543   median required rank 49 of 50
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2905   B 2905
+  n_cal=200    series=14   median n=200
+      arm A (shipped)        coverage 0.9513   lands on median rank 191 of 200
+      arm B (required rank)  coverage 0.9513   median required rank 191 of 200
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2875   B 2875
+
+
+========================================================================================================
+mapie SplitConformalRegressor sym=False
+========================================================================================================
+  nominal 0.90
+  n_cal=20     series=14   median n=20
+      arm A (shipped)        coverage 0.9092   lands on median rank 20 of 20
+      arm B (required rank)  coverage 0.9195   median required rank 19 of 20
+      paired delta (B - A)   +0.0103  (s.e. 0.0134)  0.8 s.e.
+      widths:  A 2406   B 2727
+      a rail equals max|score| in 11/14 datasets, classified against that rail's own level 0.950:
+        11 where max IS the required order statistic for that level (CORRECT, not a clip), 0 where the clip altered it
+  n_cal=30     series=14   median n=30
+      arm A (shipped)        coverage 0.9543   lands on median rank 30 of 30
+      arm B (required rank)  coverage 0.9224   median required rank 28 of 30
+      paired delta (B - A)   -0.0319  (s.e. 0.0066)  4.9 s.e.  <- >=2 s.e.
+      widths:  A 3212   B 2819
+      a rail equals max|score| in 10/14 datasets, classified against that rail's own level 0.950:
+        10 where max IS the required order statistic for that level (CORRECT, not a clip), 0 where the clip altered it
+  n_cal=50     series=14   median n=50
+      arm A (shipped)        coverage 0.9199   lands on median rank 48 of 50
+      arm B (required rank)  coverage 0.8913   median required rank 46 of 50
+      paired delta (B - A)   -0.0286  (s.e. 0.0053)  5.4 s.e.  <- >=2 s.e.
+      widths:  A 2532   B 2373
+  n_cal=200    series=14   median n=200
+      arm A (shipped)        coverage 0.9006   lands on median rank 183 of 200
+      arm B (required rank)  coverage 0.9009   median required rank 181 of 200
+      paired delta (B - A)   +0.0003  (s.e. 0.0045)  0.1 s.e.
+      widths:  A 2428   B 2398
+
+  nominal 0.95
+  n_cal=20    -- no usable cells
+  n_cal=30    -- no usable cells
+  n_cal=50     series=14   median n=50
+      arm A (shipped)        coverage 0.9644   lands on median rank 50 of 50
+      arm B (required rank)  coverage 0.9543   median required rank 49 of 50
+      paired delta (B - A)   -0.0101  (s.e. 0.0022)  4.5 s.e.  <- >=2 s.e.
+      widths:  A 3103   B 2905
+      a rail equals max|score| in 8/14 datasets, classified against that rail's own level 0.975:
+        8 where max IS the required order statistic for that level (CORRECT, not a clip), 0 where the clip altered it
+  n_cal=200    series=14   median n=200
+      arm A (shipped)        coverage 0.9498   lands on median rank 192 of 200
+      arm B (required rank)  coverage 0.9513   median required rank 191 of 200
+      paired delta (B - A)   +0.0015  (s.e. 0.0030)  0.5 s.e.
+      widths:  A 2850   B 2875
+
+
+========================================================================================================
+crepes ConformalRegressor.predict_int
+========================================================================================================
+  nominal 0.90
+  n_cal=20     series=14   median n=20
+      arm A (shipped)        coverage 0.9195   lands on median rank 19 of 20
+      arm B (required rank)  coverage 0.9195   median required rank 19 of 20
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2727   B 2727
+  n_cal=30     series=14   median n=30
+      arm A (shipped)        coverage 0.9224   lands on median rank 28 of 30
+      arm B (required rank)  coverage 0.9224   median required rank 28 of 30
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2819   B 2819
+  n_cal=50     series=14   median n=50
+      arm A (shipped)        coverage 0.8913   lands on median rank 46 of 50
+      arm B (required rank)  coverage 0.8913   median required rank 46 of 50
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2373   B 2373
+  n_cal=200    series=14   median n=200
+      arm A (shipped)        coverage 0.9009   lands on median rank 181 of 200
+      arm B (required rank)  coverage 0.9009   median required rank 181 of 200
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2398   B 2398
+
+  nominal 0.95
+  n_cal=20     series=14   median n=20
+      arm A (shipped)        coverage 0.9489   lands on median rank 20 of 20
+      arm B (required rank)  coverage 0.9489   median required rank 20 of 20
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2821   B 2821
+  n_cal=30     series=14   median n=30
+      arm A (shipped)        coverage 0.9734   lands on median rank 30 of 30
+      arm B (required rank)  coverage 0.9734   median required rank 30 of 30
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 3498   B 3498
+  n_cal=50     series=14   median n=50
+      arm A (shipped)        coverage 0.9543   lands on median rank 49 of 50
+      arm B (required rank)  coverage 0.9543   median required rank 49 of 50
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2905   B 2905
+  n_cal=200    series=14   median n=200
+      arm A (shipped)        coverage 0.9513   lands on median rank 191 of 200
+      arm B (required rank)  coverage 0.9513   median required rank 191 of 200
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2875   B 2875
+
+
+========================================================================================================
+puncc BaseCalibrator (CONTROL, exact)
+========================================================================================================
+  nominal 0.90
+  n_cal=20     series=14   median n=20
+      arm A (shipped)        coverage 0.9195   lands on median rank 19 of 20
+      arm B (required rank)  coverage 0.9195   median required rank 19 of 20
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2727   B 2727
+  n_cal=30     series=14   median n=30
+      arm A (shipped)        coverage 0.9224   lands on median rank 28 of 30
+      arm B (required rank)  coverage 0.9224   median required rank 28 of 30
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2819   B 2819
+  n_cal=50     series=14   median n=50
+      arm A (shipped)        coverage 0.8913   lands on median rank 46 of 50
+      arm B (required rank)  coverage 0.8913   median required rank 46 of 50
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2373   B 2373
+  n_cal=200    series=14   median n=200
+      arm A (shipped)        coverage 0.9009   lands on median rank 181 of 200
+      arm B (required rank)  coverage 0.9009   median required rank 181 of 200
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2398   B 2398
+
+  nominal 0.95
+  n_cal=20     series=14   median n=20
+      arm A (shipped)        coverage 0.9489   lands on median rank 20 of 20
+      arm B (required rank)  coverage 0.9489   median required rank 20 of 20
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2821   B 2821
+  n_cal=30     series=14   median n=30
+      arm A (shipped)        coverage 0.9734   lands on median rank 30 of 30
+      arm B (required rank)  coverage 0.9734   median required rank 30 of 30
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 3498   B 3498
+  n_cal=50     series=14   median n=50
+      arm A (shipped)        coverage 0.9543   lands on median rank 49 of 50
+      arm B (required rank)  coverage 0.9543   median required rank 49 of 50
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2905   B 2905
+  n_cal=200    series=14   median n=200
+      arm A (shipped)        coverage 0.9513   lands on median rank 191 of 200
+      arm B (required rank)  coverage 0.9513   median required rank 191 of 200
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2875   B 2875
+
+
+========================================================================================================
+torchcp calculate_conformal_value (reference)
+========================================================================================================
+  nominal 0.90
+  n_cal=20     series=14   median n=20
+      arm A (shipped)        coverage 0.9195   lands on median rank 19 of 20
+      arm B (required rank)  coverage 0.9195   median required rank 19 of 20
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2727   B 2727
+  n_cal=30     series=14   median n=30
+      arm A (shipped)        coverage 0.9224   lands on median rank 28 of 30
+      arm B (required rank)  coverage 0.9224   median required rank 28 of 30
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2819   B 2819
+  n_cal=50     series=14   median n=50
+      arm A (shipped)        coverage 0.8913   lands on median rank 46 of 50
+      arm B (required rank)  coverage 0.8913   median required rank 46 of 50
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2373   B 2373
+  n_cal=200    series=14   median n=200
+      arm A (shipped)        coverage 0.9009   lands on median rank 181 of 200
+      arm B (required rank)  coverage 0.9009   median required rank 181 of 200
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2398   B 2398
+
+  nominal 0.95
+  n_cal=20     series=14   median n=20
+      arm A (shipped)        coverage 0.9489   lands on median rank 20 of 20
+      arm B (required rank)  coverage 0.9489   median required rank 20 of 20
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2821   B 2821
+  n_cal=30     series=14   median n=30
+      arm A (shipped)        coverage 0.9734   lands on median rank 30 of 30
+      arm B (required rank)  coverage 0.9734   median required rank 30 of 30
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 3498   B 3498
+  n_cal=50     series=14   median n=50
+      arm A (shipped)        coverage 0.9543   lands on median rank 49 of 50
+      arm B (required rank)  coverage 0.9543   median required rank 49 of 50
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2905   B 2905
+  n_cal=200    series=14   median n=200
+      arm A (shipped)        coverage 0.9513   lands on median rank 191 of 200
+      arm B (required rank)  coverage 0.9513   median required rank 191 of 200
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2875   B 2875
+
+
+========================================================================================================
+nonconformist AbsErrorErrFunc.apply_inverse
+========================================================================================================
+  nominal 0.90
+  n_cal=20     series=14   median n=20
+      arm A (shipped)        coverage 0.9195   lands on median rank 19 of 20
+      arm B (required rank)  coverage 0.9195   median required rank 19 of 20
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2727   B 2727
+  n_cal=30     series=14   median n=30
+      arm A (shipped)        coverage 0.9224   lands on median rank 28 of 30
+      arm B (required rank)  coverage 0.9224   median required rank 28 of 30
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2819   B 2819
+  n_cal=50     series=14   median n=50
+      arm A (shipped)        coverage 0.8913   lands on median rank 46 of 50
+      arm B (required rank)  coverage 0.8913   median required rank 46 of 50
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2373   B 2373
+  n_cal=200    series=14   median n=200
+      arm A (shipped)        coverage 0.9009   lands on median rank 181 of 200
+      arm B (required rank)  coverage 0.9009   median required rank 181 of 200
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2398   B 2398
+
+  nominal 0.95
+  n_cal=20     series=14   median n=20
+      arm A (shipped)        coverage 0.9489   lands on median rank 20 of 20
+      arm B (required rank)  coverage 0.9489   median required rank 20 of 20
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2821   B 2821
+      a rail equals max|score| in 14/14 datasets, classified against that rail's own level 0.950:
+        14 where max IS the required order statistic for that level (CORRECT, not a clip), 0 where the clip altered it
+  n_cal=30     series=14   median n=30
+      arm A (shipped)        coverage 0.9734   lands on median rank 30 of 30
+      arm B (required rank)  coverage 0.9734   median required rank 30 of 30
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 3498   B 3498
+      a rail equals max|score| in 14/14 datasets, classified against that rail's own level 0.950:
+        14 where max IS the required order statistic for that level (CORRECT, not a clip), 0 where the clip altered it
+  n_cal=50     series=14   median n=50
+      arm A (shipped)        coverage 0.9543   lands on median rank 49 of 50
+      arm B (required rank)  coverage 0.9543   median required rank 49 of 50
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2905   B 2905
+  n_cal=200    series=14   median n=200
+      arm A (shipped)        coverage 0.9513   lands on median rank 191 of 200
+      arm B (required rank)  coverage 0.9513   median required rank 191 of 200
+      paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      widths:  A 2875   B 2875
+
+
+Reading this table
+------------------
+puncc is the control: it appends +inf and takes the inverted_cdf, so it lands
+on the same order statistic as arm B and the delta must be exactly zero. Any
+other reading there is a harness bug, not a library defect.
+
+'refused_by_guard' is a PASS, not a failure. A library that raises where no
+valid bound exists is behaving correctly; the branch to worry about is the one
+that returns a finite interval there instead.
+
+A NEGATIVE delta means the shipped interval covers MORE than the required
+rank -- conservatism, not a defect. mapie's asymmetric rails split alpha across
+two tails and so land wider than the symmetric bound arm B builds. Do not
+write that up as undercoverage.

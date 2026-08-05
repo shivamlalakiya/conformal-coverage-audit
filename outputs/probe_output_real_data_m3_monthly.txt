@@ -1,0 +1,54 @@
+================================================================================================
+DELIVERED COVERAGE ON REAL DATA -- paired, both arms off the same fitted object
+================================================================================================
+self_check() passed at import
+dataset: m3_monthly_dataset   series cap: 250
+arm A: sktime ConformalIntervals via predict_interval, its own defaults
+arm B: sktime's OWN residuals (residuals_matrix_, offset-1 diagonal) and
+       its OWN point forecast, thresholded at rank ceil((n+1)*coverage)
+
+series loaded: 250   frequency: monthly
+
+  empirical  nominal 0.90  initial_window=20  series=250  n_resid median=47
+      arm A (shipped)        coverage 0.8840   width     4417.234   lands on rank 42 of 47
+      arm B (required rank)  coverage 0.9240   width     5094.968   median required rank 44 of 47
+      paired delta (B - A)   +0.0400  (s.e. 0.0124)
+
+  empirical  nominal 0.90  initial_window=40  series=250  n_resid median=27
+      arm A (shipped)        coverage 0.8560   width     4100.171   lands on rank 24 of 27
+      arm B (required rank)  coverage 0.9520   width     5295.048   median required rank 26 of 27
+      paired delta (B - A)   +0.0960  (s.e. 0.0187)
+
+  empirical  nominal 0.95  initial_window=20  series=250  n_resid median=47
+      arm A (shipped)        coverage 0.9160   width     5181.340   lands on rank 45 of 47
+      arm B (required rank)  coverage 0.9720   width     6375.400   median required rank 46 of 47
+      paired delta (B - A)   +0.0560  (s.e. 0.0146)
+
+  empirical  nominal 0.95  initial_window=40  series=250  n_resid median=27
+      arm A (shipped)        coverage 0.9160   width     4795.424   lands on rank 26 of 27
+      arm B (required rank)  coverage 0.9720   width     6264.976   median required rank 27 of 27
+      paired delta (B - A)   +0.0560  (s.e. 0.0146)
+
+  conformal  nominal 0.90  initial_window=20  series=250  n_resid median=47
+      arm A (shipped)        coverage 0.8960   width     4565.186   lands on rank 43 of 47
+      arm B (required rank)  coverage 0.9240   width     5094.968   median required rank 44 of 47
+      paired delta (B - A)   +0.0280  (s.e. 0.0105)
+
+  conformal  nominal 0.90  initial_window=40  series=250  n_resid median=27
+      arm A (shipped)        coverage 0.8800   width     4284.171   lands on rank 25 of 27
+      arm B (required rank)  coverage 0.9520   width     5295.048   median required rank 26 of 27
+      paired delta (B - A)   +0.0720  (s.e. 0.0164)
+
+  conformal  nominal 0.95  initial_window=20  series=250  n_resid median=47
+      arm A (shipped)        coverage 0.9320   width     5429.414   lands on rank 45 of 47
+      arm B (required rank)  coverage 0.9720   width     6375.400   median required rank 46 of 47
+      paired delta (B - A)   +0.0400  (s.e. 0.0124)
+
+  conformal  nominal 0.95  initial_window=40  series=250  n_resid median=27
+      arm A (shipped)        coverage 0.9400   width     5080.899   lands on rank 26 of 27
+      arm B (required rank)  coverage 0.9720   width     6264.976   median required rank 27 of 27
+      paired delta (B - A)   +0.0320  (s.e. 0.0112)
+
+A positive delta means the required rank covers more than the shipped call.
+Real series are not exchangeable, so an absolute miss is not attributable to
+the convention on its own -- the paired delta is what carries the claim.

@@ -1,0 +1,253 @@
+============================================================================================================
+PER-HELPER CENSUS -- the unit stated first, every site verified on disk
+============================================================================================================
+self_check() passed at import (manifest is internally consistent)
+source root: ../cp-src
+
+UNIT -- a resolution site: one expression turning a requested level into an
+index into a calibration score set, or into a p-value denominator, whose value
+determines a returned threshold, interval, set or p-value.
+
+library               site                                                 br       map  out  verify
+------------------------------------------------------------------------------------------------------------
+mapie 1.4.1           BaseConformityScore.get_quantile                     b        yes  yes  OK
+mapie 1.4.1           _compute_quantiles                                   a        -    yes  OK
+mapie 1.4.1           LACConformityScore.get_conformity_score_quantiles    ?        -    yes  OK
+mapie 1.4.1           BaseRegressionScore._beta_optimize                   ?        -    yes  OK
+mapie 1.4.1           _MapieQuantileRegressor.predict                      a        -    yes  OK
+mapie 1.4.1           _check_alpha_and_n_samples                           a        -    -    OK
+crepes 0.9.1          ConformalClassifier.predict_set                      f/e      yes  yes  OK
+crepes 0.9.1          p_values_batch                                       f/e      yes  yes  OK
+crepes 0.9.1          ConformalRegressor.predict_int                       c        -    yes  OK
+crepes 0.9.1          ConformalRegressor.predict_int_online                c        yes  yes  OK
+crepes 0.9.1          ConformalPredictiveSystem.predict_int                ?        -    yes  OK
+crepes 0.9.1          ConformalPredictiveSystem.predict_int_online         c        yes  yes  OK
+puncc 0.9.3           BaseCalibrator.compute_quantile                      c-exact  -    yes  OK
+puncc 0.9.3           ClasswiseCalibrator.compute_quantile                 c-exact  -    yes  OK
+puncc 0.9.3           quantile                                             ?        -    yes  OK
+puncc 0.9.3           BaseCalibrator.compute_quantile (Bonferroni)         ?        -    -    OK
+puncc 0.9.3           alpha_calib_check                                    a        yes  -    OK
+puncc 0.9.3           EnbPI.predict                                        d        -    yes  OK
+puncc 0.9.3           EnbPI.predict (online update)                        d        -    yes  OK
+torchcp 1.2.1         calculate_conformal_value                            c        yes  yes  OK
+torchcp 1.2.1         compute_p_values                                     e/f      yes  -    OK
+torchcp 1.2.1         ClusterPredictor.__embed_all_classes                 d        -    -    OK
+nonconformist 2.1.0   IcpClassifier.predict                                e/f      yes  yes  OK
+nonconformist 2.1.0   AbsErrorErrFunc.apply_inverse                        b        -    yes  OK
+nonconformist 2.1.0   SignErrorErrFunc.apply_inverse                       b        -    yes  OK
+sktime 1.1.0          ConformalIntervals._predict_interval [method='empiri d        yes  yes  OK
+sktime 1.1.0          ConformalIntervals._predict_interval [method='empiri d        yes  yes  OK
+sktime 1.1.0          ConformalIntervals._predict_interval [method='confor d        yes  yes  OK
+sktime 1.1.0          ConformalIntervals._predict_interval [method='confor d        yes  yes  OK
+sktime 1.1.0          EnbPI.conformal_interval                             d        -    yes  OK
+river 0.25.0          RegressionJackknife.predict_one                      g        yes  yes  OK
+statsforecast 2.1.1   _add_conformal_distribution_intervals                d        yes  yes  OK
+statsforecast 2.1.1   _add_conformal_error_intervals                       d        yes  yes  OK
+statsforecast 2.1.1   ConformalSeasonalPool._oriented_index                b        yes  yes  OK
+statsforecast 2.1.1   ConformalSeasonalPool._intervals_from_samples        b        -    yes  OK
+darts 0.46.1          ConformalNaiveModel._calibrate_interval              d        yes  yes  OK
+darts 0.46.1          ConformalQRModel._calibrate_interval                 d        yes  yes  OK
+neuralforecast 3.2.1  add_conformal_distribution_intervals                 d        yes  yes  OK
+neuralforecast 3.2.1  add_conformal_error_intervals                        d        yes  yes  OK
+
+  mapie 1.4.1  BaseConformityScore.get_quantile
+      mapie/conformity_scores/interface.py:137
+      rule: corrected level, then np.clip(..., 0, 1) -- the clip is the (b) branch
+  mapie 1.4.1  _compute_quantiles
+      mapie/utils.py:766
+      rule: corrected level, method='higher', NO clip -- np.quantile raises above 1
+  mapie 1.4.1  LACConformityScore.get_conformity_score_quantiles
+      mapie/conformity_scores/sets/lac.py:156
+      rule: delegates to _compute_quantiles for prefit/mean, else returns the raw count (n + 1) * (1 - alpha) as the threshold
+  mapie 1.4.1  BaseRegressionScore._beta_optimize
+      mapie/conformity_scores/regression.py:211
+      rule: beta grid alpha/(n+1)..alpha, then nanquantile(upper, 1-alpha+betas, 'higher') and nanquantile(lower, betas, 'lower') -- rails uncorrected
+  mapie 1.4.1  _MapieQuantileRegressor.predict
+      mapie/regression/quantile_regression.py:1037
+      rule: corrected level, method='higher', no clip -- raises above 1
+  mapie 1.4.1  _check_alpha_and_n_samples
+      mapie/utils.py:547
+      rule: GUARD, not a resolver: raises when 1/alpha exceeds n
+  crepes 0.9.1  ConformalClassifier.predict_set
+      crepes/base.py:340
+      rule: set membership by thresholding p-values at 1 - confidence
+  crepes 0.9.1  p_values_batch
+      crepes/base.py:2909
+      rule: exact p-value j/(n+1); smoothed variant one branch above
+  crepes 0.9.1  ConformalRegressor.predict_int
+      crepes/base.py:900
+      rule: (n+1) index with an explicit `>= 0` guard, else +/-inf
+  crepes 0.9.1  ConformalRegressor.predict_int_online
+      crepes/base.py:1037
+      rule: same rule, recomputed per step as the calibration set grows
+  crepes 0.9.1  ConformalPredictiveSystem.predict_int
+      crepes/base.py:1525
+      rule: UNCORRECTED percentile pair handed to predict_percentiles; that method documents warning + y_min/y_max when the calibration set is too small
+  crepes 0.9.1  ConformalPredictiveSystem.predict_int_online
+      crepes/base.py:1613
+      rule: two-sided (n+1) index pair, symmetric by construction
+  puncc 0.9.3  BaseCalibrator.compute_quantile
+      deel/puncc/api/calibration.py:268
+      rule: appends +inf to the scores, then inverted_cdf at 1 - alpha -- EXACT by construction rather than by correcting a level, and it sits on the base class, so EVERY puncc calibrator inherits it
+  puncc 0.9.3  ClasswiseCalibrator.compute_quantile
+      deel/puncc/api/calibration.py:374
+      rule: the same augmentation per class, with an explicit +inf and a warning when a class has no calibration samples
+  puncc 0.9.3  quantile
+      deel/puncc/api/utils.py:423
+      rule: shared helper; method='inverted_cdf' is the order statistic, so the level its callers pass is the whole question
+  puncc 0.9.3  BaseCalibrator.compute_quantile (Bonferroni)
+      deel/puncc/api/calibration.py:254
+      rule: alpha is Bonferroni-divided across output dimensions BEFORE the feasibility check, so multivariate targets tighten the check rather than loosen it
+  puncc 0.9.3  alpha_calib_check
+      deel/puncc/api/utils.py:247
+      rule: GUARD, not a resolver: raises with 1/(n+1) <= alpha < 1 derived in the docstring, plus the two-sided n/(n+1) bound for jackknife+/CV+
+  puncc 0.9.3  EnbPI.predict
+      deel/puncc/regression.py:847
+      rule: UNCORRECTED level with explicit method='linear'; the source comment beside it reads 'TODO: go back to EnbPI-v1 paper and double check'
+  puncc 0.9.3  EnbPI.predict (online update)
+      deel/puncc/regression.py:896
+      rule: uncorrected level, numpy default interpolation, recomputed per batch
+  torchcp 1.2.1  calculate_conformal_value
+      torchcp/utils/common.py:74
+      rule: integer order statistic ceil((N+1)(1-alpha)); tests > 1 first, warns and returns torch.inf -- the reference implementation
+  torchcp 1.2.1  compute_p_values
+      torchcp/classification/utils/metrics.py:425
+      rule: exact and smoothed p-values, but this module is metrics -- no predictor routes a returned set through it
+  torchcp 1.2.1  ClusterPredictor.__embed_all_classes
+      torchcp/classification/predictor/cluster.py:278
+      rule: UNCORRECTED ceil(n*q) rank, but it builds clustering embeddings; the returned qhats come from calculate_conformal_value
+  nonconformist 2.1.0  IcpClassifier.predict
+      nonconformist/icp.py:241
+      rule: n_gt/(n_cal+1), smoothed term added at :244, non-smoothed at :246
+  nonconformist 2.1.0  AbsErrorErrFunc.apply_inverse
+      nonconformist/nc.py:162
+      rule: floor((n+1)*significance) - 1 into scores sorted DESCENDING, which is exactly the required rank -- then `min(max(border, 0), nc.size - 1)` CLAMPS the index, so below the feasibility bound it silently returns max(scores). The line above the clamp reads `# TODO: should probably warn against too few calibration examples`: the only clamp in this census that its own authors have already flagged. Classified by running, not reading -- see conformance_suite.py
+  nonconformist 2.1.0  SignErrorErrFunc.apply_inverse
+      nonconformist/nc.py:191
+      rule: the two-rail variant of the same rule, with the same pair of clamps
+  sktime 1.1.0  ConformalIntervals._predict_interval [method='empirical']
+      sktime/forecasting/conformal.py:319
+      rule: two uncorrected levels 0.5 -/+ coverage/2 on SIGNED residuals
+  sktime 1.1.0  ConformalIntervals._predict_interval [method='empirical_residual']
+      sktime/forecasting/conformal.py:322
+      rule: 0.5 - coverage/2 on ABSOLUTE residuals; at coverage 0.90 both rails resolve to the 0.05 quantile of |resid|
+  sktime 1.1.0  ConformalIntervals._predict_interval [method='conformal_bonferroni']
+      sktime/forecasting/conformal.py:326
+      rule: uncorrected level with a Bonferroni split across the horizon
+  sktime 1.1.0  ConformalIntervals._predict_interval [method='conformal']
+      sktime/forecasting/conformal.py:329
+      rule: the requested coverage used directly as the level on |resid|
+  sktime 1.1.0  EnbPI.conformal_interval
+      sktime/libs/_aws_fortuna_enbpi/enbpi.py:128
+      rule: uncorrected 1 - error on bootstrap residuals, numpy default interpolation; reached from sktime's own EnbPIForecaster
+  river 0.25.0  RegressionJackknife.predict_one
+      river/conf/jackknife.py:97
+      rule: two uncorrected levels fed to stats.Quantile / RollingQuantile, which is the P-squared APPROXIMATION, not an empirical order statistic
+  statsforecast 2.1.1  _add_conformal_distribution_intervals
+      statsforecast/models.py:127
+      rule: uncorrected alpha/200 and 1 - alpha/200 over vstack([mean-cs, mean+cs])
+  statsforecast 2.1.1  _add_conformal_error_intervals
+      statsforecast/models.py:156
+      rule: uncorrected lv/100 on absolute conformity scores
+  statsforecast 2.1.1  ConformalSeasonalPool._oriented_index
+      statsforecast/models.py:4302
+      rule: corrected level, clamped: min(1.0, ceil((n+1)q)/n) upper, max(0.0, floor((n+1)q)/n) lower -- the lower max() is dead code
+  statsforecast 2.1.1  ConformalSeasonalPool._intervals_from_samples
+      statsforecast/models.py:4311
+      rule: consumes _oriented_index over SAMPLE PATHS; a second call site with the same rule but a different score set
+  darts 0.46.1  ConformalNaiveModel._calibrate_interval
+      darts/models/forecasting/conformal_models.py:1688
+      rule: ONE uncorrected level (q_high - q_low) with method='higher' over absolute errors; interval is centre +/- one threshold
+  darts 0.46.1  ConformalQRModel._calibrate_interval
+      darts/models/forecasting/conformal_models.py:1838
+      rule: same rule over incs_qr non-conformity scores
+  neuralforecast 3.2.1  add_conformal_distribution_intervals
+      neuralforecast/utils.py:559
+      rule: uncorrected cuts over vstack([mean-scores, mean+scores]); default n_windows=2 makes the stock calibration set four rows
+  neuralforecast 3.2.1  add_conformal_error_intervals
+      neuralforecast/utils.py:620
+      rule: uncorrected cuts over n_windows rows, applied as mean +/-
+
+============================================================================================================
+COUNTS
+============================================================================================================
+  P1  sites documented before this census                        21   (19 of them determine a returned bound)
+  P2  sites determining a returned bound, pinned versions        34   <-- USE THIS ONE, and say so
+  P3  public API entry points routing through a P2 site          34
+
+  new in this census, absent from the map: 15 of the 34 P2 sites
+  unclassified branch ('?') and therefore open audit work: 4
+
+  P2 by library:
+      crepes 0.9.1              6   (2 new)
+      darts 0.46.1              2
+      mapie 1.4.1               5   (4 new)
+      neuralforecast 3.2.1      2
+      nonconformist 2.1.0       3   (2 new)
+      puncc 0.9.3               5   (5 new)
+      river 0.25.0              1
+      sktime 1.1.0              5   (1 new)
+      statsforecast 2.1.1       4   (1 new)
+      torchcp 1.2.1             1
+
+  excluded from P2, listed so the exclusion is auditable (5):
+      mapie 1.4.1           _check_alpha_and_n_samples                       GUARD, not a resolver: raises when 1/alpha exceeds n
+      puncc 0.9.3           BaseCalibrator.compute_quantile (Bonferroni)     alpha is Bonferroni-divided across output dimensions BEFORE 
+      puncc 0.9.3           alpha_calib_check                                GUARD, not a resolver: raises with 1/(n+1) <= alpha < 1 deri
+      torchcp 1.2.1         compute_p_values                                 exact and smoothed p-values, but this module is metrics -- n
+      torchcp 1.2.1         ClusterPredictor.__embed_all_classes             UNCORRECTED ceil(n*q) rank, but it builds clustering embeddi
+
+  master-only, documented but absent from the pinned versions (2):
+      mapie master          _compute_classification_quantile                 (a) + off-by-one, PR #973
+      mapie master          QuantileRegressionScore                          (b) via cancelled halving, PR #978
+  and the exclusion is verified, not assumed -- grepped over the pinned mapie:
+      _compute_classification_quantile                 absent
+      QuantileRegressionScore                          absent
+
+  P3 entry points:
+      BaseCalibrator.calibrate
+      ClassConditionalPredictor.calibrate
+      ClasswiseCalibrator.calibrate
+      ClusterPredictor.calibrate
+      ConformalClassifier.predict_p
+      ConformalClassifier.predict_set
+      ConformalIntervals.predict_interval
+      ConformalNaiveModel.predict
+      ConformalPredictiveSystem.predict_int
+      ConformalPredictiveSystem.predict_int_online
+      ConformalPredictiveSystem.predict_p
+      ConformalPredictiveSystem.predict_percentiles
+      ConformalQRModel.predict
+      ConformalRegressor.predict_int
+      ConformalRegressor.predict_int_online
+      ConformalRegressor.predict_p
+      ConformalSeasonalPool.forecast
+      ConformalizedQuantileRegressor.predict_interval
+      CrossConformalClassifier.predict_set
+      CrossConformalRegressor.predict_interval
+      CvPlus.predict
+      EnbPI.predict
+      EnbPIForecaster.predict_interval
+      GraphSplitPredictor.calibrate
+      IcpClassifier.predict
+      IcpRegressor.predict
+      NeuralForecast.predict(prediction_intervals=PredictionIntervals())
+      RC3P.calibrate
+      RegressionJackknife.predict_one
+      SplitCP.predict
+      SplitConformalClassifier.predict_set
+      SplitConformalRegressor.predict_interval
+      SplitPredictor.calibrate
+      StatsForecast.forecast(prediction_intervals=ConformalIntervals())
+
+all sites verified at the recorded line
+
+What replaces "seven have a distinct quantile/p-value helper"
+------------------------------------------------------------------------------------------------------------
+  "Across the ten packages that resolve a coverage bound from a calibration
+  set, we count 34 distinct resolution sites -- expressions mapping a
+  requested level to an index into that set -- reachable through 34 public
+  API entry points."
+
+  19 of the 34 were already documented by this audit; the other
+  15 this census located. "Seven" understated the surface by 4.9x.

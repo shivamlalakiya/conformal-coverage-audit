@@ -1,0 +1,155 @@
+====================================================================================================
+W3, STATSFORECAST ARM -- delivered coverage on real data, paired
+====================================================================================================
+self_check() passed at import
+dataset: m1_monthly_dataset   series cap: 250   model: Naive (matches the sktime arm)
+arm A: statsforecast Naive(prediction_intervals=ConformalIntervals(...)),
+       its own API at its own defaults
+arm B: the SAME captured conformity scores and the SAME point forecast,
+       thresholded at rank ceil((m+1)*coverage)
+
+m is the number of calibration windows ACTUALLY used, read off the array
+statsforecast passed to its own quantile call -- it caps n_windows at
+(len(y) - 1) // h for short series.
+
+Feasibility, exact and prior to any measurement:
+    coverage 0.90:  no valid finite bound exists below m=9   (default n_windows=2 -> INFEASIBLE)
+    coverage 0.95:  no valid finite bound exists below m=19   (default n_windows=2 -> INFEASIBLE)
+
+series loaded: 250   frequency: monthly
+
+method=conformal_distribution   nominal 0.90
+  n_windows=2     series=250  median n=2
+      arm A (shipped)        coverage 0.5840   lands on median rank 2 of 2
+      arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
+      paired delta (B - A)   +0.4160  (s.e. 0.0312)  13.3 s.e.  <- >=2 s.e.
+      ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
+        not the level->rank map. 1 - A is the shortfall against a level no finite
+        interval can deliver at this n.
+  n_windows=5     series=250  median n=5
+      arm A (shipped)        coverage 0.7200   lands on median rank 5 of 5
+      arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
+      paired delta (B - A)   +0.2800  (s.e. 0.0285)  9.8 s.e.  <- >=2 s.e.
+      ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
+        not the level->rank map. 1 - A is the shortfall against a level no finite
+        interval can deliver at this n.
+  n_windows=10    series=250  median n=10
+      arm A (shipped)        coverage 0.7800   lands on median rank 10 of 10
+      arm B (required rank)  coverage 0.8880   median required rank 10 of 10
+      paired delta (B - A)   +0.1080  (s.e. 0.0197)  5.5 s.e.  <- >=2 s.e.
+      widths:  A 1.416e+04   B 1.805e+04
+  n_windows=20    series=250  median n=20
+      arm A (shipped)        coverage 0.8640   lands on median rank 19 of 20
+      arm B (required rank)  coverage 0.9040   median required rank 19 of 20
+      paired delta (B - A)   +0.0400  (s.e. 0.0124)  3.2 s.e.  <- >=2 s.e.
+      widths:  A 1.708e+04   B 1.92e+04
+  n_windows=50    series=250  median n=50
+      arm A (shipped)        coverage 0.8760   lands on median rank 46 of 50
+      arm B (required rank)  coverage 0.8880   median required rank 46 of 50
+      paired delta (B - A)   +0.0120  (s.e. 0.0069)  1.7 s.e.
+      widths:  A 1.731e+04   B 1.896e+04
+
+method=conformal_distribution   nominal 0.95
+  n_windows=2     series=250  median n=2
+      arm A (shipped)        coverage 0.6080   lands on median rank 2 of 2
+      arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
+      paired delta (B - A)   +0.3920  (s.e. 0.0309)  12.7 s.e.  <- >=2 s.e.
+      ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
+        not the level->rank map. 1 - A is the shortfall against a level no finite
+        interval can deliver at this n.
+  n_windows=5     series=250  median n=5
+      arm A (shipped)        coverage 0.7520   lands on median rank 5 of 5
+      arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
+      paired delta (B - A)   +0.2480  (s.e. 0.0274)  9.1 s.e.  <- >=2 s.e.
+      ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
+        not the level->rank map. 1 - A is the shortfall against a level no finite
+        interval can deliver at this n.
+  n_windows=10    series=250  median n=10
+      arm A (shipped)        coverage 0.8520   lands on median rank 10 of 10
+      arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
+      paired delta (B - A)   +0.1480  (s.e. 0.0225)  6.6 s.e.  <- >=2 s.e.
+      ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
+        not the level->rank map. 1 - A is the shortfall against a level no finite
+        interval can deliver at this n.
+  n_windows=20    series=250  median n=20
+      arm A (shipped)        coverage 0.9040   lands on median rank 20 of 20
+      arm B (required rank)  coverage 0.9560   median required rank 20 of 20
+      paired delta (B - A)   +0.0520  (s.e. 0.0141)  3.7 s.e.  <- >=2 s.e.
+      widths:  A 1.934e+04   B 2.493e+04
+  n_windows=50    series=250  median n=50
+      arm A (shipped)        coverage 0.9280   lands on median rank 48 of 50
+      arm B (required rank)  coverage 0.9520   median required rank 49 of 50
+      paired delta (B - A)   +0.0240  (s.e. 0.0097)  2.5 s.e.  <- >=2 s.e.
+      widths:  A 2.154e+04   B 2.545e+04
+
+method=conformal_error   nominal 0.90
+  n_windows=2     series=250  median n=2
+      arm A (shipped)        coverage 0.6040   lands on median rank 2 of 2
+      arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
+      paired delta (B - A)   +0.3960  (s.e. 0.0310)  12.8 s.e.  <- >=2 s.e.
+      ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
+        not the level->rank map. 1 - A is the shortfall against a level no finite
+        interval can deliver at this n.
+  n_windows=5     series=250  median n=5
+      arm A (shipped)        coverage 0.7280   lands on median rank 5 of 5
+      arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
+      paired delta (B - A)   +0.2720  (s.e. 0.0282)  9.6 s.e.  <- >=2 s.e.
+      ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
+        not the level->rank map. 1 - A is the shortfall against a level no finite
+        interval can deliver at this n.
+  n_windows=10    series=250  median n=10
+      arm A (shipped)        coverage 0.7840   lands on median rank 10 of 10
+      arm B (required rank)  coverage 0.8880   median required rank 10 of 10
+      paired delta (B - A)   +0.1040  (s.e. 0.0193)  5.4 s.e.  <- >=2 s.e.
+      widths:  A 1.437e+04   B 1.805e+04
+  n_windows=20    series=250  median n=20
+      arm A (shipped)        coverage 0.8680   lands on median rank 19 of 20
+      arm B (required rank)  coverage 0.9040   median required rank 19 of 20
+      paired delta (B - A)   +0.0360  (s.e. 0.0118)  3.0 s.e.  <- >=2 s.e.
+      widths:  A 1.719e+04   B 1.92e+04
+  n_windows=50    series=250  median n=50
+      arm A (shipped)        coverage 0.8760   lands on median rank 46 of 50
+      arm B (required rank)  coverage 0.8880   median required rank 46 of 50
+      paired delta (B - A)   +0.0120  (s.e. 0.0069)  1.7 s.e.
+      widths:  A 1.74e+04   B 1.896e+04
+
+method=conformal_error   nominal 0.95
+  n_windows=2     series=250  median n=2
+      arm A (shipped)        coverage 0.6080   lands on median rank 2 of 2
+      arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
+      paired delta (B - A)   +0.3920  (s.e. 0.0309)  12.7 s.e.  <- >=2 s.e.
+      ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
+        not the level->rank map. 1 - A is the shortfall against a level no finite
+        interval can deliver at this n.
+  n_windows=5     series=250  median n=5
+      arm A (shipped)        coverage 0.7520   lands on median rank 5 of 5
+      arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
+      paired delta (B - A)   +0.2480  (s.e. 0.0274)  9.1 s.e.  <- >=2 s.e.
+      ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
+        not the level->rank map. 1 - A is the shortfall against a level no finite
+        interval can deliver at this n.
+  n_windows=10    series=250  median n=10
+      arm A (shipped)        coverage 0.8520   lands on median rank 10 of 10
+      arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
+      paired delta (B - A)   +0.1480  (s.e. 0.0225)  6.6 s.e.  <- >=2 s.e.
+      ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
+        not the level->rank map. 1 - A is the shortfall against a level no finite
+        interval can deliver at this n.
+  n_windows=20    series=250  median n=20
+      arm A (shipped)        coverage 0.9040   lands on median rank 20 of 20
+      arm B (required rank)  coverage 0.9560   median required rank 20 of 20
+      paired delta (B - A)   +0.0520  (s.e. 0.0141)  3.7 s.e.  <- >=2 s.e.
+      widths:  A 1.949e+04   B 2.493e+04
+  n_windows=50    series=250  median n=50
+      arm A (shipped)        coverage 0.9280   lands on median rank 48 of 50
+      arm B (required rank)  coverage 0.9520   median required rank 49 of 50
+      paired delta (B - A)   +0.0240  (s.e. 0.0097)  2.5 s.e.  <- >=2 s.e.
+      widths:  A 2.157e+04   B 2.545e+04
+
+A positive delta means the required rank covers more than the shipped call.
+Real series are not exchangeable, so an absolute miss is not attributable to
+the convention on its own -- the paired delta is what carries the claim.
+
+The n_windows=2 rows are the default configuration. Where arm B reads
++inf-infeasible there, no index into a two-element score set supports a
+0.90 or 0.95 bound, and arm A still returns a finite interval.
