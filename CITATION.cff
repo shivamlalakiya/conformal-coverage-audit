@@ -9,6 +9,15 @@ authors:
     # TODO: decide affiliation. Leaving it out avoids implying institutional endorsement
     #       of an independent research artifact. Add only if you want it attached.
 license: MIT
+# all-versions (concept) DOI — always resolves to the latest release
+doi: 10.5281/zenodo.21799203
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.21799203
+    description: "All versions"
+  - type: doi
+    value: 10.5281/zenodo.21799204
+    description: "Version v1.0.0"
 # TODO: confirm the owner — change if the repo lives under an org rather than your personal account
 repository-code: "https://github.com/shivamlalakiya/conformal-coverage-audit"
 abstract: >-

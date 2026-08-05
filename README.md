@@ -1,5 +1,11 @@
 # Conformal quantile convention probes
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21799203.svg)](https://doi.org/10.5281/zenodo.21799203)
+
+Archived on Zenodo. **Cite `10.5281/zenodo.21799203`** — the all-versions DOI, which always resolves to
+the latest release. To pin an exact reproduction, cite the version DOI instead
+(`10.5281/zenodo.21799204` is v1.0.0).
+
 Measurement harnesses for auditing how Python conformal-prediction implementations resolve the conformal
 quantile at finite sample sizes.
 
