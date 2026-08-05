@@ -73,7 +73,7 @@ model, the delta is meaningless — see §8.
 
 | Domain | Source | Rule |
 |---|---|---|
-| Forecasting | Monash Time Series Forecasting Archive — **M1 monthly and M3 monthly, 250 series each** | Selection rule stated before running; minimum series length fixed by the largest calibration window. Two independent collections, because "you picked the series" is the one objection a single archive cannot answer |
+| Forecasting | Monash Time Series Forecasting Archive — **M1 monthly and M3 monthly, 250 series each** | Selection rule stated before running; minimum series length fixed by the largest calibration window. Two independent collections, so archive-specific selection cannot explain a result |
 | Tabular | **OpenML-CC18** (classification) and **OpenML-CTR23** (regression) | ≤ 5000 rows, ≤ 100 features after one-hot encoding, no missing values, first *N* by dataset id. Every skipped dataset is reported with its reason |
 | Synthetic | iid draws | Retained deliberately: where the guarantee *should* hold exactly, any miss is unambiguous |
 
@@ -171,6 +171,20 @@ These are not aspirations; they have each already caught a real error in this wo
   intervals from isotonic calibration. Excluded with the reason stated rather than silently omitted.
 - Sample-path simulators that produce trajectories rather than a split-conformal interval.
 - Which method is *best*. This is a correctness audit, not a benchmark of predictive performance.
+
+## 11a. A warning for anyone extending this to a literature census
+
+A search over conformal-prediction papers was run and is deliberately not reported here or in
+the write-up: the counts come from a network sweep over a corpus that cannot be pinned, so they
+could not carry the guarantee every committed output in this repository carries. Two things
+found during it are worth passing on.
+
+- One paper in the corpus (arXiv:2407.06658v3) carries a prompt injection inside its Methods
+  text, instructing an AI reader to give a positive review. Treated as data and ignored. A
+  regex sweep over local text is structurally immune; an extraction pipeline that puts a
+  language model in the loop is not.
+- Fetch-and-summarise tooling produced a false negative and a *fabricated* derivation on this
+  corpus. Every figure that survived was re-verified against raw source.
 
 ## 12. What is in this repository
 

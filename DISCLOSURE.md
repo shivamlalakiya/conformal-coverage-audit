@@ -4,16 +4,16 @@ Every defect this audit reports as a defect, as filed upstream, with the date fi
 The manuscript is **anonymised for review**, so it cites this file rather than inlining
 the numbers — a public issue identifies its author. The camera-ready inlines them.
 
-This file is the timestamped record: the filing dates can be checked against the
-submission date to confirm every defect was reported before it was published. It is
-generated to match the manuscript's own disclosure table, and the build fails if the
+This file is the timestamped record. Each row's date is verifiable upstream, which is what
+makes the ordering — report first, publish second — a checkable fact rather than an
+assurance. It is generated to match the write-up's own table, and the build fails if the
 two disagree.
 
-⚠️ **Absence from this table is not a claim of correctness.** The census covers 35
-resolution sites; the count of *reportable defects* is far smaller, and deliberately so.
-A site carries no filed report either because the behaviour measured there is documented
-and intended, or because it is one this audit newly located and has not judged worth a
-maintainer's time. The second section states which, rather than leaving it to be inferred.
+⚠️ **An unlisted site is not a site certified correct.** 35 resolution sites were
+surveyed and far fewer are reportable defects, by design. Two reasons keep a site off
+this table: its measured behaviour is documented and deliberate, or it was newly found
+here and filing it would spend a maintainer's attention for no fix. Which of the two
+applies is stated per site in the next section.
 
 ## Filed
 
@@ -61,12 +61,12 @@ in the reproducer attached to the issue:
 3. **Direct spy.** Wrapping `np.quantile` inside `_predict_interval_series` shows
    `predict_interval(fh=[1])` resolving its level from `|diag(offset=1)|`.
 
-Direction: **conservative.** For an integrated series a longer-horizon residual is
-larger, so intervals are too wide — roughly `sqrt(2)` too wide at `fh=[1]` on a random
-walk. Coverage tests therefore pass, which is why it survived. It is orthogonal to the
-level-to-rank map and points the opposite way, so in the shipped helper the two defects
-partly cancel; that is why the manuscript separates them into four arms rather than
-reporting one number.
+Direction: **conservative.** Residuals grow with the horizon on an integrated series, so
+the intervals come out too wide — by roughly `sqrt(2)` at `fh=[1]` on a random walk.
+Coverage tests therefore pass, which is why it survived. It is orthogonal to the
+level-to-rank map and its sign is reversed, so the two defects partly cancel inside the
+shipped helper. Hence the four measurement arms in the write-up instead of a single
+number.
 
 Two fixes were offered — `offset-1` in the consumer (smaller diff), or starting
 `y_test` at `id+1` in the producer (makes the docstring true) — with an offer to open a
