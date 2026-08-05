@@ -19,8 +19,13 @@ identifiers:
   - type: doi
     value: 10.5281/zenodo.21799204
     description: "Version v1.0.0"
+  - type: doi
+    value: 10.5281/zenodo.21811491
+    description: "Version v1.1.0"
 # verified against the live remote
 repository-code: "https://github.com/shivamlalakiya/conformal-coverage-audit"
+version: v1.1.0
+date-released: "2026-08-05"
 abstract: >-
   Measurement harnesses used to audit how Python conformal-prediction
   implementations resolve the conformal quantile at finite sample sizes. Each
