@@ -1,0 +1,19 @@
+======================================================================================
+DARTS, TIGHTENED -- end-to-end coverage at several calibration lengths
+======================================================================================
+self_check() passed at import (rank model verified against numpy on 594 cells)
+2000 independent fits per cell, iid Gaussian series, LinearRegressionModel(lags=1), quantiles=[0.05, 0.5, 0.95]
+requested two-sided coverage: 0.9000
+
+  cal_len   measured     s.e.  predicted   gap/s.e.       ranks      width
+       10     0.9065   0.0065     0.7273     +27.52      [2,10]     3.7351
+       15     0.8770   0.0073     0.8125      +8.78      [2,15]     3.2143
+       30     0.8980   0.0068     0.8387      +8.76      [3,29]     3.4281
+       50     0.8835   0.0072     0.8627      +2.89      [4,48]     3.3420
+
+'predicted' is the exact coverage of the ranks darts lands on, r/(n+1) --
+derived, not fitted. 'gap/s.e.' is how far the measurement sits from it.
+A gap within about +/-2 means the convention explains the coverage fully.
+
+Honest scope, unchanged: iid by construction, so the guarantee SHOULD hold
+exactly here. This is not a claim about real dependent series.
