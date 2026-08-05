@@ -1,0 +1,141 @@
+self_check() passed at import
+numpy 2.4.6; Hyndman & Fan cited in np.quantile's own docstring
+
+============================================================================================
+TABLE A -- delivered rank at the UNCORRECTED level, deficit vs required k
+============================================================================================
+  deficit = k_required - rank_whose_guarantee_the_bound_carries
+  cells counted over n = 2..1000 where the level is feasible at all
+
+  READ THIS BEFORE QUOTING A DEFICIT. Deficit > 0 does NOT mean invalid.
+  k = ceil((n+1)(1-alpha)) is sometimes strictly larger than the level needs,
+  so a bound one rank below k can still clear the level. Table A measures
+  IDENTITY -- does the call reproduce the canonical index. TABLE C measures
+  VALIDITY -- does the delivered rank r satisfy r/(n+1) >= 1-alpha. They are
+  different questions and the answers differ; do not quote one as the other.
+
+  level 0.9000  (alpha = 0.1000)
+    method                     lands on a rank?   deficit distribution               mean
+    inverted_cdf               always             0:100  1:892                       +0.899
+    averaged_inverted_cdf      never (100/992 off) 0:100  1:892                       +0.899
+    closest_observation        always             1:646  2:346                       +1.349
+    interpolated_inverted_cdf  never (892/992 off) 1:200  2:792                       +1.798
+    hazen                      never (893/992 off) 1:695  2:297                       +1.299
+    weibull                    never (892/992 off) 0:100  1:892                       +0.899
+    linear                     never (893/992 off) 1:299  2:693                       +1.699
+    median_unbiased            never (992/992 off) 1:794  2:198                       +1.200
+    normal_unbiased            never (893/992 off) 1:794  2:198                       +1.200
+    lower                      always             1:299  2:693                       +1.699
+    higher                     always             0:200  1:792                       +0.798
+    midpoint                   never (893/992 off) 1:299  2:693                       +1.699
+    nearest                    always             1:745  2:247                       +1.249
+
+  level 0.9500  (alpha = 0.0500)
+    method                     lands on a rank?   deficit distribution               mean
+    inverted_cdf               always             0:50  1:932                        +0.949
+    averaged_inverted_cdf      never (50/982 off) 0:50  1:932                        +0.949
+    closest_observation        always             1:565  2:417                       +1.425
+    interpolated_inverted_cdf  never (932/982 off) 1:100  2:882                       +1.898
+    hazen                      never (933/982 off) 1:590  2:392                       +1.399
+    weibull                    never (932/982 off) 0:50  1:932                        +0.949
+    linear                     never (933/982 off) 1:149  2:833                       +1.848
+    median_unbiased            never (933/982 off) 1:737  2:245                       +1.249
+    normal_unbiased            never (982/982 off) 1:688  2:294                       +1.299
+    lower                      always             1:149  2:833                       +1.848
+    higher                     always             0:100  1:882                       +0.898
+    midpoint                   never (933/982 off) 1:149  2:833                       +1.848
+    nearest                    always             1:614  2:368                       +1.375
+
+  level 0.9900  (alpha = 0.0100)
+    method                     lands on a rank?   deficit distribution               mean
+    inverted_cdf               always             0:10  1:892                        +0.989
+    averaged_inverted_cdf      never (10/902 off) 0:10  1:892                        +0.989
+    closest_observation        always             1:465  2:437                       +1.484
+    interpolated_inverted_cdf  never (892/902 off) 1:20  2:882                        +1.978
+    hazen                      never (893/902 off) 1:470  2:432                       +1.479
+    weibull                    never (892/902 off) 0:10  1:892                        +0.989
+    linear                     never (893/902 off) 1:29  2:873                        +1.968
+    median_unbiased            never (902/902 off) 1:614  2:288                       +1.319
+    normal_unbiased            never (902/902 off) 1:578  2:324                       +1.359
+    lower                      always             1:29  2:873                        +1.968
+    higher                     always             0:20  1:882                        +0.978
+    midpoint                   never (893/902 off) 1:29  2:873                        +1.968
+    nearest                    always             1:474  2:428                       +1.475
+
+  level 0.6667  (alpha = 0.3333)
+    method                     lands on a rank?   deficit distribution               mean
+    inverted_cdf               always             0:333  1:666                       +0.667
+    averaged_inverted_cdf      never (333/999 off) 0:333  1:666                       +0.667
+    closest_observation        always             1:999                              +1.000
+    interpolated_inverted_cdf  never (666/999 off) 1:666  2:333                       +1.333
+    hazen                      never (999/999 off) 1:999                              +1.000
+    weibull                    never (666/999 off) 0:333  1:666                       +0.667
+    linear                     never (666/999 off) 1:999                              +1.000
+    median_unbiased            never (999/999 off) 1:999                              +1.000
+    normal_unbiased            never (999/999 off) 1:999                              +1.000
+    lower                      always             1:999                              +1.000
+    higher                     always             0:666  1:333                       +0.333
+    midpoint                   never (666/999 off) 1:999                              +1.000
+    nearest                    always             0:333  1:666                       +0.667
+
+============================================================================================
+TABLE B -- the safe recipe: does the level recover the required rank k exactly?
+============================================================================================
+  two candidate levels, both in common use:
+      k/n        the 'finite-sample corrected' level
+      (k-1)/(n-1)  the level whose virtual index is the 0-based rank
+
+  level 1-alpha = 0.95
+    method                     n=30  n=50  n=100  n=200
+    inverted_cdf                ok     ok     ok     ok     <- level k/n
+                                ok     ok     ok     ok     <- level (k-1)/(n-1)
+    averaged_inverted_cdf       ok     ok     ok     ok     <- level k/n
+                                ok     ok     ok     ok     <- level (k-1)/(n-1)
+    closest_observation         ok     ok     ok     ok     <- level k/n
+                                ok     ok     ok     ok     <- level (k-1)/(n-1)
+    interpolated_inverted_cdf   ok     ok     ok     ok     <- level k/n
+                                ok    -1     -1     -1      <- level (k-1)/(n-1)
+    hazen                       ok     ok     ok     ok     <- level k/n
+                                ok     ok     ok     ok     <- level (k-1)/(n-1)
+    weibull                     ok     ok     ok     ok     <- level k/n
+                                ok     ok     ok     ok     <- level (k-1)/(n-1)
+    linear                      ok     ok     ok     ok     <- level k/n
+                                ok     ok     ok     ok     <- level (k-1)/(n-1)
+    median_unbiased             ok     ok     ok     ok     <- level k/n
+                                ok     ok     ok     ok     <- level (k-1)/(n-1)
+    normal_unbiased             ok     ok     ok     ok     <- level k/n
+                                ok     ok     ok     ok     <- level (k-1)/(n-1)
+    lower                       ok     ok     ok     ok     <- level k/n
+                                ok     ok     ok     ok     <- level (k-1)/(n-1)
+    higher                      ok    +1     +1     +1      <- level k/n
+                                ok     ok     ok     ok     <- level (k-1)/(n-1)
+    midpoint                    ok     ok     ok     ok     <- level k/n
+                                ok     ok     ok     ok     <- level (k-1)/(n-1)
+    nearest                     ok     ok     ok     ok     <- level k/n
+                                ok     ok     ok     ok     <- level (k-1)/(n-1)
+
+============================================================================================
+TABLE C -- DELIVERED n_min: smallest n at which the shipped call is valid
+============================================================================================
+  theoretical n_min: smallest n for which any rank attains the level
+  delivered n_min:   smallest n at which this method, at the uncorrected
+                     level, carries a guarantee >= the requested level
+
+    method                     0.90  0.95  0.99  0.67
+    theoretical n_min             9    19    99     2
+    inverted_cdf                  9    19    99     2
+    averaged_inverted_cdf         9    19    99     2
+    closest_observation        none  none  none  none
+    interpolated_inverted_cdf  none  none  none  none
+    hazen                      none  none  none  none
+    weibull                       9    19    99     2
+    linear                     none  none  none  none
+    median_unbiased            none  none  none  none
+    normal_unbiased            none  none  none  none
+    lower                      none  none  none  none
+    higher                        9    19    99     2
+    midpoint                   none  none  none  none
+    nearest                    none  none  none     2
+
+  'none' means the uncorrected level never delivers the requested
+  guarantee at any n <= 2000 -- the deficit does not close, it only shrinks.
