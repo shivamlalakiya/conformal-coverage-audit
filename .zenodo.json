@@ -1,0 +1,21 @@
+{
+  "title": "Conformal quantile convention probes: harnesses for auditing finite-sample validity in conformal-prediction implementations",
+  "upload_type": "software",
+  "license": "MIT",
+  "creators": [
+    {
+      "name": "Lalakiya, Shivam"
+    }
+  ],
+  "description": "<p>Measurement harnesses used to audit how Python conformal-prediction implementations resolve the conformal quantile at finite sample sizes.</p><p>Each script validates its closed forms against exact rational arithmetic at import time, and each writes a plain-text output file committed alongside it. Two of those self-checks caught errors in their own author's hand-derived assertions, which is the reason they exist.</p><ul><li><code>branch_d_check.py</code> &mdash; the convention in isolation: an uncorrected level versus the required order statistic on identical draws, 200k draws per cell, <code>fractions.Fraction</code> oracle.</li><li><code>convention_probe.py</code> &mdash; structural branch identification, coverage sweeps with paired standard errors, threshold extraction.</li><li><code>run_sktime_river.py</code> &mdash; sktime <code>ConformalIntervals</code> through <code>predict_interval</code> and river <code>RegressionJackknife</code> through <code>predict_one</code>, with an oracle independent of both.</li><li><code>run_darts.py</code> &mdash; exact rank arithmetic, paired Monte Carlo, and an end-to-end run through a real <code>ConformalNaiveModel</code>.</li><li><code>run_statsforecast.py</code>, <code>verify_statsforecast_rebuttal.py</code> &mdash; window mapping, and the probe that adjudicated and retracted a finding of the author's own.</li></ul><p>Third-party library sources are deliberately <strong>not</strong> included; <code>probe-requirements.txt</code> pins the versions instead.</p>",
+  "keywords": [
+    "conformal prediction",
+    "uncertainty quantification",
+    "finite-sample coverage",
+    "order statistics",
+    "prediction intervals",
+    "software correctness",
+    "reproducibility"
+  ],
+  "access_right": "open"
+}

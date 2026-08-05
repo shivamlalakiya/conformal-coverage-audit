@@ -1,0 +1,38 @@
+oracle self-check passed
+
+==============================================================================
+PART A/B  sktime 1.1.0  ConformalIntervals  (alpha=0.10, requested 0.90)
+==============================================================================
+
+method='conformal'
+ n_resid  coverage   reps   mechanism (first rep)
+       9    0.8129    700   n=9 sktime_thr=1.2227 valid_thr=1.3916 (needs order stat k=9 of 9)
+      15    0.8586    700   n=15 sktime_thr=1.6509 valid_thr=2.3882 (needs order stat k=15 of 15)
+      30    0.8714    700   n=30 sktime_thr=1.3497 valid_thr=1.5145 (needs order stat k=28 of 30)
+
+method='empirical'
+ n_resid  coverage   reps   mechanism (first rep)
+       9    0.7357    700   n=9 sktime_thr=1.2227 valid_thr=1.3916 (needs order stat k=9 of 9)
+      15    0.8143    700   n=15 sktime_thr=1.6509 valid_thr=2.3882 (needs order stat k=15 of 15)
+      30    0.8457    700   n=30 sktime_thr=1.3497 valid_thr=1.5145 (needs order stat k=28 of 30)
+
+==============================================================================
+PART C  river 0.25.0  RegressionJackknife  (alpha=0.10, requested 0.90)
+==============================================================================
+ n_cal  coverage  degenerate   reps
+     3    0.4795       0.00%   4000
+     5    0.6750       0.00%   4000
+    10    0.4505       0.00%   4000
+    20    0.7245       0.00%   4000
+    50    0.8732       0.00%   4000
+   200    0.8935       0.00%   4000
+  1000    0.9022       0.00%   4000
+
+ATTRIBUTION — mean interval endpoints, N(0,1) targets, truth = +/-1.6449
+ n_cal             P2 (river)        exact empirical  valid k-th
+     5        (-1.195, 1.139)        (-1.058, 1.009)         inf
+    10        (-0.669, 0.601)        (-1.291, 1.305)         inf
+    20        (-1.161, 1.137)        (-1.427, 1.424)       1.864
+    50        (-1.585, 1.571)        (-1.554, 1.550)       1.848
+   200        (-1.641, 1.635)        (-1.615, 1.619)       1.664
+  1000        (-1.653, 1.642)        (-1.639, 1.637)       1.647

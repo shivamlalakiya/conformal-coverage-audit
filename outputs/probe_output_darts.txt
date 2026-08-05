@@ -1,0 +1,109 @@
+self_check: OK (rank model matches numpy on 590 cells, exact rationals)
+
+==============================================================================
+PART A -- which order statistic does darts return vs the one it needs?
+==============================================================================
+darts: np.quantile(residuals, c, method='higher'), c UNCORRECTED
+       (conformal_models.py:1686 and :1837; c = interval_range_sym, :161-170,
+        which carries no (n+1)/n factor anywhere in the file)
+
+ level     n  darts rank  needs rank  deficit  valid at all?
+  0.90     5           5           6        1        vacuous
+  0.90     9           9           9        0            yes
+  0.90    10          10          10        0            yes
+  0.90    15          14          15        1            yes
+  0.90    20          19          19        0            yes
+  0.90    30          28          28        0            yes
+  0.90    50          46          46        0            yes
+  0.90   100          91          91        0            yes
+  0.90   500         451         451        0            yes
+
+  0.95     5           5           6        1        vacuous
+  0.95     9           9          10        1        vacuous
+  0.95    10          10          11        1        vacuous
+  0.95    15          15          16        1        vacuous
+  0.95    20          20          20        0            yes
+  0.95    30          29          30        1            yes
+  0.95    50          48          49        1            yes
+  0.95   100          96          96        0            yes
+  0.95   500         476         476        0            yes
+
+  0.80     5           5           5        0            yes
+  0.80     9           8           8        0            yes
+  0.80    10           9           9        0            yes
+  0.80    15          13          13        0            yes
+  0.80    20          17          17        0            yes
+  0.80    30          25          25        0            yes
+  0.80    50          41          41        0            yes
+  0.80   100          81          81        0            yes
+  0.80   500         401         401        0            yes
+
+  0.77     5           5           5        0            yes
+  0.77     9           8           8        0            yes
+  0.77    10           8           9        1            yes
+  0.77    15          12          13        1            yes
+  0.77    20          16          17        1            yes
+  0.77    30          24          24        0            yes
+  0.77    50          39          40        1            yes
+  0.77   100          78          78        0            yes
+  0.77   500         386         386        0            yes
+
+   2/3     5           4           4        0            yes
+   2/3     9           7           7        0            yes
+   2/3    10           7           8        1            yes
+   2/3    15          11          11        0            yes
+   2/3    20          14          14        0            yes
+   2/3    30          21          21        0            yes
+   2/3    50          34          34        0            yes
+   2/3   100          67          68        1            yes
+   2/3   500         334         334        0            yes
+
+deficit distribution over n = 2..1000 (required rank minus darts rank):
+  level  0.90   0: 200, 1: 799
+  level  0.95   0: 100, 1: 899
+  level  0.80   0: 400, 1: 599
+  level  0.77   0: 460, 1: 539
+  level   2/3   0: 666, 1: 333
+
+-> the handoff's hand-derived '~1-2 order stats' is NOT what the arithmetic
+   gives.  Read the row above before quoting a deficit.
+
+==============================================================================
+PART B -- paired coverage, darts' convention vs correct, identical draws
+==============================================================================
+200,000 draws/cell, one-sided upper bound, standard normal scores
+
+ level     n     darts   correct   deficit  paired s.e.
+  0.90     9    0.9002    0.9002    0.0000      0.00000
+  0.90    10    0.9094    0.9094    0.0000      0.00000
+  0.90    15    0.8755    0.9377    0.0621      0.00054
+  0.90    20    0.9048    0.9048    0.0000      0.00000
+  0.90    30    0.9042    0.9042    0.0000      0.00000
+  0.90    50    0.9027    0.9027    0.0000      0.00000
+  0.90   100    0.9009    0.9009    0.0000      0.00000
+
+  0.95     9    0.9000    1.0000 (vacuous)    0.1000      0.00067
+  0.95    10    0.9088    1.0000 (vacuous)    0.0912      0.00064
+  0.95    15    0.9375    1.0000 (vacuous)    0.0625      0.00054
+  0.95    20    0.9525    0.9525    0.0000      0.00000
+  0.95    30    0.9358    0.9682    0.0324      0.00040
+  0.95    50    0.9410    0.9602    0.0192      0.00031
+  0.95   100    0.9506    0.9506    0.0000      0.00000
+
+==============================================================================
+PART C -- end-to-end through darts' real ConformalNaiveModel
+==============================================================================
+300 independent fits, cal_length=10, quantiles=[0.05, 0.5, 0.95]
+iid Gaussian series, LinearRegressionModel(lags=1) as the base model --
+deliberately near-exchangeable residuals, so the guarantee SHOULD hold.
+
+requested two-sided coverage : 0.9000
+measured                     : 0.9033  (s.e. 0.0171, 300 fits)
+mean interval width          : 3.6860
+
+convention-only prediction for n=10 at the 0.95 upper rail:
+  darts rank 10 of 10, needs rank 11 (VACUOUS -- no valid finite bound exists at this n)
+
+NOTE the honest-scope caveat that §5.5 already carries for sktime applies
+here too: this harness is iid by construction so the guarantee should hold
+exactly.  It is NOT a claim about real dependent time series.
