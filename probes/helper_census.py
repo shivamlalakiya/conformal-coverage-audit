@@ -89,18 +89,31 @@ MANIFEST = [
       "corrected level, method='higher', NO clip -- np.quantile raises above 1",
       "a", False, True, ["SplitConformalClassifier.predict_set"]),
     S("mapie 1.4.1", "mapie/conformity_scores/sets/lac.py", 156,
-      "LACConformityScore.get_conformity_score_quantiles",
+      "LACConformityScore.get_conformity_score_quantiles [prefit/mean]",
       "quantiles_ = _compute_quantiles(conformity_scores, alpha_np)",
-      "delegates to _compute_quantiles for prefit/mean, else returns the raw "
-      "count (n + 1) * (1 - alpha) as the threshold",
-      "?", False, True, ["SplitConformalClassifier.predict_set",
-                         "CrossConformalClassifier.predict_set"]),
+      "delegates to _compute_quantiles, so it inherits branch (a): the corrected "
+      "level is unclipped and np.quantile raises above 1. CLASSIFIED BY RUNNING "
+      "in conformance_suite.py, which sees it raise at n=8",
+      "a", False, True, ["SplitConformalClassifier.predict_set"]),
+    S("mapie 1.4.1", "mapie/conformity_scores/sets/lac.py", 158,
+      "LACConformityScore.get_conformity_score_quantiles [cv/crossval]",
+      "quantiles_ = (n + 1) * (1 - alpha_np)",
+      "the OTHER rule in the same method, reached only when cv is not 'prefit' "
+      "AND agg_scores is not 'mean'. Returns the raw COUNT (n+1)(1-alpha), not a "
+      "threshold on the score scale -- at n=8 it returns 8.1, above every score. "
+      "No branch letter applies; conformance_suite.py labels it `count`",
+      "count", False, True, ["CrossConformalClassifier.predict_set"]),
     S("mapie 1.4.1", "mapie/conformity_scores/regression.py", 211,
       "BaseRegressionScore._beta_optimize",
       "_alpha = float(_alpha)",
       "beta grid alpha/(n+1)..alpha, then nanquantile(upper, 1-alpha+betas, "
-      "'higher') and nanquantile(lower, betas, 'lower') -- rails uncorrected",
-      "?", False, True, ["CrossConformalRegressor.predict_interval"]),
+      "'higher') and nanquantile(lower, betas, 'lower'). It returns a BETA, not a "
+      "threshold: it selects the level get_quantile then resolves, so it is one "
+      "step removed. Composed with get_quantile and run, the pair is branch (b) "
+      "-- corrected level, clamped at the boundary. Reached via "
+      "predict_interval(minimize_interval_width=True)",
+      "b", False, True, ["CrossConformalRegressor.predict_interval",
+                         "SplitConformalRegressor.predict_interval"]),
     S("mapie 1.4.1", "mapie/regression/quantile_regression.py", 1037,
       "_MapieQuantileRegressor.predict",
       "q = (1 - (alpha)) * (1 + (1 / n))",
@@ -138,9 +151,12 @@ MANIFEST = [
     S("crepes 0.9.1", "crepes/base.py", 1525,
       "ConformalPredictiveSystem.predict_int",
       "lower_percentile = (1-confidence)/2*100",
-      "UNCORRECTED percentile pair handed to predict_percentiles; that method "
-      "documents warning + y_min/y_max when the calibration set is too small",
-      "?", False, True, ["ConformalPredictiveSystem.predict_int",
+      "a TWO-SIDED percentile pair handed to predict_percentiles, so each rail "
+      "resolves at 1-(1-conf)/2 and not at conf. Run: returns +inf below the "
+      "boundary and WARNS, first delivers 0.90 at n=19. Branch (c). A candidate "
+      "set with only one-sided rails misread this as (g), which is why "
+      "conformance_suite.py fits both rail conventions",
+      "c", False, True, ["ConformalPredictiveSystem.predict_int",
                          "ConformalPredictiveSystem.predict_percentiles"]),
     S("crepes 0.9.1", "crepes/base.py", 1613,
       "ConformalPredictiveSystem.predict_int_online",
@@ -166,9 +182,11 @@ MANIFEST = [
     S("puncc 0.9.3", "deel/puncc/api/utils.py", 423,
       "quantile",
       "return np.quantile(a, q, axis=axis, method=\"inverted_cdf\")",
-      "shared helper; method='inverted_cdf' is the order statistic, so the "
-      "level its callers pass is the whole question",
-      "?", False, True, ["BaseCalibrator.calibrate"]),
+      "shared helper. method='inverted_cdf' lands on rank ceil(level*n), so "
+      "given a RAW level it delivers the uncorrected rank -- branch (d), verified "
+      "by running it. puncc is correct not because of this function but because "
+      "every caller appends +inf to the scores before calling it",
+      "d", False, True, ["BaseCalibrator.calibrate"]),
     S("puncc 0.9.3", "deel/puncc/api/calibration.py", 254,
       "BaseCalibrator.compute_quantile (Bonferroni)",
       "alpha = correction(alpha)",
@@ -353,7 +371,8 @@ def self_check():
     keys = [(s["path"], s["line"]) for s in MANIFEST]
     assert len(keys) == len(set(keys)), "duplicate site in the manifest"
     for s in MANIFEST:
-        assert s["branch"] in {"a", "b", "c", "d", "e/f", "f/e", "g", "c-exact", "?"}, s
+        assert s["branch"] in {"a", "b", "c", "d", "e/f", "f/e", "g", "c-exact",
+                               "count", "?"}, s
         assert s["anchor"], s
         # a site that determines output must name at least one entry point,
         # and one that does not must name none -- that is what makes P3 a count

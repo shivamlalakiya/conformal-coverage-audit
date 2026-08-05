@@ -97,21 +97,41 @@ def feasibility_floor(level):
 def predictions(level):
     """Rank each candidate rule lands on, as a function of n.
 
-    Naming them all and fitting is what keeps the classifier honest. A single
+    Naming them ALL and fitting is what keeps the classifier honest. A single
     threshold at a single n cannot distinguish these: at some n the uncorrected
     rule and the corrected one coincide, and a threshold equal to max(scores)
     can be either a clamped level or the genuine k=n order statistic.
+
+    The candidate set is a cross product of three independent choices, because
+    each was seen to matter in a real library:
+
+      RAIL         one-sided at q, or two-sided with each rail at 1 - (1-q)/2.
+                   crepes' ConformalPredictiveSystem uses the latter, and with a
+                   one-sided-only candidate set it was misclassified as (g).
+      CORRECTION   raw level, or the (n+1)/n corrected level clipped at 1.
+      FAMILY       how the level becomes a position: numpy's linear, higher and
+                   inverted_cdf, or a direct order statistic.
+
+    A helper that fits NONE of these is reporting that this set is incomplete,
+    which is a fact about the suite. It is only evidence of an approximate
+    estimator when the returned rank is also far off and not monotone -- see
+    classify().
     """
-    return {
-        "uncorrected, interpolating": lambda n: level * (n - 1) + 1,
-        "uncorrected, method='higher'": lambda n: math.ceil(level * (n - 1)) + 1,
-        "corrected, interpolating": lambda n: min(
-            math.ceil((n + 1) * level) / n, 1.0) * (n - 1) + 1,
-        "corrected, method='higher'": lambda n: min(
-            math.ceil(min(math.ceil((n + 1) * level) / n, 1.0) * (n - 1)) + 1, n),
-        "corrected, order statistic": lambda n: min(
-            math.ceil((n + 1) * level), n),
-    }
+    out = {}
+    for rail_name, rail in (("1-sided", lambda q: q),
+                            ("2-sided", lambda q: 1 - (1 - q) / 2)):
+        for corr_name, corr in (("raw", lambda L, n: L),
+                                ("corrected",
+                                 lambda L, n: min(math.ceil((n + 1) * L) / n, 1.0))):
+            for fam_name, fam in (
+                    ("linear", lambda L, n: L * (n - 1) + 1),
+                    ("higher", lambda L, n: math.ceil(L * (n - 1)) + 1),
+                    ("inverted_cdf", lambda L, n: math.ceil(L * n)),
+                    ("order-stat", lambda L, n: min(math.ceil(L * (n + 1)), n))):
+                def rule(n, rail=rail, corr=corr, fam=fam):
+                    return fam(corr(rail(level), n), n)
+                out[f"{corr_name} {fam_name}, {rail_name}"] = rule
+    return out
 
 
 def fit_rule(fn, level, ns):
@@ -124,6 +144,9 @@ def fit_rule(fn, level, ns):
             observed[m] = r
     if not observed:
         return None, math.inf, observed
+    # Strict `<` means a tie resolves to whichever candidate came first, and
+    # predictions() emits raw before corrected within each family, so a tie
+    # resolves to the SIMPLER rule. Stated because it is a real decision.
     for name, rule in predictions(level).items():
         dev = max(abs(r - rule(m)) for m, r in observed.items())
         if dev < best_dev:
@@ -150,6 +173,20 @@ def classify(fn, level=LEVEL):
     rule, dev, _ = fit_rule(fn, level, interior)
 
     notes = []
+    # A returned value STRICTLY GREATER than max(scores) is not an order
+    # statistic of the calibration set at all, so no branch letter applies. The
+    # real case is mapie's LAC crossval branch, which returns the raw count
+    # (n+1)(1-alpha) for a caller to compare against cumulative sums. On a score
+    # set of 1..n a count is numerically indistinguishable from a rank, so
+    # without this check it reads as a clamped threshold.
+    over = [(v, n) for v, n in ((at_bad, n_bad), (at_ok, n_ok))
+            if isinstance(v, float) and math.isfinite(v) and v > n + 1e-9]
+    if over:
+        v, n = over[0]
+        return "count", at_bad, at_ok, [
+            f"returns {v:.3f} at n={n}, where max(scores) is {n}: NOT a threshold "
+            f"on the score scale. It is a count in units of (n+1)*level, consumed "
+            f"by a different code path. No branch letter applies"]
     if warned:
         notes.append(f"WARNS at the boundary: \"{warned[0][:88]}\"")
     elif at_bad != RAISED:
@@ -157,13 +194,21 @@ def classify(fn, level=LEVEL):
                      f"n={n_bad}")
     if rule is None or dev > 2.0:
         return "g", at_bad, at_ok, notes + [
-            f"no candidate rule fits: closest is {rule} off by {dev:.1f} ranks "
-            f"over {len(interior)} interior n -- an approximate estimator, not "
-            f"an order statistic of the calibration set"]
+            f"NO candidate rule fits: closest is '{rule}', off by {dev:.1f} ranks "
+            f"over {len(interior)} interior n. Read this as either an approximate "
+            f"estimator (river's P-squared is the real case) OR a rule this "
+            f"suite's candidate set does not yet name -- check the second before "
+            f"reporting the first"]
     notes.append(f"rule fitted over {len(interior)} interior n: {rule} "
                  f"(max deviation {dev:.3f} ranks)")
 
-    corrected = rule.startswith("corrected")
+    # A helper "applies the correction" if it reaches the required rank, and
+    # there are TWO ways to do that: correct the LEVEL to ceil(L(n+1))/n before
+    # calling a quantile function (mapie, statsforecast), or take the exact rank
+    # ceil(L(n+1)) directly (torchcp, crepes). The candidate names call only the
+    # first "corrected", so the order-stat family has to be included here or an
+    # exact implementation is misread as having no correction at all.
+    corrected = rule.startswith("corrected") or "order-stat" in rule
     if not corrected:
         branch = "d"
         notes.append("no (n+1)/n correction, so the boundary is never reached "
@@ -186,9 +231,12 @@ def classify(fn, level=LEVEL):
         branch = "?"
         notes.append(f"corrects, but unrecognised boundary behaviour: {at_bad}")
 
-    if "interpolating" in rule:
+    if "linear" in rule:
         notes.append("threshold lands BETWEEN order statistics, so no "
                      "exchangeability bound applies to it directly")
+    if "2-sided" in rule:
+        notes.append("each rail resolves at 1 - (1-coverage)/2, so the level it "
+                     "asks for is NOT the coverage it was given")
     return branch, at_bad, at_ok, notes
 
 
@@ -279,6 +327,18 @@ def self_check():
     unc_higher = lambda s_, lv: np.quantile(s_, lv, method="higher")
     assert call(unc_higher, 8, LEVEL) == 8.0
     assert classify(unc_higher)[0] == "d", classify(unc_higher)
+    # inverted_cdf at a RAW level is the uncorrected order statistic ceil(q*n),
+    # which is a distinct rule from every other candidate and must fit exactly
+    inv = lambda s_, lv: np.quantile(s_, lv, method="inverted_cdf")
+    rule, dev, _ = fit_rule(inv, LEVEL, (40, 41, 43, 47, 80, 121))
+    assert rule == "raw inverted_cdf, 1-sided" and dev == 0, (rule, dev)
+    assert classify(inv)[0] == "d", classify(inv)
+    # a two-sided construction must be RECOGNISED, not dropped into (g): each
+    # rail resolves at 1-(1-q)/2, so the level asked for is not the coverage
+    two_sided = lambda s_, lv: np.quantile(s_, 1 - (1 - lv) / 2, method="higher")
+    rule2, dev2, _ = fit_rule(two_sided, LEVEL, (40, 41, 43, 47, 80, 121))
+    assert rule2 == "raw higher, 2-sided" and dev2 == 0, (rule2, dev2)
+    assert classify(two_sided)[0] == "d", classify(two_sided)
     assert call(ref_a, 8, LEVEL) == RAISED
     assert call(ref_c, 8, LEVEL) == math.inf
 
@@ -358,6 +418,71 @@ def adapters():
         out.append(("torchcp calculate_conformal_value", torchcp_q))
     except Exception as exc:
         skipped.append(("torchcp calculate_conformal_value", type(exc).__name__))
+
+    # ---- the four sites the census could locate but not classify -----------
+    try:
+        from mapie.conformity_scores.sets.lac import LACConformityScore
+
+        def mapie_lac(s, lv, cv="prefit", agg="mean"):
+            return LACConformityScore().get_conformity_score_quantiles(
+                np.asarray(s, dtype=float), np.array([1 - lv]),
+                cv=cv, agg_scores=agg)
+
+        out.append(("mapie LAC quantiles [prefit/mean -> delegates]", mapie_lac))
+        # `if cv == "prefit" or agg_scores in ["mean"]` -- BOTH must be off the
+        # first branch to reach the second, so cv must not be "prefit" either
+        out.append(("mapie LAC quantiles [cv=5/crossval -> raw count]",
+                    lambda s, lv: mapie_lac(s, lv, cv=5, agg="crossval")))
+    except Exception as exc:
+        skipped.append(("mapie LAC get_conformity_score_quantiles",
+                        type(exc).__name__))
+
+    try:
+        from mapie.conformity_scores import AbsoluteConformityScore
+        from mapie.conformity_scores.regression import BaseRegressionScore
+
+        def mapie_beta(s, lv):
+            """_beta_optimize composed with get_quantile.
+
+            _beta_optimize returns a BETA, not a threshold: it selects the level
+            another site then resolves. Testing it alone would classify nothing,
+            so this adapter composes the pair exactly as the asymmetric path does
+            under predict_interval(minimize_interval_width=True), and classifies
+            the threshold that composition returns.
+            """
+            arr = np.asarray(s, dtype=float)
+            a = np.array([1 - lv])
+            beta = BaseRegressionScore._beta_optimize(a, arr, -arr)
+            lvl = np.array([1 - a[0] + beta[0]])
+            return AbsoluteConformityScore().get_quantile(
+                arr[..., np.newaxis], lvl, axis=0)
+
+        out.append(("mapie _beta_optimize + get_quantile (composed)", mapie_beta))
+    except Exception as exc:
+        skipped.append(("mapie _beta_optimize", type(exc).__name__))
+
+    try:
+        from crepes import ConformalPredictiveSystem
+
+        def crepes_cps(s, lv):
+            cps = ConformalPredictiveSystem().fit(
+                residuals=np.asarray(s, dtype=float))
+            iv = np.asarray(cps.predict_int(y_hat=np.zeros(1), confidence=lv))
+            return iv[0, 1]
+
+        out.append(("crepes ConformalPredictiveSystem.predict_int", crepes_cps))
+    except Exception as exc:
+        skipped.append(("crepes CPS predict_int", type(exc).__name__))
+
+    try:
+        from deel.puncc.api.utils import quantile as puncc_quantile
+
+        def puncc_util(s, lv):
+            return puncc_quantile(np.asarray(s, dtype=float), lv)
+
+        out.append(("puncc api/utils.py quantile (shared utility)", puncc_util))
+    except Exception as exc:
+        skipped.append(("puncc api/utils.py quantile", type(exc).__name__))
 
     try:
         from nonconformist.nc import AbsErrorErrFunc

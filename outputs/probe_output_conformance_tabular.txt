@@ -26,45 +26,65 @@ mapie get_quantile                                     b      8.000     37.000  
 crepes ConformalRegressor.predict_int                  c       +inf     37.000     0.9091     10  warns
 puncc BaseCalibrator.compute_quantile                  a     raises     37.000     0.9091     10      -
 torchcp calculate_conformal_value                      c       +inf     37.000     0.9000      9  warns
+mapie LAC quantiles [prefit/mean -> delegates]         a     raises     37.000     0.9000      9      -
+mapie LAC quantiles [cv=5/crossval -> raw count]     count      8.100     36.900     0.9000      9      -
+mapie _beta_optimize + get_quantile (composed)         b      8.000     37.000     0.9000      9      -
+crepes ConformalPredictiveSystem.predict_int           c       +inf     39.000     0.9500     19  warns
+puncc api/utils.py quantile (shared utility)           d      8.000     36.000     0.9000      9      -
 nonconformist AbsErrorErrFunc.apply_inverse            b      8.000     37.000     0.9000      9      -
 
 Evidence per helper
 --------------------------------------------------------------------------------------------------------
   a
-      branch (a): rule fitted over 6 interior n: corrected, method='higher' (max deviation 0.000 ranks); corrects, then raises at n=8
+      branch (a): rule fitted over 6 interior n: corrected higher, 1-sided (max deviation 0.000 ranks); corrects, then raises at n=8
       first delivers 0.90 at n=9, as 9/10 = 0.9000
   b
-      branch (b): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: corrected, method='higher' (max deviation 0.000 ranks); corrects, then returns max(scores) at n=8 where the corrected level exceeds 1 -- the clamp
+      branch (b): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: corrected higher, 1-sided (max deviation 0.000 ranks); corrects, then returns max(scores) at n=8 where the corrected level exceeds 1 -- the clamp
       first delivers 0.90 at n=9, as 9/10 = 0.9000
   c
-      branch (c): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: corrected, order statistic (max deviation 0.000 ranks); corrects, then returns +inf at n=8
+      branch (c): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: raw order-stat, 1-sided (max deviation 0.000 ranks); corrects, then returns +inf at n=8
       first delivers 0.90 at n=9, as 9/10 = 0.9000
   d
-      branch (d): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: uncorrected, interpolating (max deviation 0.000 ranks); no (n+1)/n correction, so the boundary is never reached and no choice is ever made there; threshold lands BETWEEN order statistics, so no exchangeability bound applies to it directly
+      branch (d): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: raw linear, 1-sided (max deviation 0.000 ranks); no (n+1)/n correction, so the boundary is never reached and no choice is ever made there; threshold lands BETWEEN order statistics, so no exchangeability bound applies to it directly
       never delivers 0.90 for any n <= 2000
   g
-      branch (g): silent at the boundary: no warning emitted at n=8; no candidate rule fits: closest is uncorrected, interpolating off by 102.7 ranks over 6 interior n -- an approximate estimator, not an order statistic of the calibration set
+      branch (g): silent at the boundary: no warning emitted at n=8; NO candidate rule fits: closest is 'raw linear, 1-sided', off by 102.7 ranks over 6 interior n. Read this as either an approximate estimator (river's P-squared is the real case) OR a rule this suite's candidate set does not yet name -- check the second before reporting the first
       never delivers 0.90 for any n <= 2000
   numpy method='linear' (sktime, statsforecast, neuralforecast)
-      branch (d): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: uncorrected, interpolating (max deviation 0.000 ranks); no (n+1)/n correction, so the boundary is never reached and no choice is ever made there; threshold lands BETWEEN order statistics, so no exchangeability bound applies to it directly
+      branch (d): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: raw linear, 1-sided (max deviation 0.000 ranks); no (n+1)/n correction, so the boundary is never reached and no choice is ever made there; threshold lands BETWEEN order statistics, so no exchangeability bound applies to it directly
       never delivers 0.90 for any n <= 2000
   numpy method='higher' (darts)
-      branch (d): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: uncorrected, method='higher' (max deviation 0.000 ranks); no (n+1)/n correction, so the boundary is never reached and no choice is ever made there; NOTE it does return max(scores) at n=8, but that is the uncorrected level landing on rank n by arithmetic, NOT a clamp -- the fitted rule settles it
+      branch (d): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: raw higher, 1-sided (max deviation 0.000 ranks); no (n+1)/n correction, so the boundary is never reached and no choice is ever made there; NOTE it does return max(scores) at n=8, but that is the uncorrected level landing on rank n by arithmetic, NOT a clamp -- the fitted rule settles it
       first delivers 0.90 at n=9, as 9/10 = 0.9000
   mapie get_quantile
-      branch (b): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: corrected, order statistic (max deviation 0.000 ranks); corrects, then returns max(scores) at n=8 where the corrected level exceeds 1 -- the clamp
+      branch (b): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: raw order-stat, 1-sided (max deviation 0.000 ranks); corrects, then returns max(scores) at n=8 where the corrected level exceeds 1 -- the clamp
       first delivers 0.90 at n=9, as 9/10 = 0.9000
   crepes ConformalRegressor.predict_int
-      branch (c): WARNS at the boundary: "the no. of calibration examples is too smallfor the chosen confidence level; the interva"; rule fitted over 6 interior n: corrected, order statistic (max deviation 0.000 ranks); corrects, then returns +inf at n=8
+      branch (c): WARNS at the boundary: "the no. of calibration examples is too smallfor the chosen confidence level; the interva"; rule fitted over 6 interior n: raw order-stat, 1-sided (max deviation 0.000 ranks); corrects, then returns +inf at n=8
       first delivers 0.90 at n=10, as 10/11 = 0.9091
   puncc BaseCalibrator.compute_quantile
-      branch (a): rule fitted over 6 interior n: corrected, order statistic (max deviation 0.000 ranks); corrects, then raises at n=8
+      branch (a): rule fitted over 6 interior n: raw order-stat, 1-sided (max deviation 0.000 ranks); corrects, then raises at n=8
       first delivers 0.90 at n=10, as 10/11 = 0.9091
   torchcp calculate_conformal_value
-      branch (c): WARNS at the boundary: "The value of quantile exceeds 1. It should be a value in [0,1]. To avoid program crash, "; rule fitted over 6 interior n: corrected, order statistic (max deviation 0.000 ranks); corrects, then returns +inf at n=8
+      branch (c): WARNS at the boundary: "The value of quantile exceeds 1. It should be a value in [0,1]. To avoid program crash, "; rule fitted over 6 interior n: raw order-stat, 1-sided (max deviation 0.000 ranks); corrects, then returns +inf at n=8
+      first delivers 0.90 at n=9, as 9/10 = 0.9000
+  mapie LAC quantiles [prefit/mean -> delegates]
+      branch (a): rule fitted over 6 interior n: raw order-stat, 1-sided (max deviation 0.000 ranks); corrects, then raises at n=8
+      first delivers 0.90 at n=9, as 9/10 = 0.9000
+  mapie LAC quantiles [cv=5/crossval -> raw count]
+      branch (count): returns 8.100 at n=8, where max(scores) is 8: NOT a threshold on the score scale. It is a count in units of (n+1)*level, consumed by a different code path. No branch letter applies
+      first delivers 0.90 at n=9, as 9/10 = 0.9000
+  mapie _beta_optimize + get_quantile (composed)
+      branch (b): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: raw order-stat, 1-sided (max deviation 0.000 ranks); corrects, then returns max(scores) at n=8 where the corrected level exceeds 1 -- the clamp
+      first delivers 0.90 at n=9, as 9/10 = 0.9000
+  crepes ConformalPredictiveSystem.predict_int
+      branch (c): WARNS at the boundary: "the no. of calibration examples is too small for the following lower percentiles: 4.9999"; rule fitted over 6 interior n: raw order-stat, 2-sided (max deviation 0.000 ranks); corrects, then returns +inf at n=8; each rail resolves at 1 - (1-coverage)/2, so the level it asks for is NOT the coverage it was given
+      first delivers 0.90 at n=19, as 19/20 = 0.9500
+  puncc api/utils.py quantile (shared utility)
+      branch (d): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: raw inverted_cdf, 1-sided (max deviation 0.000 ranks); no (n+1)/n correction, so the boundary is never reached and no choice is ever made there; NOTE it does return max(scores) at n=8, but that is the uncorrected level landing on rank n by arithmetic, NOT a clamp -- the fitted rule settles it
       first delivers 0.90 at n=9, as 9/10 = 0.9000
   nonconformist AbsErrorErrFunc.apply_inverse
-      branch (b): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: corrected, order statistic (max deviation 0.000 ranks); corrects, then returns max(scores) at n=8 where the corrected level exceeds 1 -- the clamp
+      branch (b): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: raw order-stat, 1-sided (max deviation 0.000 ranks); corrects, then returns max(scores) at n=8 where the corrected level exceeds 1 -- the clamp
       first delivers 0.90 at n=9, as 9/10 = 0.9000
 
 adapters not loaded here (1) -- reported, not dropped:

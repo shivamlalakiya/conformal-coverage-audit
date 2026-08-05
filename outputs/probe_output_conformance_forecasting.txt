@@ -27,35 +27,40 @@ statsforecast _oriented_index                          b      8.000     37.075  
 Evidence per helper
 --------------------------------------------------------------------------------------------------------
   a
-      branch (a): rule fitted over 6 interior n: corrected, method='higher' (max deviation 0.000 ranks); corrects, then raises at n=8
+      branch (a): rule fitted over 6 interior n: corrected higher, 1-sided (max deviation 0.000 ranks); corrects, then raises at n=8
       first delivers 0.90 at n=9, as 9/10 = 0.9000
   b
-      branch (b): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: corrected, method='higher' (max deviation 0.000 ranks); corrects, then returns max(scores) at n=8 where the corrected level exceeds 1 -- the clamp
+      branch (b): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: corrected higher, 1-sided (max deviation 0.000 ranks); corrects, then returns max(scores) at n=8 where the corrected level exceeds 1 -- the clamp
       first delivers 0.90 at n=9, as 9/10 = 0.9000
   c
-      branch (c): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: corrected, order statistic (max deviation 0.000 ranks); corrects, then returns +inf at n=8
+      branch (c): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: raw order-stat, 1-sided (max deviation 0.000 ranks); corrects, then returns +inf at n=8
       first delivers 0.90 at n=9, as 9/10 = 0.9000
   d
-      branch (d): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: uncorrected, interpolating (max deviation 0.000 ranks); no (n+1)/n correction, so the boundary is never reached and no choice is ever made there; threshold lands BETWEEN order statistics, so no exchangeability bound applies to it directly
+      branch (d): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: raw linear, 1-sided (max deviation 0.000 ranks); no (n+1)/n correction, so the boundary is never reached and no choice is ever made there; threshold lands BETWEEN order statistics, so no exchangeability bound applies to it directly
       never delivers 0.90 for any n <= 2000
   g
-      branch (g): silent at the boundary: no warning emitted at n=8; no candidate rule fits: closest is uncorrected, interpolating off by 102.7 ranks over 6 interior n -- an approximate estimator, not an order statistic of the calibration set
+      branch (g): silent at the boundary: no warning emitted at n=8; NO candidate rule fits: closest is 'raw linear, 1-sided', off by 102.7 ranks over 6 interior n. Read this as either an approximate estimator (river's P-squared is the real case) OR a rule this suite's candidate set does not yet name -- check the second before reporting the first
       never delivers 0.90 for any n <= 2000
   numpy method='linear' (sktime, statsforecast, neuralforecast)
-      branch (d): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: uncorrected, interpolating (max deviation 0.000 ranks); no (n+1)/n correction, so the boundary is never reached and no choice is ever made there; threshold lands BETWEEN order statistics, so no exchangeability bound applies to it directly
+      branch (d): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: raw linear, 1-sided (max deviation 0.000 ranks); no (n+1)/n correction, so the boundary is never reached and no choice is ever made there; threshold lands BETWEEN order statistics, so no exchangeability bound applies to it directly
       never delivers 0.90 for any n <= 2000
   numpy method='higher' (darts)
-      branch (d): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: uncorrected, method='higher' (max deviation 0.000 ranks); no (n+1)/n correction, so the boundary is never reached and no choice is ever made there; NOTE it does return max(scores) at n=8, but that is the uncorrected level landing on rank n by arithmetic, NOT a clamp -- the fitted rule settles it
+      branch (d): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: raw higher, 1-sided (max deviation 0.000 ranks); no (n+1)/n correction, so the boundary is never reached and no choice is ever made there; NOTE it does return max(scores) at n=8, but that is the uncorrected level landing on rank n by arithmetic, NOT a clamp -- the fitted rule settles it
       first delivers 0.90 at n=9, as 9/10 = 0.9000
   statsforecast _oriented_index
-      branch (b): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: corrected, interpolating (max deviation 0.000 ranks); corrects, then returns max(scores) at n=8 where the corrected level exceeds 1 -- the clamp; threshold lands BETWEEN order statistics, so no exchangeability bound applies to it directly
+      branch (b): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: corrected linear, 1-sided (max deviation 0.000 ranks); corrects, then returns max(scores) at n=8 where the corrected level exceeds 1 -- the clamp; threshold lands BETWEEN order statistics, so no exchangeability bound applies to it directly
       first delivers 0.90 at n=9, as 9/10 = 0.9000
 
-adapters not loaded here (4) -- reported, not dropped:
+adapters not loaded here (9) -- reported, not dropped:
       mapie get_quantile                           ModuleNotFoundError
       crepes predict_int                           ModuleNotFoundError
       puncc compute_quantile                       ModuleNotFoundError
       torchcp calculate_conformal_value            ModuleNotFoundError
+      mapie LAC get_conformity_score_quantiles     ModuleNotFoundError
+      mapie _beta_optimize                         ModuleNotFoundError
+      crepes CPS predict_int                       ModuleNotFoundError
+      puncc api/utils.py quantile                  ModuleNotFoundError
+      nonconformist apply_inverse                  ModuleNotFoundError
       run this file again in the other probe venv to cover them
 
 ========================================================================================================

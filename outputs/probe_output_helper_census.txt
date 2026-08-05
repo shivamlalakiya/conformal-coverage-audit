@@ -12,19 +12,20 @@ library               site                                                 br   
 ------------------------------------------------------------------------------------------------------------
 mapie 1.4.1           BaseConformityScore.get_quantile                     b        yes  yes  OK
 mapie 1.4.1           _compute_quantiles                                   a        -    yes  OK
-mapie 1.4.1           LACConformityScore.get_conformity_score_quantiles    ?        -    yes  OK
-mapie 1.4.1           BaseRegressionScore._beta_optimize                   ?        -    yes  OK
+mapie 1.4.1           LACConformityScore.get_conformity_score_quantiles [p a        -    yes  OK
+mapie 1.4.1           LACConformityScore.get_conformity_score_quantiles [c count    -    yes  OK
+mapie 1.4.1           BaseRegressionScore._beta_optimize                   b        -    yes  OK
 mapie 1.4.1           _MapieQuantileRegressor.predict                      a        -    yes  OK
 mapie 1.4.1           _check_alpha_and_n_samples                           a        -    -    OK
 crepes 0.9.1          ConformalClassifier.predict_set                      f/e      yes  yes  OK
 crepes 0.9.1          p_values_batch                                       f/e      yes  yes  OK
 crepes 0.9.1          ConformalRegressor.predict_int                       c        -    yes  OK
 crepes 0.9.1          ConformalRegressor.predict_int_online                c        yes  yes  OK
-crepes 0.9.1          ConformalPredictiveSystem.predict_int                ?        -    yes  OK
+crepes 0.9.1          ConformalPredictiveSystem.predict_int                c        -    yes  OK
 crepes 0.9.1          ConformalPredictiveSystem.predict_int_online         c        yes  yes  OK
 puncc 0.9.3           BaseCalibrator.compute_quantile                      c-exact  -    yes  OK
 puncc 0.9.3           ClasswiseCalibrator.compute_quantile                 c-exact  -    yes  OK
-puncc 0.9.3           quantile                                             ?        -    yes  OK
+puncc 0.9.3           quantile                                             d        -    yes  OK
 puncc 0.9.3           BaseCalibrator.compute_quantile (Bonferroni)         ?        -    -    OK
 puncc 0.9.3           alpha_calib_check                                    a        yes  -    OK
 puncc 0.9.3           EnbPI.predict                                        d        -    yes  OK
@@ -56,12 +57,15 @@ neuralforecast 3.2.1  add_conformal_error_intervals                        d    
   mapie 1.4.1  _compute_quantiles
       mapie/utils.py:766
       rule: corrected level, method='higher', NO clip -- np.quantile raises above 1
-  mapie 1.4.1  LACConformityScore.get_conformity_score_quantiles
+  mapie 1.4.1  LACConformityScore.get_conformity_score_quantiles [prefit/mean]
       mapie/conformity_scores/sets/lac.py:156
-      rule: delegates to _compute_quantiles for prefit/mean, else returns the raw count (n + 1) * (1 - alpha) as the threshold
+      rule: delegates to _compute_quantiles, so it inherits branch (a): the corrected level is unclipped and np.quantile raises above 1. CLASSIFIED BY RUNNING in conformance_suite.py, which sees it raise at n=8
+  mapie 1.4.1  LACConformityScore.get_conformity_score_quantiles [cv/crossval]
+      mapie/conformity_scores/sets/lac.py:158
+      rule: the OTHER rule in the same method, reached only when cv is not 'prefit' AND agg_scores is not 'mean'. Returns the raw COUNT (n+1)(1-alpha), not a threshold on the score scale -- at n=8 it returns 8.1, above every score. No branch letter applies; conformance_suite.py labels it `count`
   mapie 1.4.1  BaseRegressionScore._beta_optimize
       mapie/conformity_scores/regression.py:211
-      rule: beta grid alpha/(n+1)..alpha, then nanquantile(upper, 1-alpha+betas, 'higher') and nanquantile(lower, betas, 'lower') -- rails uncorrected
+      rule: beta grid alpha/(n+1)..alpha, then nanquantile(upper, 1-alpha+betas, 'higher') and nanquantile(lower, betas, 'lower'). It returns a BETA, not a threshold: it selects the level get_quantile then resolves, so it is one step removed. Composed with get_quantile and run, the pair is branch (b) -- corrected level, clamped at the boundary. Reached via predict_interval(minimize_interval_width=True)
   mapie 1.4.1  _MapieQuantileRegressor.predict
       mapie/regression/quantile_regression.py:1037
       rule: corrected level, method='higher', no clip -- raises above 1
@@ -82,7 +86,7 @@ neuralforecast 3.2.1  add_conformal_error_intervals                        d    
       rule: same rule, recomputed per step as the calibration set grows
   crepes 0.9.1  ConformalPredictiveSystem.predict_int
       crepes/base.py:1525
-      rule: UNCORRECTED percentile pair handed to predict_percentiles; that method documents warning + y_min/y_max when the calibration set is too small
+      rule: a TWO-SIDED percentile pair handed to predict_percentiles, so each rail resolves at 1-(1-conf)/2 and not at conf. Run: returns +inf below the boundary and WARNS, first delivers 0.90 at n=19. Branch (c). A candidate set with only one-sided rails misread this as (g), which is why conformance_suite.py fits both rail conventions
   crepes 0.9.1  ConformalPredictiveSystem.predict_int_online
       crepes/base.py:1613
       rule: two-sided (n+1) index pair, symmetric by construction
@@ -94,7 +98,7 @@ neuralforecast 3.2.1  add_conformal_error_intervals                        d    
       rule: the same augmentation per class, with an explicit +inf and a warning when a class has no calibration samples
   puncc 0.9.3  quantile
       deel/puncc/api/utils.py:423
-      rule: shared helper; method='inverted_cdf' is the order statistic, so the level its callers pass is the whole question
+      rule: shared helper. method='inverted_cdf' lands on rank ceil(level*n), so given a RAW level it delivers the uncorrected rank -- branch (d), verified by running it. puncc is correct not because of this function but because every caller appends +inf to the scores before calling it
   puncc 0.9.3  BaseCalibrator.compute_quantile (Bonferroni)
       deel/puncc/api/calibration.py:254
       rule: alpha is Bonferroni-divided across output dimensions BEFORE the feasibility check, so multivariate targets tighten the check rather than loosen it
@@ -172,16 +176,16 @@ neuralforecast 3.2.1  add_conformal_error_intervals                        d    
 COUNTS
 ============================================================================================================
   P1  sites documented before this census                        21   (19 of them determine a returned bound)
-  P2  sites determining a returned bound, pinned versions        34   <-- USE THIS ONE, and say so
+  P2  sites determining a returned bound, pinned versions        35   <-- USE THIS ONE, and say so
   P3  public API entry points routing through a P2 site          34
 
-  new in this census, absent from the map: 15 of the 34 P2 sites
-  unclassified branch ('?') and therefore open audit work: 4
+  new in this census, absent from the map: 16 of the 35 P2 sites
+  unclassified branch ('?') and therefore open audit work: 0
 
   P2 by library:
       crepes 0.9.1              6   (2 new)
       darts 0.46.1              2
-      mapie 1.4.1               5   (4 new)
+      mapie 1.4.1               6   (5 new)
       neuralforecast 3.2.1      2
       nonconformist 2.1.0       3   (2 new)
       puncc 0.9.3               5   (5 new)
@@ -245,9 +249,9 @@ all sites verified at the recorded line
 What replaces "seven have a distinct quantile/p-value helper"
 ------------------------------------------------------------------------------------------------------------
   "Across the ten packages that resolve a coverage bound from a calibration
-  set, we count 34 distinct resolution sites -- expressions mapping a
+  set, we count 35 distinct resolution sites -- expressions mapping a
   requested level to an index into that set -- reachable through 34 public
   API entry points."
 
-  19 of the 34 were already documented by this audit; the other
-  15 this census located. "Seven" understated the surface by 4.9x.
+  19 of the 35 were already documented by this audit; the other
+  16 this census located. "Seven" understated the surface by 5.0x.
