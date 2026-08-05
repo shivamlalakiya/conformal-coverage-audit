@@ -1,0 +1,216 @@
+========================================================================================================
+W9  FRACTIONAL RANK -- what an interpolated threshold delivers
+========================================================================================================
+
+CLAIM  delivered coverage = h/(n+1) with h the virtual index the quantile
+       definition computes, exactly when the density is flat across the
+       landed-in gap, and to O(1/n^2) in the interior.
+GUARANTEE (unchanged, distribution-free)  floor(h)/(n+1).
+reps per cell 400000   seed 20260805   numpy 2.4.6
+
+--------------------------------------------------------------------------------------------------------
+(i) VIRTUAL INDEX h, measured off numpy on the tie-free score set 1..n
+    h is the value numpy returns, so no algebra is trusted here.
+--------------------------------------------------------------------------------------------------------
+method                             A         B   h at n=50,q=0.90   h/(n+1)  integer h
+interpolated_inverted_cdf     0.0000   50.0000            45.0000    0.8824        yes
+hazen                         0.5000   50.0000            45.5000    0.8922         no
+weibull                       0.0000   51.0000            45.9000    0.9000         no
+linear                        1.0000   49.0000            45.1000    0.8843         no
+median_unbiased               0.3333   50.3333            45.6333    0.8948         no
+normal_unbiased               0.3750   50.2500            45.6000    0.8941         no
+inverted_cdf                    step      step            45.0000    0.8824        yes
+averaged_inverted_cdf           step      step            45.5000    0.8922         no
+closest_observation             step      step            45.0000    0.8824        yes
+lower                           step      step            45.0000    0.8824        yes
+higher                          step      step            46.0000    0.9020        yes
+midpoint                        step      step            45.5000    0.8922         no
+nearest                         step      step            45.0000    0.8824        yes
+
+    Only the definitions with integer h carry the rank identity. The other
+    six carry a FRACTIONAL rank, which the next block measures.
+
+--------------------------------------------------------------------------------------------------------
+(ii) DELIVERED COVERAGE vs h/(n+1), numpy default 'linear', uncorrected level
+     err/s.e. is the standardised departure from the prediction.
+--------------------------------------------------------------------------------------------------------
+dist             n      q         h  predicted  measured    s.e.  err/s.e.    floor
+uniform         50   0.90    45.100    0.88431   0.88449 0.00051     +0.35  0.88235
+uniform         50   0.95    47.550    0.93235   0.93213 0.00040     -0.55  0.92157
+uniform        200   0.90   180.100    0.89602   0.89516 0.00048     -1.77  0.89552
+uniform       1000   0.95   950.050    0.94910   0.94906 0.00035     -0.11  0.94905
+uniform         20   0.90    18.100    0.86190   0.86247 0.00054     +1.04  0.85714
+uniform        200   0.99   198.010    0.98512   0.98519 0.00019     +0.33  0.98507
+uniform         50   0.99    49.510    0.97078   0.97101 0.00027     +0.87  0.96078
+normal          50   0.90    45.100    0.88431   0.88497 0.00050     +1.30  0.88235
+normal          50   0.95    47.550    0.93235   0.93360 0.00039     +3.17  0.92157
+normal         200   0.90   180.100    0.89602   0.89665 0.00048     +1.30  0.89552
+normal        1000   0.95   950.050    0.94910   0.94919 0.00035     +0.26  0.94905
+normal          20   0.90    18.100    0.86190   0.86220 0.00054     +0.55  0.85714
+normal         200   0.99   198.010    0.98512   0.98586 0.00019     +3.94  0.98507
+normal          50   0.99    49.510    0.97078   0.97375 0.00025    +11.73  0.96078
+exponential     50   0.90    45.100    0.88431   0.88542 0.00050     +2.20  0.88235
+exponential     50   0.95    47.550    0.93235   0.93341 0.00039     +2.68  0.92157
+exponential    200   0.90   180.100    0.89602   0.89658 0.00048     +1.16  0.89552
+exponential   1000   0.95   950.050    0.94910   0.94951 0.00035     +1.17  0.94905
+exponential     20   0.90    18.100    0.86190   0.86312 0.00054     +2.23  0.85714
+exponential    200   0.99   198.010    0.98512   0.98532 0.00019     +1.04  0.98507
+exponential     50   0.99    49.510    0.97078   0.97437 0.00025    +14.36  0.96078
+lognormal       50   0.90    45.100    0.88431   0.88448 0.00051     +0.33  0.88235
+lognormal       50   0.95    47.550    0.93235   0.93351 0.00039     +2.95  0.92157
+lognormal      200   0.90   180.100    0.89602   0.89597 0.00048     -0.11  0.89552
+lognormal     1000   0.95   950.050    0.94910   0.94959 0.00035     +1.41  0.94905
+lognormal       20   0.90    18.100    0.86190   0.86443 0.00054     +4.66  0.85714
+lognormal      200   0.99   198.010    0.98512   0.98521 0.00019     +0.44  0.98507
+lognormal       50   0.99    49.510    0.97078   0.97446 0.00025    +14.75  0.96078
+pareto1.5       50   0.90    45.100    0.88431   0.88518 0.00050     +1.72  0.88235
+pareto1.5       50   0.95    47.550    0.93235   0.93475 0.00039     +6.13  0.92157
+pareto1.5      200   0.90   180.100    0.89602   0.89631 0.00048     +0.59  0.89552
+pareto1.5     1000   0.95   950.050    0.94910   0.94921 0.00035     +0.32  0.94905
+pareto1.5       20   0.90    18.100    0.86190   0.86670 0.00054     +8.93  0.85714
+pareto1.5      200   0.99   198.010    0.98512   0.98500 0.00019     -0.63  0.98507
+pareto1.5       50   0.99    49.510    0.97078   0.97579 0.00024    +20.59  0.96078
+
+    interior cells (q <= 0.95, n >= 50):  max |err/s.e.| = 6.13 over 20 cells, max |err| = 0.00239
+    extreme-tail cells (n=50, q=0.99):    err/s.e. from +0.87 to +20.59, all POSITIVE -- the predicted direction: a decreasing density puts most of the gap's mass below T, so pi > gamma.
+
+--------------------------------------------------------------------------------------------------------
+(iii) COROLLARY -- the level that makes 'linear' deliver 1-alpha
+      q_folk = (1-alpha)(n+1)/n  is correct for a ROUNDING definition.
+      q_dag  = ((1-alpha)(n+1) - A)/B  is the interpolating one.
+      DF floor is what q_dag still GUARANTEES distribution-free.
+--------------------------------------------------------------------------------------------------------
+dist             n   1-a   q_raw      cov  q_folk      cov   q_dag      cov  DF floor
+uniform         20  0.90  0.9000   0.8625  0.9450   0.9024  0.9421   0.9010    0.8571
+uniform         50  0.90  0.9000   0.8844  0.9180   0.9017  0.9163   0.8996    0.8824
+uniform        200  0.90  0.9000   0.8958  0.9045   0.8996  0.9040   0.8996    0.8955
+uniform         50  0.95  0.9500   0.9322  0.9690   0.9510  0.9684   0.9498    0.9412
+uniform        100  0.95  0.9500   0.9410  0.9595   0.9508  0.9591   0.9501    0.9406
+normal          20  0.90  0.9000   0.8637  0.9450   0.9038  0.9421   0.9009    0.8571
+normal          50  0.90  0.9000   0.8846  0.9180   0.9012  0.9163   0.8998    0.8824
+normal         200  0.90  0.9000   0.8952  0.9045   0.8999  0.9040   0.8994    0.8955
+normal          50  0.95  0.9500   0.9336  0.9690   0.9523  0.9684   0.9517    0.9412
+normal         100  0.95  0.9500   0.9421  0.9595   0.9502  0.9591   0.9500    0.9406
+exponential     20  0.90  0.9000   0.8643  0.9450   0.9032  0.9421   0.9015    0.8571
+exponential     50  0.90  0.9000   0.8846  0.9180   0.9015  0.9163   0.9001    0.8824
+exponential    200  0.90  0.9000   0.8964  0.9045   0.8999  0.9040   0.9001    0.8955
+exponential     50  0.95  0.9500   0.9339  0.9690   0.9523  0.9684   0.9520    0.9412
+exponential    100  0.95  0.9500   0.9412  0.9595   0.9499  0.9591   0.9501    0.9406
+lognormal       20  0.90  0.9000   0.8658  0.9450   0.9035  0.9421   0.9018    0.8571
+lognormal       50  0.90  0.9000   0.8848  0.9180   0.9013  0.9163   0.9003    0.8824
+lognormal      200  0.90  0.9000   0.8960  0.9045   0.9006  0.9040   0.9004    0.8955
+lognormal       50  0.95  0.9500   0.9343  0.9690   0.9535  0.9684   0.9528    0.9412
+lognormal      100  0.95  0.9500   0.9414  0.9595   0.9502  0.9591   0.9502    0.9406
+pareto1.5       20  0.90  0.9000   0.8673  0.9450   0.9034  0.9421   0.9020    0.8571
+pareto1.5       50  0.90  0.9000   0.8851  0.9180   0.9019  0.9163   0.9000    0.8824
+pareto1.5      200  0.90  0.9000   0.8964  0.9045   0.9000  0.9040   0.8999    0.8955
+pareto1.5       50  0.95  0.9500   0.9344  0.9690   0.9533  0.9684   0.9531    0.9412
+pareto1.5      100  0.95  0.9500   0.9420  0.9595   0.9513  0.9591   0.9497    0.9406
+
+    uncorrected  mean |coverage - nominal| = 0.01587   worst = 0.03753
+    folklore     mean |coverage - nominal| = 0.00161   worst = 0.00379
+    q_dagger     mean |coverage - nominal| = 0.00081   worst = 0.00310
+
+--------------------------------------------------------------------------------------------------------
+(iv) THE BOUNDARY OF THE CLAIM -- pi/gamma against level and tail
+     pi is BACK-SOLVED from the measurement: pi = cov*(n+1) - floor(h).
+     pi/gamma = 1 is the locally-uniform prediction. Reported only where
+     gamma is not near 0 or 1, since pi/gamma amplifies noise there.
+--------------------------------------------------------------------------------------------------------
+dist             n      q   gamma      pi  pi/gamma     s.e.
+uniform         50   0.50   0.500   0.460     0.921    0.081
+uniform         50   0.95   0.550   0.540     0.982    0.037
+uniform         50   0.99   0.510   0.517     1.013    0.027
+normal          50   0.50   0.500   0.540     1.081    0.081
+normal          50   0.95   0.550   0.595     1.081    0.037
+normal          50   0.99   0.510   0.657     1.288    0.025
+exponential     50   0.50   0.500   0.543     1.087    0.081
+exponential     50   0.95   0.550   0.637     1.159    0.036
+exponential     50   0.99   0.510   0.656     1.287    0.025
+lognormal       50   0.50   0.500   0.544     1.089    0.081
+lognormal       50   0.95   0.550   0.635     1.155    0.036
+lognormal       50   0.99   0.510   0.718     1.409    0.025
+pareto1.5       50   0.50   0.500   0.464     0.928    0.081
+pareto1.5       50   0.95   0.550   0.646     1.174    0.036
+pareto1.5       50   0.99   0.510   0.782     1.533    0.024
+
+    uniform is the control: its density IS flat across every gap, so
+    pi/gamma = 1 there is a property of the distribution, not of the fit.
+
+--------------------------------------------------------------------------------------------------------
+(v) ALL THIRTEEN DEFINITIONS at n=50, requested 0.90 -- delivered coverage
+    under the raw level, and the corrected level each one needs.
+    'guarantee' is distribution-free; 'delivered' is the h/(n+1) prediction
+    with the measured normal-sample coverage beside it.
+--------------------------------------------------------------------------------------------------------
+method                         h(raw)  guarantee  delivered  measured  q needed  exact?
+interpolated_inverted_cdf      45.000     0.8824     0.8824    0.8833    0.9180      no
+hazen                          45.500     0.8824     0.8922    0.8927    0.9080      no
+weibull                        45.900     0.8824     0.9000    0.8993    0.9000      no
+linear                         45.100     0.8824     0.8843    0.8842    0.9163      no
+median_unbiased                45.633     0.8824     0.8948    0.8963    0.9053      no
+normal_unbiased                45.600     0.8824     0.8941    0.8939    0.9060      no
+inverted_cdf                   45.000     0.8824     0.8824    0.8833    0.9000     yes
+averaged_inverted_cdf          45.500     0.8824     0.8922    0.8928    0.9000      no
+closest_observation            45.000     0.8824     0.8824    0.8825    0.9100     yes
+lower                          45.000     0.8824     0.8824    0.8836    0.9184     yes
+higher                         46.000     0.9020     0.9020    0.9017    0.8980     yes
+midpoint                       45.500     0.8824     0.8922    0.8939    0.9184      no
+nearest                        45.000     0.8824     0.8824    0.8820    0.9082     yes
+
+    'exact? yes' means the corrected level lands on an integer rank, so the
+    delivered coverage is a finite-sample GUARANTEE and not an asymptotic
+    one. That column is the practical recommendation of this probe.
+
+--------------------------------------------------------------------------------------------------------
+(vi) THE DELIVERING SET IS PERIODIC -- n_min is its smallest member, not a
+     threshold. A definition that delivers the guarantee at n_min does NOT
+     deliver it at every larger n. This is the same residue structure the
+     audit reports for one library's shipped helper, arriving here from the
+     definition rather than from the library, so the two are one phenomenon.
+--------------------------------------------------------------------------------------------------------
+alpha   method                      first n  delivers   of  density  period  first members
+1/10    inverted_cdf                      9        40  392   0.1020      10  9, 19, 29, 39, 49, 59, 69, 79 ...
+1/10    averaged_inverted_cdf             9        40  392   0.1020      10  9, 19, 29, 39, 49, 59, 69, 79 ...
+1/10    weibull                           9        40  392   0.1020      10  9, 19, 29, 39, 49, 59, 69, 79 ...
+1/10    higher                            9        80  392   0.2041      10  9, 10, 19, 20, 29, 30, 39, 40 ...
+1/10    linear                            0         0  392   0.0000       0  
+1/10    median_unbiased                   0         0  392   0.0000       0  
+
+1/20    inverted_cdf                     19        20  382   0.0524      20  19, 39, 59, 79, 99, 119, 139, 159 ...
+1/20    averaged_inverted_cdf            19        20  382   0.0524      20  19, 39, 59, 79, 99, 119, 139, 159 ...
+1/20    weibull                          19        20  382   0.0524      20  19, 39, 59, 79, 99, 119, 139, 159 ...
+1/20    higher                           19        40  382   0.1047      20  19, 20, 39, 40, 59, 60, 79, 80 ...
+1/20    linear                            0         0  382   0.0000       0  
+1/20    median_unbiased                   0         0  382   0.0000       0  
+
+2/7     inverted_cdf                      3       114  398   0.2864       7  3, 6, 10, 13, 17, 20, 24, 27 ...
+2/7     averaged_inverted_cdf             3       114  398   0.2864       7  3, 6, 10, 13, 17, 20, 24, 27 ...
+2/7     weibull                           6        57  398   0.1432       7  6, 13, 20, 27, 34, 41, 48, 55 ...
+2/7     higher                            3       228  398   0.5729       7  3, 4, 6, 7, 10, 11, 13, 14 ...
+2/7     linear                            0         0  398   0.0000       0  
+2/7     median_unbiased                   0         0  398   0.0000       0  
+
+    unification: `higher` at alpha=1/10 delivers at 12 of 52 values of n in 9..60
+    Read that against the audit's deficit map over the same range: the
+    deficit is zero at exactly those n. They are the same set, reached once
+    from the definition and once from a shipped library.
+    Note also alpha=2/7, a NON-unit fraction: the clean decade pattern is an
+    artefact of unit-fraction levels, which is why every sweep in this
+    programme includes a non-unit fraction.
+
+    CONSEQUENCE for the rank map. Reading its n_min column as `collect n >=
+    n_min and the level is honoured` is wrong for every definition in it.
+    The honest column is the DENSITY above: at alpha=1/10 the three
+    interpolating-but-integer-at-some-n definitions honour the raw level on
+    1 n in 10, and `higher` on 1 in 5. No definition honours it at all n.
+
+========================================================================================================
+SUMMARY
+========================================================================================================
+  the h/(n+1) prediction holds to |err| <= 0.00239 on 20 interior cells across 5 distributions,
+  including Pareto(1.5). It degrades in the extreme upper tail, in the
+  conservative direction, for the reason the decomposition predicts.
+  Proposition 1 of the manuscript is the pi=0 corner of this statement and
+  remains the correct DISTRIBUTION-FREE reading; it is not what the
+  libraries deliver, and the difference is a whole rank at small n.
