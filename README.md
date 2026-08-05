@@ -4,8 +4,10 @@
 
 Archived on Zenodo. **Cite `10.5281/zenodo.21799203`** — the all-versions DOI, which always resolves to
 the latest release. To pin an exact reproduction, cite the version DOI instead
-(`10.5281/zenodo.21811491` is v1.1.0, the current release; `10.5281/zenodo.21799204` is
-v1.0.0, which predates every real-data arm).
+(`10.5281/zenodo.21811491` is v1.1.0; `10.5281/zenodo.21799204` is v1.0.0, which
+predates every real-data arm). **v1.2.0 is the current release** — it adds the
+whole-archive robustness arm, an exact feasibility floor, and the `conformal_coverage`
+package; its version DOI is added here once Zenodo has minted it.
 
 Measurement harnesses for auditing how Python conformal-prediction implementations resolve the conformal
 quantile at finite sample sizes.
