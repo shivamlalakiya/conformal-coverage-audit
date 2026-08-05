@@ -1,0 +1,118 @@
+============================================================================================================
+W15  GROUP-CONDITIONAL SEVERITY -- where the deficit stops being O(1/n)
+============================================================================================================
+
+  A total calibration budget of 2000 scores, split G ways. Every cell has
+  the SAME total budget, so the only thing that changes is how finely it
+  is divided. Groups are exponential-tailed (xi = 0 exactly) with scales
+  rising across groups; scores are i.i.d. within a group, so per-group
+  exchangeability holds and absolute coverage is attributable.
+  4000 replications per cell   seed 20260805
+
+------------------------------------------------------------------------------------------------------------
+(i) SPLITTING SHRINKS THE DEPTH, NOT ONLY n. At a fixed level the depth
+    i = n_g - floor(h) falls with the group size, so the tail inflation
+    bound (i+1)/i grows at the same time as the one-rank deficit 1/(n_g+1).
+    Both are computable in advance, with no data.
+------------------------------------------------------------------------------------------------------------
+    G    n_g         h     j    i   gamma  1/(n_g+1)   (i+1)/i       pi  pi-gamma
+    1   2000  1800.100  1800  200   0.100    0.00050      1.00   0.1004   +0.0004
+    5    400   360.100   360   40   0.100    0.00249      1.02   0.1022   +0.0022
+   10    200   180.100   180   20   0.100    0.00498      1.05   0.1045   +0.0045
+   20    100    90.100    90   10   0.100    0.00990      1.10   0.1089   +0.0089
+   50     40    36.100    36    4   0.100    0.02439      1.25   0.1220   +0.0220
+  100     20    18.100    18    2   0.100    0.04762      1.50   0.1429   +0.0429
+
+    Read the last two columns together: as the budget is split more finely
+    the deficit per group grows AND the fraction of the interpolation that
+    the interior approximation discards grows. A marginal-only account
+    tracks the first column and misses the second.
+
+------------------------------------------------------------------------------------------------------------
+(ii) MEASURED. Same total budget in every row. Arm A resolves the
+     uncorrected level per group through `linear`; arm B takes the required
+     rank per group. `worst` is the lowest per-group coverage, which is
+     what a group-conditional guarantee is usually quoted as covering.
+------------------------------------------------------------------------------------------------------------
+  nominal 0.90
+    G   n_g   k*   i   A marg   A mean  A worst   A<nom   B marg  B worst  A-B worst
+    1  2000 1801 200   0.9038   0.9038   0.9038    0.00   0.9042   0.9042    -0.0005
+    5   400  361  40   0.8964   0.8964   0.8918    0.80   0.8984   0.8940    -0.0022
+   10   200  181  20   0.8942   0.8942   0.8868    0.90   0.8986   0.8905    -0.0037
+   20   100   91  10   0.8909   0.8909   0.8815    0.90   0.9001   0.8920    -0.0105
+   50    40   37   4   0.8807   0.8807   0.8702    1.00   0.9021   0.8920    -0.0218
+  100    20   19   2   0.8640   0.8640   0.8522    1.00   0.9045   0.8932    -0.0410
+
+  nominal 0.95
+    G   n_g   k*   i   A marg   A mean  A worst   A<nom   B marg  B worst  A-B worst
+    1  2000 1901 100   0.9500   0.9500   0.9500    0.00   0.9507   0.9507    -0.0008
+    5   400  381  20   0.9480   0.9481   0.9417    0.60   0.9504   0.9443    -0.0025
+   10   200  191  10   0.9454   0.9454   0.9407    0.80   0.9502   0.9453    -0.0045
+   20   100   96   5   0.9393   0.9393   0.9343    1.00   0.9491   0.9450    -0.0107
+   50    40   39   2   0.9295   0.9295   0.9237    1.00   0.9520   0.9463    -0.0225
+  100    20   20   1   0.9095   0.9095   0.8980    1.00   0.9520   0.9453    -0.0473
+
+------------------------------------------------------------------------------------------------------------
+(iii) THE SHARPENED PREDICTION, TESTED. Per-group coverage under arm A
+      should track (j + pi)/(n_g + 1) with pi from the shape law, and a
+      MARGINAL-ONLY account -- h/(n_g+1), i.e. pi = gamma -- should be
+      systematically optimistic. Both errors reported; the comparison is
+      the test.
+------------------------------------------------------------------------------------------------------------
+  nom    G   n_g   i   A mean  (j+pi)/(n+1)      err   h/(n+1)      err  separable  better
+ 0.90    1  2000 200   0.9038        0.8996  +0.0041    0.8996  +0.0041         no     ---
+ 0.90    5   400  40   0.8964        0.8980  -0.0016    0.8980  -0.0016         no     ---
+ 0.90   10   200  20   0.8942        0.8960  -0.0018    0.8960  -0.0018         no     ---
+ 0.90   20   100  10   0.8909        0.8922  -0.0012    0.8921  -0.0012         no     ---
+ 0.90   50    40   4   0.8807        0.8810  -0.0003    0.8805  +0.0002        yesmarginal
+ 0.90  100    20   2   0.8640        0.8639  +0.0001    0.8619  +0.0021        yes      pi
+ 0.95    1  2000 100   0.9500        0.9496  +0.0004    0.9496  +0.0004         no     ---
+ 0.95    5   400  20   0.9481        0.9478  +0.0003    0.9478  +0.0003         no     ---
+ 0.95   10   200  10   0.9454        0.9455  -0.0001    0.9455  -0.0001         no     ---
+ 0.95   20   100   5   0.9393        0.9412  -0.0018    0.9411  -0.0018         no     ---
+ 0.95   50    40   2   0.9295        0.9286  +0.0009    0.9280  +0.0014        yes      pi
+ 0.95  100    20   1   0.9095        0.9093  +0.0002    0.9071  +0.0023        yes      pi
+
+    The two predictions COINCIDE where pi = gamma to within 0.0001, which is
+    most cells -- that is the interior result holding, not a failure to
+    discriminate. Comparing them is only meaningful on the 4 separable
+    cells, i.e. the finely split ones:
+      shape law closer in 3 of 4
+      mean |err| on those cells: shape law 0.00035   marginal-only 0.00152
+      the marginal-only account is OPTIMISTIC -- predicts LESS coverage
+      shortfall than delivered -- in 4 of 4 of them
+
+------------------------------------------------------------------------------------------------------------
+(iv) THE HEADLINE. Worst-group shortfall against nominal, and how much of
+     it the required rank removes. Same total calibration budget in every
+     row, so this is purely the cost of splitting.
+------------------------------------------------------------------------------------------------------------
+  nom    G   n_g  A worst shortfall  B worst shortfall  removed by rank fix
+ 0.90    1  2000            -0.0038            -0.0042                nan%
+ 0.90    5   400             0.0082             0.0060                 27%
+ 0.90   10   200             0.0132             0.0095                 28%
+ 0.90   20   100             0.0185             0.0080                 57%
+ 0.90   50    40             0.0298             0.0080                 73%
+ 0.90  100    20             0.0478             0.0068                 86%
+ 0.95    1  2000             0.0000            -0.0008                nan%
+ 0.95    5   400             0.0082             0.0057                 30%
+ 0.95   10   200             0.0092             0.0047                 49%
+ 0.95   20   100             0.0157             0.0050                 68%
+ 0.95   50    40             0.0262             0.0037                 86%
+ 0.95  100    20             0.0520             0.0047                 91%
+
+    ungrouped (G=1): worst-group shortfall 0.0000
+    finely split (G>=50): worst-group shortfall up to 0.0520
+    Same total number of calibration scores. The deficit is not O(1/n) in
+    the budget; it is O(1/n_g) in the per-group size, and the worst group
+    is where a conditional guarantee is quoted.
+
+============================================================================================================
+SUMMARY
+============================================================================================================
+  Splitting a fixed calibration budget G ways shrinks the per-group size and
+  the gap depth together, so the one-rank deficit and the discarded
+  interpolation grow at once. Per-group coverage follows the shape law and a
+  marginal-only account is systematically optimistic. The worst group, which
+  is what a group-conditional guarantee is usually quoted as covering, is
+  where the audit's O(1/n) objection stops applying.

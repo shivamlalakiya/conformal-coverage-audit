@@ -1,0 +1,132 @@
+==============================================================================================================
+W16  THE LEVEL-TO-RANK MAP ACROSS QUANTILE APIs
+==============================================================================================================
+
+  Instrument: quantile the tie-free score set 1..n, so the returned value
+  IS the virtual index. (A, B) with h = A + Bq are FITTED at interior
+  levels. n = 50, requested coverage 0.90.
+
+--------------------------------------------------------------------------------------------------------------
+(i) INSTALLED APIs, MEASURED
+--------------------------------------------------------------------------------------------------------------
+API                                                        A       B        h  delivered  guarantee  q needed
+numpy.quantile method='linear'                        1.0000  49.000   45.100     0.8843     0.8824    0.9163
+numpy.quantile method='higher'                          step    step   46.000     0.9020     0.9020    0.8980
+numpy.quantile method='inverted_cdf'                    step    step   45.000     0.8824     0.8824    0.9000
+numpy.quantile method='weibull'                       0.0000  51.000   45.900     0.9000     0.8824    0.9000
+numpy.quantile method='median_unbiased'               0.3333  50.333   45.633     0.8948     0.8824    0.9053
+pandas.Series.quantile interpolation='linear'         1.0000  49.000   45.100     0.8843     0.8824    0.9163
+pandas.Series.quantile interpolation='higher'           step    step   46.000     0.9020     0.9020    0.8980
+pandas.Series.quantile interpolation='lower'            step    step   45.000     0.8824     0.8824    0.9184
+pandas.Series.quantile interpolation='midpoint'         step    step   45.500     0.8922     0.8824    0.9184
+pandas.Series.quantile interpolation='nearest'          step    step   45.000     0.8824     0.8824    0.9082
+scipy mstats.mquantiles DEFAULT (alphap=betap=0.4)    0.4000  50.200   45.580     0.8937     0.8824    0.9064
+scipy mstats.mquantiles alphap=betap=1 (= numpy linear)  1.0000  49.000   45.100     0.8843     0.8824    0.9163
+scipy mstats.mquantiles alphap=betap=0 (= weibull)    0.0000  51.000   45.900     0.9000     0.8824    0.9000
+scipy mstats.mquantiles alphap=betap=1/3 (= median_unbiased)  0.3333  50.333   45.633     0.8948     0.8824    0.9053
+scipy mstats.mquantiles alphap=betap=0.5 (= hazen)    0.5000  50.000   45.500     0.8922     0.8824    0.9080
+
+--------------------------------------------------------------------------------------------------------------
+(ii) A CONVENTION THE TAXONOMY DOES NOT CONTAIN
+--------------------------------------------------------------------------------------------------------------
+    scipy.stats.mstats.mquantiles defaults to alphap = betap = 0.4, the
+    Cunnane plotting position. That pair is not among Hyndman and Fan's
+    nine definitions, so it is not a row in the rank map.
+      virtual index at the raw level : 45.5800
+      delivered coverage h/(n+1)     : 0.8937   against a requested 0.90
+      distribution-free guarantee    : 0.8824
+      corrected level it needs       : 0.9064
+
+    Its delivered coverage differs from every numpy method (asserted in
+    self_check), so a caller who reaches for scipy rather than numpy gets a
+    fourteenth convention with its own corrected level. The rank map is a
+    map of the nine definitions; the space of SHIPPED conventions is larger.
+    The fractional-rank result covers it anyway, because it is stated in
+    terms of the virtual index rather than of a named definition -- which is
+    the argument for stating it that way.
+
+--------------------------------------------------------------------------------------------------------------
+(iii) EXTERNAL INTERPRETERS, EXECUTED. Every value below was returned by
+      the interpreter named, on the same tie-free score set. The `predicted`
+      column is our own instrument's value for that (alpha, beta) pair;
+      self_check asserts the two agree to 1e-9 at two sample sizes and two
+      levels, so a disagreement would fail the build rather than be reported.
+--------------------------------------------------------------------------------------------------------------
+      R: 4.6.1
+      Julia: 1.12.6
+      Octave: 11.3.0
+
+    R 4.6.1  quantile(type=)
+convention                                       h  predicted  delivered  default?   note
+  quantile(type=1)                          45.000        ---     0.8824             inverted_cdf (discontinuous)
+  quantile(type=2)                          45.500        ---     0.8922             averaged_inverted_cdf (discontinuous)
+  quantile(type=3)                          45.000        ---     0.8824             closest_observation (discontinuous)
+  quantile(type=4)                          45.000     45.000     0.8824             interpolated_inverted_cdf
+  quantile(type=5)                          45.500     45.500     0.8922             hazen
+  quantile(type=6)                          45.900     45.900     0.9000             weibull
+  quantile(type=7)                          45.100     45.100     0.8843       YES   numpy linear -- R's DEFAULT
+  quantile(type=8)                          45.633     45.633     0.8948             median_unbiased
+  quantile(type=9)                          45.600     45.600     0.8941             normal_unbiased
+
+    Julia 1.12.6  Statistics.quantile(alpha=, beta=)
+convention                                       h  predicted  delivered  default?   note
+  alpha=beta=1                              45.100     45.100     0.8843       YES   default; = numpy linear
+  alpha=beta=0                              45.900     45.900     0.9000             = weibull
+  alpha=beta=1/2                            45.500     45.500     0.8922             = hazen
+  alpha=beta=1/3                            45.633     45.633     0.8948             = median_unbiased
+  alpha=beta=2/5                            45.580     45.580     0.8937             = scipy's default (Cunnane)
+
+    Octave 11.3.0  quantile(x, p, dim, method)
+      nine methods: 45.000 45.500 45.000 45.000 45.500 45.900 45.100 45.633 45.600
+      identical to R's nine types: YES
+      default h = 45.500, delivering 0.8922  -- matches method(s) [2, 5]
+
+    OUT OF SCOPE, not unmeasured: pyspark's approxQuantile needs a JVM,
+    which is absent here. It is also not a convention in this sense -- it is
+    an APPROXIMATE streaming estimator with a configurable error bound,
+    which is branch (g) of the taxonomy and is already represented there by
+    river's P-squared estimator. So it is a different question, not a gap.
+
+--------------------------------------------------------------------------------------------------------------
+(iv) AGREEMENT ACROSS APIs
+--------------------------------------------------------------------------------------------------------------
+    15 installed API configurations produce 7 distinct
+    virtual indices. Configurations that coincide:
+      h = 45.0000  (3): numpy.quantile method='inverted_cdf' | pandas.Series.quantile interpolation='lower' | pandas.Series.quantile interpolation='nearest'
+      h = 45.1000  (3): numpy.quantile method='linear' | pandas.Series.quantile interpolation='linear' | scipy mstats.mquantiles alphap=betap=1 (= numpy linear)
+      h = 45.5000  (2): pandas.Series.quantile interpolation='midpoint' | scipy mstats.mquantiles alphap=betap=0.5 (= hazen)
+      h = 45.6333  (2): numpy.quantile method='median_unbiased' | scipy mstats.mquantiles alphap=betap=1/3 (= median_unbiased)
+      h = 45.9000  (2): numpy.quantile method='weibull' | scipy mstats.mquantiles alphap=betap=0 (= weibull)
+      h = 46.0000  (2): numpy.quantile method='higher' | pandas.Series.quantile interpolation='higher'
+
+    THE DEFAULTS DISAGREE ACROSS THE ECOSYSTEM. This is what a caller who
+    reaches for `the` quantile function actually gets:
+      numpy.quantile method='linear'                         delivers 0.8843
+      pandas.Series.quantile interpolation='linear'          delivers 0.8843
+      scipy mstats.mquantiles DEFAULT (alphap=betap=0.4)     delivers 0.8937
+      R quantile() [type=7]                                  delivers 0.8843
+      Julia Statistics.quantile()                            delivers 0.8843
+      Octave quantile() [method 5]                           delivers 0.8922
+
+    6 default entry points, 3 DISTINCT delivered
+    coverages: 0.8843, 0.8922, 0.8937, against a
+    requested 0.90. Not one of them delivers it.
+
+==============================================================================================================
+SUMMARY
+==============================================================================================================
+  15 shipped API configurations across three packages, 7 distinct
+  virtual indices, and one default convention -- scipy's -- that is not in
+  the Hyndman-Fan taxonomy at all. numpy and pandas agree with each other by
+  construction; scipy does not agree with either at its own default. The
+  interface claim is therefore stronger than the manuscript states, and the
+  right way to state it is in terms of the virtual index.
+  R, Julia and Octave are now EXECUTED, not transferred: 3 of 3
+  present (R, Julia, Octave). Every documented (alpha, beta) pair agrees
+  with our instrument to 1e-9, asserted at two sample sizes and two levels.
+  Octave's nine methods are identical to R's and its DEFAULT is method 5
+  (hazen), where R's, Julia's, numpy's and pandas's default is linear -- so
+  the ecosystem defaults genuinely disagree with one another, and none of
+  them delivers the requested level.
+  pyspark is out of scope rather than unmeasured: approxQuantile is an
+  approximate estimator, branch (g), already represented by river.

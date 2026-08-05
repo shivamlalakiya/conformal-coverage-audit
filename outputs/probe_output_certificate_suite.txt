@@ -1,0 +1,86 @@
+========================================================================================================
+W17  THE CERTIFICATE AS A TOOL, AND A CENSUS OF THE FIXTURES IN USE
+========================================================================================================
+
+--------------------------------------------------------------------------------------------------------
+(i) CLASSIFY, at alpha = 1/10. Certificate sizes [10, 20, 21, 39]; 11 classes.
+    Every candidate rule is round-tripped through the classifier, which is
+    the check that it identifies what it was built from.
+--------------------------------------------------------------------------------------------------------
+rule                              observed ranks           class size   identified
+one-sided/raw/linear              (9, 18, 19, 35)                   1   yes
+one-sided/corrected/linear        (9, 18, 19, 36)                   2   yes
+one-sided/raw/higher              (10, 19, 19, 36)                  1   yes
+one-sided/corrected/higher        (10, 19, 20, 37)                  1   yes
+one-sided/corrected/inverted_cdf  (10, 19, 20, 36)                  3   yes
+two-sided/raw/linear              (9, 19, 20, 37)                   1   yes
+two-sided/corrected/linear        (10, 19, 20, 38)                  2   yes
+two-sided/raw/higher              (10, 20, 20, 38)                  1   yes
+two-sided/corrected/higher        (10, 20, 21, 39)                  1   yes
+two-sided/corrected/inverted_cdf  (10, 20, 21, 38)                  1   yes
+two-sided/raw/direct              ('X', 20, 21, 38)                 2   yes
+
+    11 distinct observation vectors over the certificate, matching
+    the 11 classes W13 computes over the full checked range.
+
+    A helper matching no candidate is reported as unmatched rather than
+    forced into the nearest class -- asserted in self_check with a constant
+    helper, which matches nothing.
+
+--------------------------------------------------------------------------------------------------------
+(ii) REGIME REPORTER. i = n - floor(h) and the regime, from n and the level
+     alone. A library can print this before it returns an interval.
+--------------------------------------------------------------------------------------------------------
+      n  coverage          h    i   gamma  pi/gamma bound   regime
+     20     0.900     18.100    2   0.100            1.50   TAIL: use the shape law
+     50     0.900     45.100    5   0.100            1.20   transitional
+    100     0.900     90.100   10   0.100            1.10   interior: pi = gamma to O(1/i)
+   1000     0.900    900.100  100   0.100            1.01   interior: pi = gamma to O(1/i)
+     50     0.950     47.550    3   0.550            1.33   TAIL: use the shape law
+     50     0.990     49.510    1   0.510            2.00   TAIL: use the shape law
+    200     0.990    198.010    2   0.010            1.50   TAIL: use the shape law
+   2000     0.999   1998.001    2   0.001            1.50   TAIL: use the shape law
+   2000     0.990   1980.010   20   0.010            1.05   interior: pi = gamma to O(1/i)
+
+    Note the last two rows: same n, different level, opposite regimes. The
+    regime is a property of n(1-alpha), which is why it cannot be inferred
+    from the calibration size alone.
+
+--------------------------------------------------------------------------------------------------------
+(iii) FIXTURE CENSUS. Calibration sizes the audited libraries' own shipped
+      conformal tests exercise, scored against the discriminating power W13
+      computes. The VALUE is read from the test source (file:line given);
+      everything downstream of it is computed.
+--------------------------------------------------------------------------------------------------------
+      discriminating power of a single size, over 50 sizes:
+        best 6 of 11 classes, worst 3, median 5
+
+library         fixture               value  in range?  power  of   verdict
+sktime 1.1.0    initial_window           15        yes      4  11   partial: 2 classes short of the best size
+                sktime/forecasting/tests/test_conformal.py:104
+mapie 1.4.1     n (guard test)           30        yes      4  11   partial: 2 classes short of the best size
+                mapie/tests/test_utils.py:718
+mapie 1.4.1     n (guard test)           10        yes      3  11   BLIND: worst possible power
+                mapie/tests/test_utils.py:733
+
+    3 of 3 extracted fixtures sit at a calibration size
+    with less than maximal discriminating power.
+
+    LIMIT, stated plainly. Only two of the ten audited packages ship their
+    tests in the wheel, so this census covers two libraries and a handful of
+    fixtures, not the ten. pytest is deliberately not installed in the
+    pinned environments -- adding it would perturb the versions the deposit
+    exists to fix -- so the suites are not executed and the fixture VALUES
+    are read. A census over two libraries is still the difference between
+    the manuscript's anecdote and a measurement, and it is not more than
+    that.
+
+========================================================================================================
+SUMMARY
+========================================================================================================
+  The certificate is usable: 4 sizes, a classifier that
+  round-trips every candidate rule and reports non-matches as non-matches,
+  and a regime reporter that needs no data. Of the fixtures we could extract
+  from shipped test sources, 3 of 3 sit at a size that
+  cannot separate all the classes -- so the manuscript's claim about fixture
+  choice is measured on two libraries rather than asserted from one.

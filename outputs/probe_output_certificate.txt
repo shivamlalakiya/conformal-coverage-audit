@@ -1,0 +1,129 @@
+====================================================================================================
+W13  A MINIMAL CERTIFICATE -- the calibration sizes a suite must probe
+====================================================================================================
+
+  16 candidate rules: rail x correction x family, the audit's
+  own classifier candidate set, in exact rational arithmetic.
+
+----------------------------------------------------------------------------------------------------
+alpha = 1/10   floor 9   period 20   periodic from n = 20
+  complete check: irregular prefix 10..19 (10 sizes) + two periods 20..59
+----------------------------------------------------------------------------------------------------
+(i) OBSERVATIONALLY DISTINCT CLASSES: 11 of 16 rules
+    collapsed (3): one-sided/corrected/inverted_cdf; one-sided/raw/direct; one-sided/corrected/direct
+    collapsed (2): one-sided/corrected/linear; one-sided/raw/inverted_cdf
+    collapsed (2): two-sided/corrected/linear; two-sided/raw/inverted_cdf
+    collapsed (2): two-sided/raw/direct; two-sided/corrected/direct
+    7 rules are uniquely identifiable; 9 share an observation with another
+
+(ii) MINIMAL CERTIFICATE
+     |S| = 4   S = [10, 20, 21, 39]
+     Observing the delivered rank at these 4 calibration
+     sizes distinguishes all 11 distinguishable classes.
+
+(iii) COMPLETENESS
+      classes separated by S: 11; by the full checked range: 11   -> YES
+      identical partitions, not merely equal counts: YES
+      The checked range covers the irregular prefix and two full
+      periods, and rank(n+20) - rank(n) is constant per rule above
+      n = 20 (asserted in self_check), so agreement there is
+      agreement at every larger n. This is a proof, not a sample.
+
+(iv) rank(n + 20) - rank(n) in the periodic regime, per rule:
+    +18: 8 rules
+    +19: 8 rules
+
+(v) DISCRIMINATING POWER of a single calibration size. A fixture at a
+    low-power n cannot separate the rules it collapses -- which is the
+    failure the audit reports for one library's own test values.
+    worst: 3 distinct observations, at n = [10, 11, 19, 20, 21]
+    best:  6 distinct observations, at n = [52, 53, 54, 55, 56, 57, 58, 59]
+    no single n separates all 11 classes
+
+----------------------------------------------------------------------------------------------------
+alpha = 1/20   floor 19   period 40   periodic from n = 40
+  complete check: irregular prefix 20..39 (20 sizes) + two periods 40..119
+----------------------------------------------------------------------------------------------------
+(i) OBSERVATIONALLY DISTINCT CLASSES: 11 of 16 rules
+    collapsed (3): one-sided/corrected/inverted_cdf; one-sided/raw/direct; one-sided/corrected/direct
+    collapsed (2): one-sided/corrected/linear; one-sided/raw/inverted_cdf
+    collapsed (2): two-sided/corrected/linear; two-sided/raw/inverted_cdf
+    collapsed (2): two-sided/raw/direct; two-sided/corrected/direct
+    7 rules are uniquely identifiable; 9 share an observation with another
+
+(ii) MINIMAL CERTIFICATE
+     |S| = 4   S = [20, 40, 41, 79]
+     Observing the delivered rank at these 4 calibration
+     sizes distinguishes all 11 distinguishable classes.
+
+(iii) COMPLETENESS
+      classes separated by S: 11; by the full checked range: 11   -> YES
+      identical partitions, not merely equal counts: YES
+      The checked range covers the irregular prefix and two full
+      periods, and rank(n+40) - rank(n) is constant per rule above
+      n = 40 (asserted in self_check), so agreement there is
+      agreement at every larger n. This is a proof, not a sample.
+
+(iv) rank(n + 40) - rank(n) in the periodic regime, per rule:
+    +38: 8 rules
+    +39: 8 rules
+
+(v) DISCRIMINATING POWER of a single calibration size. A fixture at a
+    low-power n cannot separate the rules it collapses -- which is the
+    failure the audit reports for one library's own test values.
+    worst: 3 distinct observations, at n = [20, 21, 39, 40, 41]
+    best:  6 distinct observations, at n = [102, 103, 104, 105, 106, 107, 108, 109, 110, 111] ...
+    no single n separates all 11 classes
+
+----------------------------------------------------------------------------------------------------
+alpha = 2/7   floor 3   period 7   periodic from n = 7
+  complete check: irregular prefix 4..6 (3 sizes) + two periods 7..20
+----------------------------------------------------------------------------------------------------
+(i) OBSERVATIONALLY DISTINCT CLASSES: 11 of 16 rules
+    collapsed (3): one-sided/corrected/inverted_cdf; one-sided/raw/direct; one-sided/corrected/direct
+    collapsed (2): one-sided/corrected/linear; one-sided/raw/inverted_cdf
+    collapsed (2): two-sided/corrected/linear; two-sided/raw/inverted_cdf
+    collapsed (2): two-sided/raw/direct; two-sided/corrected/direct
+    7 rules are uniquely identifiable; 9 share an observation with another
+
+(ii) MINIMAL CERTIFICATE
+     |S| = 4   S = [4, 7, 8, 13]
+     Observing the delivered rank at these 4 calibration
+     sizes distinguishes all 11 distinguishable classes.
+
+(iii) COMPLETENESS
+      classes separated by S: 11; by the full checked range: 11   -> YES
+      identical partitions, not merely equal counts: YES
+      The checked range covers the irregular prefix and two full
+      periods, and rank(n+7) - rank(n) is constant per rule above
+      n = 7 (asserted in self_check), so agreement there is
+      agreement at every larger n. This is a proof, not a sample.
+
+(iv) rank(n + 7) - rank(n) in the periodic regime, per rule:
+    +5: 8 rules
+    +6: 8 rules
+
+(v) DISCRIMINATING POWER of a single calibration size. A fixture at a
+    low-power n cannot separate the rules it collapses -- which is the
+    failure the audit reports for one library's own test values.
+    worst: 3 distinct observations, at n = [4, 6, 7, 8]
+    best:  6 distinct observations, at n = [19, 20]
+    no single n separates all 11 classes
+
+====================================================================================================
+SUMMARY
+====================================================================================================
+   alpha  floor  period periodic from  n checked  rules  classes  |S|  worst n  best n   certificate
+    1/10      9      20            20         50     16       11    4        3       6   [10, 20, 21, 39]
+    1/20     19      40            40        100     16       11    4        3       6   [20, 40, 41, 79]
+     2/7      3       7             7         17     16       11    4        3       6   [4, 7, 8, 13]
+
+  Read the `worst n power` column against the audit's claim that a fixture
+  at a coincidence cell cannot discriminate: at those sizes the sixteen
+  candidate rules produce that many distinct observations between them, so
+  a suite pinned there is blind to the difference by construction and not
+  by bad luck.
+
+  Scope: the certificate separates the sixteen candidates. A helper matching
+  none of them is reporting that the candidate set is incomplete, which is a
+  fact about the instrument -- the same scope the audit's classifier states.
