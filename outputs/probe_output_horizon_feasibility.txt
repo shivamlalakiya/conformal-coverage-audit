@@ -1,0 +1,135 @@
+====================================================================================================
+W10  HORIZON FEASIBILITY -- the floor scales with what you divide alpha by
+====================================================================================================
+
+----------------------------------------------------------------------------------------------------
+(0) RESIDUAL ALIGNMENT -- a horizon off-by-one, separate from the level map
+    residuals_matrix_ has A[i,j] = y[j] - y[origin_i - 1], so diag(offset=0)
+    is ALREADY the one-step residual set. sktime slices diag(offset=h) for
+    step h, which holds (h+1)-step residuals.
+----------------------------------------------------------------------------------------------------
+    structural, first four entries of each diagonal:
+      diag(offset=0): index pairs [(30, 29), (31, 30), (32, 31), (33, 32)]   spans [1, 1, 1, 1]   -> 1-step residuals
+      diag(offset=1): index pairs [(31, 29), (32, 30), (33, 31), (34, 32)]   spans [2, 2, 2, 2]   -> 2-step residuals
+      diag(offset=2): index pairs [(32, 29), (33, 30), (34, 31), (35, 32)]   spans [3, 3, 3, 3]   -> 3-step residuals
+
+    statistical, random walk with unit innovation variance, 300 series:
+          diagonal    mean Var  if (k+1)-step   if k-step
+    diag(offset=0)       0.978              1           0
+    diag(offset=1)       1.899              2           1
+    diag(offset=2)       2.782              3           2
+
+    The (k+1)-step column is matched and the k-step column is not, at every
+    offset. The off-by-one is real. Direction: for an integrated series a
+    longer-horizon residual is larger, so the shipped interval is too WIDE.
+    A conservative defect fails no coverage test, which is why it survives.
+
+----------------------------------------------------------------------------------------------------
+(i) THE FLOOR under a Bonferroni split across a horizon of length H
+    n >= 1/alpha_eff - 1 with alpha_eff = alpha/H. Exact arithmetic.
+----------------------------------------------------------------------------------------------------
+ nominal    H  alpha_eff  floor n  x vs H=1   comment
+    0.90    1    0.10000        9       1.0   the audit's stated floor
+    0.90    3    0.03333       29       3.2   
+    0.90    6    0.01667       59       6.6   
+    0.90   12    0.00833      119      13.2   
+    0.90   24    0.00417      239      26.6   no library default is within an order of magnitude
+    0.90   52    0.00192      519      57.7   no library default is within an order of magnitude
+
+    0.95    1    0.05000       19       1.0   the audit's stated floor
+    0.95    3    0.01667       59       3.1   
+    0.95    6    0.00833      119       6.3   
+    0.95   12    0.00417      239      12.6   no library default is within an order of magnitude
+    0.95   24    0.00208      479      25.2   no library default is within an order of magnitude
+    0.95   52    0.00096     1039      54.7   no library default is within an order of magnitude
+
+    0.99    1    0.01000       99       1.0   the audit's stated floor
+    0.99    3    0.00333      299       3.0   no library default is within an order of magnitude
+    0.99    6    0.00167      599       6.1   no library default is within an order of magnitude
+    0.99   12    0.00083     1199      12.1   no library default is within an order of magnitude
+    0.99   24    0.00042     2399      24.2   no library default is within an order of magnitude
+    0.99   52    0.00019     5199      52.5   no library default is within an order of magnitude
+
+    A monthly forecast one year ahead at 95% needs 239 calibration windows
+    for the Bonferroni band to be feasible at all. This is the SAME
+    infeasibility the audit reports for a two-window default, reached from a
+    configuration nobody would call a corner case.
+
+----------------------------------------------------------------------------------------------------
+(ii) FOUR ARMS on sktime ConformalIntervals(method='conformal_bonferroni')
+     A shipped   B own scores at required rank   C aligned scores at
+     required rank   D aligned scores at sktime's level
+     step1 is the step-1 rate, where arm C's scores are the innovations and
+     exchangeability is EXACT. sim is the all-H simultaneous rate, which is
+     what a Bonferroni band targets. 300 series per cell.
+----------------------------------------------------------------------------------------------------
+  nom   H    n    level  floor  feas  h/(n+1)       A       B       C       D    simA    simC  finA
+ 0.90   1   15  0.90000     10   yes   0.8500  0.9467  0.9733  0.9200  0.8300  0.9467  0.9200  1.00
+ 0.95   1   15  0.95000     19    NO   0.8937  0.9667  1.0000  1.0000  0.8767  0.9667  1.0000  1.00
+
+ 0.90   1   61  0.90000     10   yes   0.8871  0.9667  0.9700  0.8967  0.8867  0.9667  0.8967  1.00
+ 0.95   1   61  0.95000     19   yes   0.9355  0.9833  0.9867  0.9667  0.9333  0.9833  0.9667  1.00
+
+ 0.90   6   26  0.98333     60    NO   0.9475  0.9833  1.0000  1.0000  0.9300  0.8967  1.0000  1.00
+ 0.95   6   26  0.99167    120    NO   0.9552  0.9900  1.0000  1.0000  0.9433  0.9067  1.0000  1.00
+
+ 0.90   6  136  0.98333     60   yes   0.9763  1.0000  1.0000  0.9767  0.9667  0.9533  0.9300  1.00
+ 0.95   6  136  0.99167    120   yes   0.9845  1.0000  1.0000  0.9867  0.9767  0.9667  0.9567  1.00
+
+ 0.90  12   38  0.99167    120    NO   0.9665  1.0000  1.0000  1.0000  0.9733  0.8267  1.0000  1.00
+ 0.95  12   38  0.99583    240    NO   0.9704  1.0000  1.0000  1.0000  0.9800  0.8400  1.0000  1.00
+
+ 0.90  12  250  0.99167    120   yes   0.9877  1.0000  1.0000  0.9900  0.9833  0.9367  0.9200  1.00
+ 0.95  12  250  0.99583    240   yes   0.9919  1.0000  1.0000  0.9967  0.9900  0.9567  0.9467  1.00
+
+ 0.90  24   68  0.99583    240    NO   0.9815  1.0000  1.0000  1.0000  0.9700  0.8367  1.0000  1.00
+ 0.95  24   68  0.99792    480    NO   0.9835  1.0000  1.0000  1.0000  0.9700  0.8367  1.0000  1.00
+
+----------------------------------------------------------------------------------------------------
+(iii) THREE DISTINCT FAILURES, separated
+----------------------------------------------------------------------------------------------------
+  1. INFEASIBILITY (7 of 14 cells). n below
+     H/alpha - 1, so no index into the score set supports the divided
+     level. Arithmetic, needs no exchangeability. A finite interval is
+     returned regardless:
+       nominal 0.95 H=1   n=15   needs 19   simultaneous(A) 0.9667  finite(A) 1.00
+       nominal 0.90 H=6   n=26   needs 60   simultaneous(A) 0.8967  finite(A) 1.00
+       nominal 0.95 H=6   n=26   needs 120  simultaneous(A) 0.9067  finite(A) 1.00
+       nominal 0.90 H=12  n=38   needs 120  simultaneous(A) 0.8267  finite(A) 1.00
+       nominal 0.95 H=12  n=38   needs 240  simultaneous(A) 0.8400  finite(A) 1.00
+       nominal 0.90 H=24  n=68   needs 240  simultaneous(A) 0.8367  finite(A) 1.00
+       nominal 0.95 H=24  n=68   needs 480  simultaneous(A) 0.8367  finite(A) 1.00
+
+  2. ALIGNMENT (arm A vs arm C at step 1, feasible cells). sktime's scores
+     are (h+1)-step, so they are inflated and the interval is too wide:
+       nominal 0.90 H=1   A 0.9467   C 0.9200   A-C +0.0267
+       nominal 0.90 H=1   A 0.9667   C 0.8967   A-C +0.0700
+       nominal 0.95 H=1   A 0.9833   C 0.9667   A-C +0.0167
+       nominal 0.90 H=6   A 1.0000   C 0.9767   A-C +0.0233
+       nominal 0.95 H=6   A 1.0000   C 0.9867   A-C +0.0133
+       nominal 0.90 H=12  A 1.0000   C 0.9900   A-C +0.0100
+       nominal 0.95 H=12  A 1.0000   C 0.9967   A-C +0.0033
+
+  3. LEVEL-TO-RANK (arm D vs arm C at step 1, feasible cells). Same scores,
+     same alignment; D resolves sktime's level through `linear`, C takes the
+     required rank. D should sit at h/(n+1):
+       nominal 0.90 H=1   predicted 0.8500   D 0.8300   gap -0.0200   C 0.9200
+       nominal 0.90 H=1   predicted 0.8871   D 0.8867   gap -0.0004   C 0.8967
+       nominal 0.95 H=1   predicted 0.9355   D 0.9333   gap -0.0022   C 0.9667
+       nominal 0.90 H=6   predicted 0.9763   D 0.9667   gap -0.0096   C 0.9767
+       nominal 0.95 H=6   predicted 0.9845   D 0.9767   gap -0.0078   C 0.9867
+       nominal 0.90 H=12  predicted 0.9877   D 0.9833   gap -0.0044   C 0.9900
+       nominal 0.95 H=12  predicted 0.9919   D 0.9900   gap -0.0019   C 0.9967
+
+  The h/(n+1) prediction of the fractional-rank result tracks arm D to within 0.0200 on the feasible cells,
+  measured against a SHIPPED helper's own level on exchangeable scores.
+
+====================================================================================================
+SUMMARY
+====================================================================================================
+  The feasibility floor is a property of the level RESOLVED, not the level
+  REQUESTED. Any construction that divides alpha -- Bonferroni over a
+  horizon, over output dimensions, over groups -- multiplies the floor.
+  At H=12, alpha=0.05 the floor is 239 calibration windows; the audited
+  default is 60 or fewer. The audit's two-window finding is the H=1 corner
+  of this, not a curiosity.
