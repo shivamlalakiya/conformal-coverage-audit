@@ -32,7 +32,7 @@ in the reproducer attached to the issue:
 1. **Index spans.** Solving each diagonal entry for the index pair that produces it
    gives horizon spans 1, 2, 3 for offsets 0, 1, 2.
 2. **Variance.** On a unit-innovation random walk an *h*-step last-value residual has
-   variance *h*. Measured over 300 series: 0.993, 1.884, 2.762 for offsets 0, 1, 2 —
+   variance *h*. Measured over 300 series: 0.978, 1.899, 2.782 for offsets 0, 1, 2 —
    matching *k+1*, not *k*.
 3. **Direct spy.** Wrapping `np.quantile` inside `_predict_interval_series` shows
    `predict_interval(fh=[1])` resolving its level from `|diag(offset=1)|`.
@@ -56,7 +56,7 @@ than re-filed. Sites this audit newly located and has **not** yet reported upstr
 should be listed here before submission. Retracted findings are not filed at all and
 are recorded in the manuscript's retraction section instead.
 
-- [ ] Review the \cenNew{} newly located sites and decide, per site, whether it is a
+- [ ] Review the newly located sites in the census and decide, per site, whether it is a
       defect worth a maintainer's time or a documentation gap. Not every uncorrected
       level is a bug report; several are deliberate and documented.
 - [ ] `statsforecast` `ConformalIntervals(n_windows=2)` default: no valid finite
