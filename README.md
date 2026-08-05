@@ -20,9 +20,36 @@ rank delivers.
 ## Layout
 
 ```
-probes/       the harnesses
-outputs/      committed output of each harness, one file per script
+probes/               the harnesses
+outputs/              committed output of each harness, one file per script
+conformal_coverage/   the rank arithmetic, as an installable package
 ```
+
+## The arithmetic, without the harnesses
+
+Most readers want four functions rather than twenty-seven probes. They are packaged
+separately, with no dependencies at all -- stdlib `fractions` and `math` -- so the module
+can be vendored as a single file.
+
+```python
+from conformal_coverage import (
+    required_rank, delivered_coverage, feasibility_floor, conformal_threshold,
+)
+
+required_rank(100, 0.9)           # 91   the order statistic the guarantee needs
+delivered_coverage(90, 100)       # 0.8910...   what rank 90 actually delivers
+feasibility_floor(0.9)            # 9    below this no valid finite bound exists
+required_rank(8, 0.9)             # None
+conformal_threshold(scores, 0.1)  # the threshold, or +inf where none is valid
+```
+
+`conformal_threshold` indexes the sorted scores directly, so no interpolation convention
+can move it, and it returns `+inf` rather than a number where no valid bound exists --
+which is the honest answer at that size. Levels are converted with `Fraction(str(x))`,
+not `Fraction(x)`: the latter is `8106479329266893/9007199254740992` for `0.9`, strictly
+greater than `9/10`, and gives the wrong rank at `n = 9`.
+
+Check it with `python -m conformal_coverage`. See `README-package.md` for the rest.
 
 ### Synthetic and structural
 

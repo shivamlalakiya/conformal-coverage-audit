@@ -32,6 +32,7 @@ the difference between an anecdote and a measurement.
 """
 
 import math
+import glob
 import os
 import re
 import sys
@@ -115,11 +116,24 @@ FIXTURE_SOURCES = [
     ("mapie 1.4.1", "mapie/tests/test_utils.py",
      r"^\s*n\s*=\s*(\d+)\s*$", "n (guard test)"),
 ]
-SITE_ROOTS = [
-    os.path.join(HERE, "..", ".venv-real", "lib", "python3.14", "site-packages"),
-    os.path.join(HERE, "..", "..", ".venv-tabular", "lib", "python3.14",
-                 "site-packages"),
-]
+def _site_roots():
+    """Every site-packages under a sibling virtualenv, whatever it is called.
+
+    This used to hardcode `.venv-real` and `python3.14`, which meant the probe only
+    ran on the machine it was written on -- a reader following README.md creates
+    `.venv-probe`, and any other Python minor version misses too. Globbing the
+    directory names keeps it working without asking the reader to edit the source.
+    """
+    roots = []
+    for base in (os.path.join(HERE, ".."), os.path.join(HERE, "..", "..")):
+        roots.extend(sorted(glob.glob(
+            os.path.join(base, ".venv*", "lib", "python3.*", "site-packages"))))
+        # Windows layout, and any venv that puts packages directly under Lib/
+        roots.extend(sorted(glob.glob(os.path.join(base, ".venv*", "Lib", "site-packages"))))
+    return roots
+
+
+SITE_ROOTS = _site_roots()
 
 
 def read_fixtures():

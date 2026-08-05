@@ -42,9 +42,9 @@ arm's 70-point cache floor, plus K-1 for the rolling origin: 73 points. That
 excludes 335 of the archive's 1428 monthly series as too short, reported here
 rather than dropped silently.
 
-    .venv-real/bin/python probes/sample_robustness.py
+    .venv-probe/bin/python probes/sample_robustness.py
     # the darts arm runs in its own venv, on the same series, single origin:
-    .venv-real/bin/python probes/sample_robustness.py --export-npz /tmp/m3_full.npz
+    .venv-probe/bin/python probes/sample_robustness.py --export-npz /tmp/m3_full.npz
     ../.venv-darts/bin/python probes/run_real_data_darts.py /tmp/m3_full.npz
 """
 
