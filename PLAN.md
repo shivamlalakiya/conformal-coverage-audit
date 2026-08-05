@@ -8,12 +8,12 @@ has *not* been established.
 
 ## 1. The question
 
-A finite-sample distribution-free prediction interval is a statement about an **order statistic**. For `n`
-exchangeable calibration scores, an interval built on rank `r` covers a fresh observation with probability
-exactly `r / (n + 1)`. That identity is standard.
+Finite-sample distribution-free intervals are indexed by **order statistics**, and the index fixes the
+coverage: with `n` calibration scores drawn exchangeably, index `r` carries `r / (n + 1)` exactly. That
+identity is standard.
 
-The APIs libraries use to obtain that bound do not accept a rank. They accept a **level**, and every
-quantile function maps a level to a position under some interpolation convention. So:
+What libraries call to get such a bound is not indexed that way. It takes a **probability level**, and each
+quantile convention turns that level into a position by its own rule. Hence:
 
 > **Which rank does an implementation actually land on, and what coverage does that rank deliver?**
 
@@ -25,8 +25,8 @@ quantile function maps a level to a position under some interpolation convention
 Supporting observation already measured on synthetic draws: two libraries that both omit the correction
 sit **0.0000** and **0.1643** from nominal at comparable `n`. One passes an uncorrected level through a
 rounding-based quantile method that coincides with the required rank in a fifth to two-thirds of cells;
-the other takes two separate interpolated quantiles of signed residuals and lands on no order statistic
-at all.
+the other interpolates two separate quantiles of signed residuals, which lands between order statistics
+rather than on one.
 
 ## 3. Method
 
@@ -44,8 +44,7 @@ as estimators of a population quantile but as carriers of a coverage guarantee.*
 
 ## 4. Unit of analysis
 
-**The quantile helper, not the library.** A single package can resolve the bound three different ways in
-three different code paths — a p-value path, a quantile path, and a path that never forms an order
+**The quantile helper, not the library.** One package can reach the bound by three unrelated code paths — a p-value path, a quantile path, and a path that never forms an order
 statistic. Any table with one row per library cannot express that, and several published comparisons have
 that shape.
 
@@ -54,8 +53,8 @@ that shape.
 Per series or dataset:
 
 1. Split chronologically (or by a stated rule, for tabular data) into train / calibration / test.
-2. **Arm A — the library**, through its public API, at its own nominal level, with its own defaults.
-   The subject is what ships, not what is achievable.
+2. **Arm A — the library**: called through its documented entry point, at the nominal level it names, with
+   every default left alone. What ships is the object under study, not what could be configured.
 3. **Arm B — the required rank**, using **the library's own point forecast and the library's own residual
    set**, changing only the level→rank step.
 4. Record: covered or not, interval width, and the rank of the calibration scores that arm A's bound
@@ -65,8 +64,8 @@ Per series or dataset:
 **Width is reported alongside coverage.** A wider interval that covers is not the same result as a
 correctly indexed one.
 
-⚠️ **Attribution requirement, and it is the whole reason arm B exists.** Real data is not exchangeable, so
-an absolute coverage miss cannot be attributed to the convention on its own. Only the **paired delta**
+⚠️ **Attribution requirement, and it is the whole reason arm B exists.** Series drawn from a real archive
+break exchangeability, so no absolute coverage figure can be laid at the convention's door by itself. Only the **paired delta**
 between arms carries the claim. If the two arms differ in their residual set, their centre, or their base
 model, the delta is meaningless — see §8.
 
@@ -101,12 +100,13 @@ Three items, short enough to be asked for in review:
 | Conformance suite and the §7 checklist | ✅ Complete, `probes/conformance_suite.py` |
 | Whether the mechanism generalises beyond conformal prediction | ✅ Complete, `probes/w8_falsification.py`. It reproduces in value-at-risk and in nonparametric tolerance bounds; it is **not** the dominant term in bootstrap percentile intervals |
 | Per-helper count under a stated criterion | ✅ Complete, `probes/helper_census.py` |
+| **Whether M3 depends on the series chosen or on one point per series** | ✅ Complete, `probes/sample_robustness.py`. The same cells on **every** eligible monthly series (1093 of 1428; the rest are shorter than the darts arm's floor) with a rolling origin, standard errors clustered by series. Selection and resolution are now measured rather than conceded; **exchangeability still is not, and no archive size can repair it** |
 
 ### 8.1 What the measurement found, in one paragraph
 
 The level→rank map, not the presence of the `(n+1)/n` correction, predicts whether an interval covers.
-**Six tabular implementations resolving the same bound from the same scores on the same split show a
-paired delta of exactly zero in five cases**; the sixth over-covers. The forecasting libraries are where
+**Seven tabular implementations, each given identical scores and an identical split, reach the same bound
+with a paired delta of exactly zero in six cases**; the seventh sits above nominal. The forecasting libraries are where
 the deficit lives, and there the size of it is set by which order statistic the level lands on — one
 library's deficit alternates between zero and one rank on a residue pattern in `n`, so the same code path
 is exact at some calibration sizes and short at others. Separately, one library's **default**
@@ -120,12 +120,12 @@ These are not aspirations; they have each already caught a real error in this wo
 - **Every closed form self-checks against exact rational arithmetic at import.** A failing check aborts
   the run. Two such checks caught errors in their author's own hand-derived assertions.
 - **A grid is chosen by the bug, not by the author.** Every sweep extends to at least twice the first
-  boundary it finds. A grid that stops just past a boundary is worse than one that stops far short,
-  because it looks converged.
+  boundary it finds. Stopping a grid just beyond the first boundary is worse than stopping well short of
+  it, because the short grid does not look finished and the other one does.
 - **Sweep at least one non-unit-fraction level.** Claims of the form "this only happens on that residue
   class" are usually artifacts of sweeping only `1/10`, `1/20`, `1/100`.
-- **An oracle must be independent of the implementation it checks.** A fixture placed at a cell that
-  cannot discriminate is worse than no fixture.
+- **Never check an implementation against something that shares its convention.** And a fixture pinned to a
+  cell with no discriminating power is worse than no fixture at all.
 - **Label one-sided and two-sided on every number, in the table, not only in the script.** `n/(n+1)` and
   `(n−1)/(n+1)` differ by fourteen points at `n = 6`.
 - **Establish the direction of harm before calling anything a defect**, and check that the minimal patch
@@ -140,15 +140,24 @@ These are not aspirations; they have each already caught a real error in this wo
 - Non-exchangeability generally biases toward **over**coverage, so a synthetic result understates rather
   than overstates.
 - On real data the **absolute** coverage is not attributable to the convention. Only the paired delta is.
-  Every real-data table here reports the delta and its standard error for that reason.
+  Every real-data table here reports the delta and its standard error for that reason. This is the one
+  limitation the robustness probe explicitly does **not** remove: running every series in the archive
+  answers "you chose the series", and a rolling origin answers "one point per series", but neither makes
+  a real series exchangeable.
+- The rolling origins of one series share their history, so they are not independent test points.
+  `sample_robustness.py` clusters every standard error by series for that reason and prints the naive
+  figure beside it, so the size of the dependence is visible instead of argued.
 - Findings are version-pinned. The rank map (M1) is not, which is why it is the theory core.
 - One library's calibration residuals are computed from a model already fitted on the whole input series,
   so they are in-sample and optimistically small. That bias is measured **separately** from the level→rank
   map, in `probes/darts_scoring_path.py`, rather than being folded into a single number.
 - The generalisation check found the mechanism present but **not dominant** in bootstrap percentile
   intervals. The mechanism generalises; the effect sizes measured here do not.
-- R is not installed on the machine these probes ran on, so `quantile(type = 7)` — R's default, and
-  identical to numpy's `linear` — is cited rather than run.
+- R, Julia and Octave **are** executed, not transferred: `quantile(type = 7)` (R's default, identical to
+  numpy's `linear`), `Statistics.quantile(alpha=, beta=)` and Octave's nine methods all agree with the
+  instrument on every documented `(α, β)` pair. Octave's **default** is method 5 (hazen), not linear, so
+  a fourth ecosystem default sits off the common one. MATLAB proper is not run — Octave implements the
+  same nine methods — and pyspark is out of scope for the reason given in §11.
 - One finding previously asserted in this work was **retracted** after three independent checks
   contradicted it. The probe that adjudicated it is in this repository. Several later claims were
   retracted the same day they were made, by exact-arithmetic checks written to test them; the most
@@ -165,7 +174,8 @@ These are not aspirations; they have each already caught a real error in this wo
 
 ## 12. What is in this repository
 
-Seventeen probes and their committed outputs, listed by purpose in `README.md`. Every closed form
+The probes and their committed outputs, listed by purpose in `README.md` — a count is deliberately not
+quoted here, because it went stale twice and `README.md` is the list that has to be right. Every closed form
 self-checks against exact rational arithmetic at import, and a failing check aborts the run.
 
 Not included, each for a stated reason: third-party library sources (pinned in

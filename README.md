@@ -36,25 +36,26 @@ outputs/      committed output of each harness, one file per script
 
 ### Real data — paired arms
 
-Every real-data probe runs two arms. **Arm A** is the library through its public API at its own defaults.
-**Arm B** is the required order statistic computed from **the library's own scores and the library's own
-point prediction**, changing only the level→rank step. Real data is not exchangeable, so an absolute
-coverage miss is not attributable to the convention — only the **paired delta** carries a claim. See
-[`PLAN.md`](PLAN.md) §5.
+Each real-data probe reports a matched pair. **Arm A** calls the package as shipped, defaults untouched.
+**Arm B** takes the order statistic the guarantee requires, built from **that same package's scores and
+that same package's point prediction** — the only step that differs is how the level becomes an index.
+Archive series are not exchangeable, so no absolute coverage number can be charged to the convention;
+only the **paired delta** supports a claim. See [`PLAN.md`](PLAN.md) §5.
 
 | Probe | What it measures |
 |---|---|
 | `probes/run_real_data.py` | sktime `ConformalIntervals` on Monash series, both arms off the same fitted object |
 | `probes/run_real_data_statsforecast.py` | statsforecast `ConformalIntervals`, with the scores captured out of the library's own interval call |
 | `probes/run_real_data_darts.py` | darts `ConformalNaiveModel`, calibration lengths chosen to sample both the coincidence band and the deficit band |
-| `probes/run_real_data_tabular.py` | Six tabular implementations on OpenML data, resolving the same bound from the same scores on the same split |
+| `probes/run_real_data_tabular.py` | Seven tabular implementations over OpenML data, each handed identical scores and an identical split |
 | `probes/export_series.py` | Caches Monash series as `.npz`, because the darts probe cannot share an environment with the loader |
+| `probes/sample_robustness.py` | Whether the arms above depend on which series were chosen or on one test point per series. Re-runs the same cells on **every eligible series in the archive** — no sample, so there is no selection to object to — with a rolling origin, and clusters the standard error by series because rolling origins of one series share their history. Adds no forecasting logic: origin `j` is the truncation `s[:len(s)-j]` through each arm's own unmodified code path |
 
 ### Tooling and generalisation
 
 | Probe | What it measures |
 |---|---|
-| `probes/conformance_suite.py` | Given any `(scores, level) → threshold` callable: the branch, the rank it lands on, the delivered coverage, the smallest `n` at which the requested level is delivered, and whether it warns at the boundary. Validated at import against reference implementations of every branch |
+| `probes/conformance_suite.py` | Given any `(scores, level) → threshold` callable: the branch, the rank it lands on, the delivered coverage, the least calibration size that honours the level as asked, and whether a boundary case raises a warning. Validated at import against reference implementations of every branch |
 | `probes/helper_census.py` | Counts the level→rank resolution sites across the audited packages under a stated criterion, verifying each site's file, line and anchor text on disk. Fails loudly if an anchor has moved |
 | `probes/w8_falsification.py` | Whether the level→rank map matters outside conformal prediction: empirical value-at-risk, nonparametric tolerance bounds, and bootstrap percentile intervals. Includes a setting chosen because it was likely to refute the general claim |
 | `probes/paired_report.py` | Shared summary arithmetic for the paired arms, including the two reporting subtleties an earlier version of this work got wrong |
@@ -64,7 +65,7 @@ and what has *not* been established.
 
 ## Running them
 
-Three environments, because the audited libraries do not agree on numpy and pandas versions.
+Three environments are needed: the packages under audit pin incompatible numpy and pandas releases.
 `probe-requirements.txt` documents all three and names which probe needs which.
 
 ```bash
@@ -79,6 +80,9 @@ python3 -m venv .venv-probe
 .venv-probe/bin/python probes/run_real_data.py m1_monthly_dataset 250
 .venv-probe/bin/python probes/run_real_data_statsforecast.py m1_monthly_dataset 250
 .venv-probe/bin/python probes/w8_falsification.py
+# selection/resolution robustness: every eligible series, rolling origin.
+# ~30 min; parallel across series, so it wants a few free cores.
+.venv-probe/bin/python probes/sample_robustness.py
 .venv-probe/bin/python probes/conformance_suite.py \
     --out outputs/probe_output_conformance_forecasting.txt
 
@@ -91,6 +95,9 @@ python3 -m venv .venv-darts
 # the darts real-data arm reads a cache the loader in [1] writes:
 .venv-probe/bin/python probes/export_series.py m1_monthly_dataset 250 /tmp/m1.npz 70
 .venv-darts/bin/python probes/run_real_data_darts.py /tmp/m1.npz
+# and the same arm on every eligible series, for the robustness check:
+.venv-probe/bin/python probes/sample_robustness.py --export-npz /tmp/m3_full.npz
+.venv-darts/bin/python probes/run_real_data_darts.py /tmp/m3_full.npz
 
 # [3] tabular: mapie, crepes, puncc, torchcp, nonconformist, openml
 python3 -m venv .venv-tabular
