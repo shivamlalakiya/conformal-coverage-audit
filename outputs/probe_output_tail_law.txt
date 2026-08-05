@@ -1,0 +1,171 @@
+==========================================================================================================
+W12  THE TAIL LAW FOR pi -- what the fractional-rank result left open
+==========================================================================================================
+
+  pi = E[F(T)-F(a)] / E[F(b)-F(a)]   (a RATIO of expectations)
+  i  = n - floor(h)  is the DEPTH of the landed-in gap from the top
+  (G) exponential tail:  pi = (i+1) gamma / (i + gamma)      -- no
+      tail parameter, exact
+  (F) Pareto(theta):     pi = (i+1) E[1-(1+gamma(R-1))^-theta],
+      R ~ Pareto(i theta)
+  both -> gamma as i -> inf, at rate O(1/i): the interior result, with
+  the right variable identified. Depth, not n.
+  reps 300000   seed 20260805   Pareto theta 1.5
+
+----------------------------------------------------------------------------------------------------------
+(i) THE LAWS vs MEASUREMENT. pi measured as the ratio of expectations,
+    which is what the coverage identity requires.
+----------------------------------------------------------------------------------------------------------
+dist             n      q     j   i   gamma      law  measured      err   gamma  law-gam
+pareto          50  0.990    49   1   0.510   0.7522    0.7525  +0.0003   0.510  +0.2422
+pareto          50  0.950    47   3   0.550   0.6610    0.6610  -0.0000   0.550  +0.1110
+pareto          50  0.900    45   5   0.100   0.1326    0.1327  +0.0001   0.100  +0.0326
+pareto         200  0.990   198   2   0.010   0.0220    0.0221  +0.0001   0.010  +0.0120
+pareto         200  0.950   190  10   0.050   0.0584    0.0584  +0.0001   0.050  +0.0084
+pareto        1000  0.990   990  10   0.010   0.0118    0.0118  +0.0000   0.010  +0.0018
+pareto         100  0.995    99   1   0.505   0.7487    0.7481  -0.0006   0.505  +0.2437
+
+exponential     50  0.990    49   1   0.510   0.6755    0.6753  -0.0001   0.510  +0.1655
+exponential     50  0.950    47   3   0.550   0.6197    0.6199  +0.0002   0.550  +0.0697
+exponential     50  0.900    45   5   0.100   0.1176    0.1177  +0.0000   0.100  +0.0176
+exponential    200  0.990   198   2   0.010   0.0149    0.0149  -0.0000   0.010  +0.0049
+exponential    200  0.950   190  10   0.050   0.0547    0.0547  +0.0000   0.050  +0.0047
+exponential   1000  0.990   990  10   0.010   0.0110    0.0110  -0.0000   0.010  +0.0010
+exponential    100  0.995    99   1   0.505   0.6711    0.6713  +0.0002   0.505  +0.1661
+
+    worst |measured - law| = 0.00057 over 14 cells.
+    The `law-gam` column is what the interior approximation was missing:
+    up to 0.2437 of a rank.
+
+----------------------------------------------------------------------------------------------------------
+(ii) (G) BEYOND THE EXPONENTIAL. normal and lognormal are also in the
+     Gumbel domain but approach it at different rates. (G) is exact for
+     the exponential and a calibrated approximation for the others; the
+     residual is reported per distribution, not averaged away.
+----------------------------------------------------------------------------------------------------------
+dist             n      q   i   gamma      (G)  measured      err   position vs (G)
+exponential     50  0.990   1   0.510   0.6755    0.6751  -0.0004   exact
+exponential     50  0.950   3   0.550   0.6197    0.6199  +0.0001   exact
+exponential     50  0.900   5   0.100   0.1176    0.1177  +0.0000   exact
+exponential    200  0.990   2   0.010   0.0149    0.0149  -0.0000   exact
+exponential    200  0.950  10   0.050   0.0547    0.0547  -0.0000   exact
+
+normal          50  0.990   1   0.510   0.6755    0.6514  -0.0241   below -- lighter tail
+normal          50  0.950   3   0.550   0.6197    0.6047  -0.0150   below -- lighter tail
+normal          50  0.900   5   0.100   0.1176    0.1121  -0.0055   below -- lighter tail
+normal         200  0.990   2   0.010   0.0149    0.0140  -0.0009   below -- lighter tail
+normal         200  0.950  10   0.050   0.0547    0.0537  -0.0010   below -- lighter tail
+
+lognormal       50  0.990   1   0.510   0.6755    0.7097  +0.0342   above -- heavier tail
+lognormal       50  0.950   3   0.550   0.6197    0.6379  +0.0182   above -- heavier tail
+lognormal       50  0.900   5   0.100   0.1176    0.1241  +0.0065   above -- heavier tail
+lognormal      200  0.990   2   0.010   0.0149    0.0170  +0.0021   above -- heavier tail
+lognormal      200  0.950  10   0.050   0.0547    0.0563  +0.0015   above -- heavier tail
+
+    exponential  mean err -0.0001   worst -0.0004
+    normal       mean err -0.0093   worst -0.0241
+    lognormal    mean err +0.0125   worst +0.0342
+
+    normal sits below (G) and lognormal above, in the direction each tail
+    sits relative to the exponential. That is the bracket, and it is the
+    honest statement of (G)'s reach outside its exact case.
+
+----------------------------------------------------------------------------------------------------------
+(iii) COVERAGE. The prediction the manuscript currently makes is
+      (j+gamma)/(n+1) = h/(n+1). The tail law replaces gamma by pi.
+----------------------------------------------------------------------------------------------------------
+dist             n      q   i  measured    s.e.   h/(n+1)      err  (j+pi)/(n+1)      err  better
+pareto          50  0.990   1   0.97567 0.00034   0.97078 +0.00489       0.97553 +0.00014      pi
+pareto          50  0.950   3   0.93445 0.00055   0.93235 +0.00210       0.93453 -0.00008      pi
+pareto          50  0.900   5   0.88545 0.00071   0.88431 +0.00113       0.88495 +0.00049      pi
+pareto         200  0.990   2   0.98520 0.00027   0.98512 +0.00008       0.98518 +0.00002      pi
+pareto         200  0.950  10   0.94578 0.00051   0.94552 +0.00026       0.94556 +0.00022      pi
+pareto        1000  0.990  10   0.98897 0.00023   0.98902 -0.00005       0.98902 -0.00005   gamma
+pareto         100  0.995   1   0.98771 0.00025   0.98520 +0.00251       0.98761 +0.00009      pi
+
+exponential     50  0.990   1   0.97375 0.00036   0.97078 +0.00297       0.97403 -0.00028      pi
+exponential     50  0.950   3   0.93500 0.00055   0.93235 +0.00264       0.93372 +0.00128      pi
+exponential     50  0.900   5   0.88491 0.00071   0.88431 +0.00059       0.88466 +0.00025      pi
+exponential    200  0.990   2   0.98504 0.00027   0.98512 -0.00008       0.98515 -0.00010   gamma
+exponential    200  0.950  10   0.94550 0.00051   0.94552 -0.00002       0.94555 -0.00005   gamma
+exponential   1000  0.990  10   0.98853 0.00024   0.98902 -0.00049       0.98902 -0.00049   gamma
+exponential    100  0.995   1   0.98663 0.00026   0.98520 +0.00143       0.98684 -0.00021      pi
+
+normal          50  0.990   1   0.97393 0.00036   0.97078 +0.00314       0.97403 -0.00010      pi
+normal          50  0.950   3   0.93367 0.00056   0.93235 +0.00132       0.93372 -0.00005      pi
+normal          50  0.900   5   0.88413 0.00072   0.88431 -0.00019       0.88466 -0.00053   gamma
+normal         200  0.990   2   0.98487 0.00027   0.98512 -0.00025       0.98515 -0.00027   gamma
+normal         200  0.950  10   0.94564 0.00051   0.94552 +0.00012       0.94555 +0.00009      pi
+normal        1000  0.990  10   0.98891 0.00023   0.98902 -0.00011       0.98902 -0.00011   gamma
+normal         100  0.995   1   0.98677 0.00026   0.98520 +0.00157       0.98684 -0.00007      pi
+
+lognormal       50  0.990   1   0.97462 0.00035   0.97078 +0.00384       0.97403 +0.00060      pi
+lognormal       50  0.950   3   0.93415 0.00055   0.93235 +0.00179       0.93372 +0.00043      pi
+lognormal       50  0.900   5   0.88508 0.00071   0.88431 +0.00077       0.88466 +0.00042      pi
+lognormal      200  0.990   2   0.98533 0.00027   0.98512 +0.00021       0.98515 +0.00018      pi
+lognormal      200  0.950  10   0.94534 0.00051   0.94552 -0.00019       0.94555 -0.00021   gamma
+lognormal     1000  0.990  10   0.98916 0.00023   0.98902 +0.00014       0.98902 +0.00014      pi
+lognormal      100  0.995   1   0.98715 0.00025   0.98520 +0.00195       0.98684 +0.00030      pi
+
+    the tail law is closer in 20 of 28 cells.
+    worst |err| : gamma 0.00489   pi 0.00128
+    mean |err|  : gamma 0.00124   pi 0.00026
+    restricted to the shallow gaps i <= 2, where the interior
+    approximation is weakest: gamma 0.00191   pi 0.00020   over 12 cells
+
+----------------------------------------------------------------------------------------------------------
+(iv) THE TAIL-CORRECTED LEVEL. W9 solves h(q) = (1-alpha)(n+1), which is
+     right where pi = gamma. Solving (j + pi)/(n+1) = 1-alpha instead is
+     right in the tail. Both measured, on the exponential where (G) is
+     exact.
+----------------------------------------------------------------------------------------------------------
+dist             n    1-a    q_int      cov      err   q_tail      cov      err
+exponential     50   0.90  0.91633   0.9012  +0.0012  0.91597   0.9005  +0.0005
+exponential     50   0.95  0.96837   0.9527  +0.0027  0.96639   0.9499  -0.0001
+exponential     50   0.99      ---      ---      ---      ---      ---      ---   INFEASIBLE: needs n >= 99
+exponential    200   0.99  0.99492   0.9900  +0.0000  0.99490   0.9901  +0.0001
+exponential    100   0.98  0.98970   0.9801  +0.0001  0.98960   0.9802  +0.0002
+
+pareto          50   0.90  0.91633   0.9010  +0.0010  0.91573   0.9006  +0.0006
+pareto          50   0.95  0.96837   0.9530  +0.0030  0.96512   0.9498  -0.0002
+pareto          50   0.99      ---      ---      ---      ---      ---      ---   INFEASIBLE: needs n >= 99
+pareto         200   0.99  0.99492   0.9902  +0.0002  0.99488   0.9906  +0.0006
+pareto         100   0.98  0.98970   0.9802  +0.0002  0.98953   0.9801  +0.0001
+
+    mean |coverage - nominal|:  interior-corrected 0.00106   tail-corrected 0.00030
+    Both remain ASYMPTOTIC. The distribution-free floor is still
+    floor(h)/(n+1); neither level buys a finite-sample guarantee, and a
+    reader who needs one should use a rounding definition at the
+    required rank.
+
+----------------------------------------------------------------------------------------------------------
+(v) WHICH REGIME, from n and the level alone -- no data needed. A library
+    can compute i = n - floor(h) and tell its caller whether the interior
+    approximation applies. The inflation pi/gamma is bounded by (i+1)/i.
+----------------------------------------------------------------------------------------------------------
+      n  1-alpha         h    i   gamma   pi (G)  pi/gamma   bound   regime
+     50    0.900    45.100    5   0.100   0.1176     1.176    1.20   transitional
+     50    0.950    47.550    3   0.550   0.6197     1.127    1.33   TAIL: use the law
+     50    0.990    49.510    1   0.510   0.6755     1.325    2.00   TAIL: use the law
+    200    0.990   198.010    2   0.010   0.0149     1.493    1.50   TAIL: use the law
+   1000    0.990   990.010   10   0.010   0.0110     1.099    1.10   interior: pi = gamma to O(1/i)
+    100    0.995    99.505    1   0.505   0.6711     1.329    2.00   TAIL: use the law
+   2000    0.999  1998.001    2   0.001   0.0015     1.499    1.50   TAIL: use the law
+
+    The practical rule: a requested level puts you in the tail regime when
+    (1-alpha) is close enough to 1 that fewer than a handful of order
+    statistics sit above the virtual index. That is a statement about
+    n(1-alpha), not about n, which is why collecting more data does not
+    leave the regime if the level rises with it.
+
+==========================================================================================================
+SUMMARY
+==========================================================================================================
+  pi has a closed form in both extreme-value domains, exact to
+  0.00057 against measurement. The Gumbel form (i+1)gamma/(i+gamma)
+  carries no tail parameter, so it is usable without estimating anything.
+  Both reduce to pi = gamma at rate O(1/i), which identifies DEPTH rather
+  than sample size as the variable governing the interior approximation.
+  Replacing gamma by pi cuts the mean coverage prediction error from
+  0.00124 to 0.00026, and on the
+  shallow gaps where the manuscript's caveat lived, by more.
