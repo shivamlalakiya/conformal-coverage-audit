@@ -1,0 +1,107 @@
+self_check: OK (exact oracle agrees with statsforecast on 1554 cells)
+
+==============================================================================
+CLAIM 1 -- the degenerate window is DOCUMENTED, not silent
+==============================================================================
+public docstring says:
+    For a level-L interval, at least ``ceil(2/(1 - L/100)) - 1`` samples are needed before the orientation-corrected lower bound is non-degenerate (e.g., ≥40 for a 95% interval).
+
+ level  documented  upper=1.0 thru n  clamp fires thru n  lower=0.0 thru n
+    90          20                38                  18                19
+    95          39                78                  38                38
+    99         199               398                 198               198
+
+-> THESE ARE TWO DIFFERENT WINDOWS and the handoff conflated them.
+   Where clamp-fires < n <= upper-is-1.0, the level 1.0 is the GENUINE
+   k=n order statistic (max), not a clamped value. So the handoff's
+   'k > n throughout?  yes' column is FALSE over the wider window.
+
+-> the documented formula tracks the LOWER rail only (see below).
+
+==============================================================================
+BONUS -- is `max(0.0, .)` on the lower rail live code or dead code?
+==============================================================================
+cells where floor((n+1)*q) < 0 (i.e. the max(0.0,.) clamp would fire): 0
+-> floor((n+1)q) >= 0 for every q >= 0, so `max(0.0, .)` is DEAD CODE.
+   The 0.0 the lower rail returns comes from floor() rounding down to 0,
+   not from the clamp.  Only the upper rail has a live clamp.
+
+==============================================================================
+WHICH RAIL DOES ceil(2/a)-1 DESCRIBE?
+==============================================================================
+ level  first n lower non-degenerate  first n upper non-degenerate  ceil(2/a)-1  ceil(4/a)-1
+    90                            20                            39           20           40
+    95                            39                            79           39           79
+    99                           199                           399          199          399
+
+-> ceil(2/a)-1 matches the LOWER rail. The UPPER rail stays pinned to
+   max(sample) until ~ceil(4/a)-1, roughly double, and is UNDOCUMENTED.
+
+==============================================================================
+CLAIM 2 -- deleting the clamp crashes; it is a domain guard
+==============================================================================
+unclamped level at n=30, q=0.975: 1.033333
+np.quantile(np.arange(30.), 31/30) -> ValueError: Quantiles must be in the range [0, 1]
+-> confirmed. Removing min(1.0, .) alone raises; the only non-crashing
+   alternatives are branch (c) (+/-inf) or branch (a) (explicit raise).
+
+==============================================================================
+CLAIM 3 -- the clamp TRUNCATES the correction; it never narrows
+==============================================================================
+exhaustive check: oriented interval vs plain uncorrected interval
+cells checked: 5 levels x 199 n = 995
+cells where oriented is NARROWER than plain: 8
+    level=95 n=39  oriented [-1.9637,+2.1686]  plain [-1.9883,+2.1316]
+    level=95 n=79  oriented [-2.1998,+2.3509]  plain [-2.2023,+2.2951]
+    level=95 n=119  oriented [-2.5644,+2.2229]  plain [-2.5660,+1.9481]
+    level=95 n=159  oriented [-1.6047,+1.9920]  plain [-1.6054,+1.9347]
+    level=95 n=199  oriented [-1.6480,+1.9650]  plain [-1.6521,+1.9104]
+    level=98 n=99  oriented [-1.7873,+2.2596]  plain [-1.7890,+1.5555]
+    level=98 n=199  oriented [-2.3093,+2.5396]  plain [-2.3098,+2.1817]
+    level=99 n=199  oriented [-2.3977,+3.0317]  plain [-2.4010,+2.5893]
+
+VERDICT, corrected -- an earlier draft of this script asserted the
+wider-always property was exact by monotonicity.  Running it disproves
+that.  The upper rail ceil((n+1)q)/n >= q always, so it never narrows.
+The LOWER rail floor((n+1)q)/n is NOT bounded above by q:
+    n=  39  q=0.0250  floor((n+1)q)/n = 0.025641  > q   -> lower bound moves IN
+    n=  79  q=0.0250  floor((n+1)q)/n = 0.025316  > q   -> lower bound moves IN
+    n= 119  q=0.0250  floor((n+1)q)/n = 0.025210  > q   -> lower bound moves IN
+So: inside the clamp window the clamped interval is strictly wider than
+plain (claim 3 holds where it was asserted).  Outside it, at the cells
+where (n+1)q lands just above an integer, the floor rule is mildly
+ANTI-conservative on the lower rail relative to plain.  Both statements
+are needed; neither alone describes _oriented_index.
+
+SEPARATE OBSERVATION (unfiled, needs its own adjudication):
+_oriented_index returns a LEVEL fed to np.quantile with DEFAULT linear
+interpolation.  np.quantile maps level q to virtual index q*(n-1), so
+level k/n lands at k - k/n, not at order statistic k.  Recovering the
+k-th order statistic requires level (k-1)/(n-1), or method='higher'.
+    n=  30 intended k=30   np.quantile level k/n hits virtual index  29.0000  (want 29)
+    n=  50 intended k=49   np.quantile level k/n hits virtual index  48.0200  (want 48)
+    n= 100 intended k=97   np.quantile level k/n hits virtual index  96.0300  (want 96)
+
+reproduction of the reported n=30, level=95 cell (seed 20260804):
+  oriented+clamped: -2.4257 / +1.4163   (indices 0.0000 / 1.0000 = min / max)
+  plain uncorrected:-2.4004 / +1.3201   (indices 0.0250 / 0.9750)
+
+==============================================================================
+SO WHAT DOES THE CLAMPED RULE COVER?  exact, no simulation
+==============================================================================
+For n exchangeable scores the interval [X_(i), X_(j)] covers a new point
+with probability exactly (j-i)/(n+1).  Clamped => [min, max] => (n-1)/(n+1).
+
+    n   req 0.95   clamped cover   plain cover   best possible
+    6     0.9500          0.8571        0.7143          0.7143
+   10     0.9500          0.9091        0.8182          0.8182
+   20     0.9500          0.9524        0.9048          0.9048
+   30     0.9500          0.9677        0.9355          0.9355
+   38     0.9500          0.9744        0.9487          0.9487
+   39     0.9500          0.9500        0.9500          0.9500
+   50     0.9500          0.9608        0.9216          0.9608
+
+-> at n<=38 the clamped rule already returns the WIDEST interval any
+   empirical-quantile method can return.  The residual gap to 0.95 is
+   not recoverable by any choice of index -- it is infeasibility, and
+   the honest branch there is (c) +/-inf or (a) raise, not a wider index.

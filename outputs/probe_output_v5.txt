@@ -1,0 +1,196 @@
+==============================================================================
+A. STRUCTURAL BRANCH ID -- one predict_p call, no curve fitting
+==============================================================================
+  Non-smoothed conformal p-values lie on the lattice {j/(n_y+1)}.
+  A quantile implementation cannot produce that lattice. Decisive.
+
+  crepes version: 0.9.1
+  ConformalClassifier.predict_set thresholding line, verbatim:
+    prediction_sets = (p_values >= 1-confidence).astype(int)
+  p_values_batch non-smoothed numerator, verbatim:
+    (np.sum(alphas_cal >= alphas_test[i])+1)/(q+1)
+    -> exactly j/(n+1). The float narrative below is no longer
+       conditional on an unread function body.
+
+  n_y=18  (api=wrap)
+    smoothing=False:    19 distinct p-values, min=0.0526315789, 1/(n_y+1)=0.0526315789
+                     on the j/(n_y+1) lattice? True   <-- True proves the p-value branch (e)
+    smoothing=True : 20000 distinct p-values   <-- continuous proves branch (f)
+    warnings emitted during both calls: 0
+    alpha=0.01: 1-confidence=0.010000000000000009  min_p>=thr? True   -> minority set is trivially complete
+    alpha=0.1: 1-confidence=0.09999999999999998  min_p>=thr? False   -> minority set is NOT complete
+
+  n_y=99  (api=wrap)
+    smoothing=False:   100 distinct p-values, min=0.0100000000, 1/(n_y+1)=0.0100000000
+                     on the j/(n_y+1) lattice? True   <-- True proves the p-value branch (e)
+    smoothing=True : 20000 distinct p-values   <-- continuous proves branch (f)
+    warnings emitted during both calls: 0
+    alpha=0.01: 1-confidence=0.010000000000000009  min_p>=thr? False   -> minority set is NOT complete
+    alpha=0.1: 1-confidence=0.09999999999999998  min_p>=thr? False   -> minority set is NOT complete
+
+==============================================================================
+B. COVERAGE SWEEPS -- each alpha on a grid containing its own
+   disagreement cells (n_y = -1 mod 1/alpha, marked *)
+==============================================================================
+  draws: 20 per cell, 200 at starred cells.
+  +- is the PAIRED s.e. across calibration draws. A cell whose s.e. is
+  not small against the correct-vs-pval_ns gap decides nothing; the
+  previous revision printed 20-draw means at cells needing ~150.
+
+  alpha=0.01   quantile boundary n_y<=98   1-confidence=0.010000000000000009
+      n_y |   correct |      clip |   pval_ns |    pval_s |       crepes sm=T |       crepes sm=F
+    ---------------------------------------------------------------------------------------------
+        8  |    1.0000 |    0.8889 |    1.0000 |    0.9900 |    0.9891+-0.0015 |    1.0000+-0.0000
+       18  |    1.0000 |    0.9474 |    1.0000 |    0.9900 |    0.9873+-0.0025 |    1.0000+-0.0000
+       40  |    1.0000 |    0.9756 |    1.0000 |    0.9900 |    0.9872+-0.0020 |    1.0000+-0.0000
+       98  |    1.0000 |    0.9899 |    1.0000 |    0.9900 |    0.9878+-0.0019 |    1.0000+-0.0000
+       99 *|    0.9900 |    0.9900 |    1.0000 |    0.9900 |    0.9900+-0.0006 |    0.9900+-0.0006
+      100  |    0.9901 |    0.9901 |    0.9901 |    0.9900 |    0.9916+-0.0020 |    0.9916+-0.0020
+      199 *|    0.9900 |    0.9900 |    0.9950 |    0.9900 |    0.9890+-0.0005 |    0.9890+-0.0005
+      200  |    0.9900 |    0.9900 |    0.9900 |    0.9900 |    0.9927+-0.0015 |    0.9927+-0.0015
+    * = cells where 'correct' and 'pval_ns' predict different numbers
+        (the whole residue class alpha*(n_y+1) in Z, not just n_y=99).
+      If crepes sm=F matches 'correct' at the starred cells, that is the
+      1-confidence float artifact, NOT a quantile implementation. Section A
+      already settled which branch it is; this table only measures the size.
+
+  alpha=0.1   quantile boundary n_y<=8   1-confidence=0.09999999999999998
+      n_y |   correct |      clip |   pval_ns |    pval_s |       crepes sm=T |       crepes sm=F
+    ---------------------------------------------------------------------------------------------
+        8  |    1.0000 |    0.8889 |    1.0000 |    0.9000 |    0.8872+-0.0152 |    1.0000+-0.0000
+        9 *|    0.9000 |    0.9000 |    1.0000 |    0.9000 |    0.9109+-0.0057 |    1.0000+-0.0000
+       18  |    0.9474 |    0.9474 |    0.9474 |    0.9000 |    0.8875+-0.0196 |    0.9338+-0.0135
+       19 *|    0.9000 |    0.9000 |    0.9500 |    0.9000 |    0.9019+-0.0045 |    0.9514+-0.0033
+       40  |    0.9024 |    0.9024 |    0.9024 |    0.9000 |    0.8971+-0.0072 |    0.8992+-0.0071
+       98  |    0.9091 |    0.9091 |    0.9091 |    0.9000 |    0.8961+-0.0065 |    0.9063+-0.0062
+       99 *|    0.9000 |    0.9000 |    0.9100 |    0.9000 |    0.8964+-0.0022 |    0.9064+-0.0021
+      200  |    0.9005 |    0.9005 |    0.9005 |    0.9000 |    0.9061+-0.0047 |    0.9064+-0.0047
+    * = cells where 'correct' and 'pval_ns' predict different numbers
+        (the whole residue class alpha*(n_y+1) in Z, not just n_y=9).
+      If crepes sm=F matches 'correct' at the starred cells, that is the
+      1-confidence float artifact, NOT a quantile implementation. Section A
+      already settled which branch it is; this table only measures the size.
+
+==============================================================================
+C. THRESHOLD FINGERPRINT -- (b) clip vs (c) correct vs (d) no-correction
+==============================================================================
+  Coverage alone cannot separate clip from nocorr in the interior,
+  because clip IS correct in the interior. Two cells are needed.
+  The 'always_max' arm is a NULL CONTROL: no branch takes the max at an
+  interior cell. It is reported to show what the previous revision was
+  measuring when it called that arm 'clip' and quoted 25.3 s.e.
+
+  alpha=0.1, n_y=40, 200 paired draws
+    INTERIOR -- k=37 <= n_y, clipping level 0.9225 < 1, clip==correct
+    correct     -> minority coverage 0.9001   (predicted 0.9024)
+    clip        -> minority coverage 0.9001   (predicted 0.9024)
+    nocorr      -> minority coverage 0.8761
+    always_max  -> minority coverage 0.9743
+    pairwise, paired s.e. across the same draws:
+      correct - clip        gap=+0.0000  s.e.=0.0000  ->   inf s.e.   <-- identical by construction here, not a fingerprint
+      correct - nocorr      gap=+0.0240  s.e.=0.0017  ->  14.0 s.e.
+         clip - nocorr      gap=+0.0240  s.e.=0.0017  ->  14.0 s.e.
+      correct - always_max  gap=-0.0742  s.e.=0.0029  ->  25.3 s.e.   <-- NULL CONTROL, no branch does this
+    LOAD-BEARING NUMBER at this cell: correct-nocorr = 14.0 s.e. Quote this, not the null control.
+
+  alpha=0.1, n_y=8, 200 paired draws
+    VACUITY -- k=9 > n_y, correct is +inf and clip is NOT correct
+    correct     -> minority coverage 1.0000   (predicted 1.0000)
+    clip        -> minority coverage 0.8970   (predicted 0.8889)
+    nocorr      -> minority coverage 0.8100
+    always_max  -> minority coverage 0.8970
+    pairwise, paired s.e. across the same draws:
+      correct - clip        gap=+0.1030  s.e.=0.0071  ->  14.6 s.e.
+      correct - nocorr      gap=+0.1900  s.e.=0.0089  ->  21.2 s.e.
+         clip - nocorr      gap=+0.0870  s.e.=0.0059  ->  14.7 s.e.
+      correct - always_max  gap=+0.1030  s.e.=0.0071  ->  14.6 s.e.   <-- NULL CONTROL, no branch does this
+
+  Test-set MC s.e. is only 0.0021; quoting
+  that as the denominator overstates resolution ~5x. Use the paired s.e.
+
+==============================================================================
+D. MAPIE -- threshold extraction, the only test that separates (b)/(d)
+==============================================================================
+  MAPIE v1 exposes no first-class class-conditional classifier;
+  MondrianCP re-integration is open. Conformalizing on class-1 rows only
+  reproduces the classwise score exactly, so this probes the SHARED
+  QUANTILE HELPER that MondrianCP would inherit. Say that in the issue.
+
+  version: 1.4.1
+
+  --- the guard, verbatim from mapie/utils.py ---
+    if n < np.max([1 / alpha, 1 / (1 - alpha)]):
+    raise ValueError(
+    -> refuses n < max(1/alpha, 1/(1-alpha)). At alpha=0.01 that is
+       n < 100. The quantile rule needs k=ceil((1-a)(n+1)) <= n, i.e.
+       n >= 1/a - 1 = 99. n_y=99 admits a FINITE threshold and is
+       refused: the guard is exactly one sample too strict.
+
+  --- guard probe, alpha=0.01, conformalize on class-1 rows only ---
+    n_y=98   ValueError: Number of samples of the score is too low,
+           k=99 <= n_y=98? False
+    n_y=99   ValueError: Number of samples of the score is too low,
+           k=99 <= n_y=99? True   <-- REFUSED A COMPUTABLE CELL
+    n_y=100  ACCEPTED   (k=100, finite threshold: True)
+
+  --- coverage + THRESHOLD at alpha=0.1 ---
+    coverage averaged over 20 draws +- paired s.e.; the
+    threshold match is exact and comes from draw 0.
+      n_y |          observed |   correct |      clip |   pval_ns |    pval_s | threshold matches
+    ----------------------------------------------------------------------------------------------------
+       18 | 0.9338+-0.0135 |    0.9474 |    0.9474 |    0.9474 |    0.9000 | always_max, clip      (b), correct   (c)
+       19 | 0.9564+-0.0091 |    0.9000 |    0.9000 |    0.9500 |    0.9000 | always_max
+       40 | 0.8992+-0.0071 |    0.9024 |    0.9024 |    0.9024 |    0.9000 | clip      (b), correct   (c), nocorr-hi (d)
+
+      threshold detail at n_y=40  [(b)/(d) separator]:
+        candidate correct   (c) = 0.994637122802
+        candidate clip      (b) = 0.994637122802
+        candidate nocorr-lin(d) = 0.993976903902
+        candidate nocorr-hi (d) = 0.994637122802
+        candidate always_max    = 0.998774748077
+        fitted    _conformity_score.quantiles_               = [0.9946371228023987]
+        fitted    _mapie_classifier.quantiles_               = [0.9946371228023987]
+
+       98 | 0.9063+-0.0062 |    0.9091 |    0.9091 |    0.9091 |    0.9000 | clip      (b), correct   (c)
+       99 | 0.9026+-0.0066 |    0.9000 |    0.9000 |    0.9100 |    0.9000 | NONE -- see off-by-one sweep
+
+      threshold detail at n_y=99  [the residue-class cell]:
+        candidate correct   (c) = 0.992989155854
+        candidate clip      (b) = 0.992989155854
+        candidate nocorr-lin(d) = 0.991235241665
+        candidate nocorr-hi (d) = 0.992989155854
+        candidate always_max    = 0.999765580436
+        fitted    _conformity_score.quantiles_               = [0.9941350308584204]
+        fitted    _mapie_classifier.quantiles_               = [0.9941350308584204]
+
+      200 | 0.9064+-0.0047 |    0.9005 |    0.9005 |    0.9005 |    0.9000 | clip      (b), correct   (c), nocorr-hi (d)
+  --- the shared helper, called directly ---
+    (vector: NDArray, alpha: NDArray) -> NDArray
+    level, verbatim: np.quantile(vector, ((n + 1) * (1 - _alpha)) / n, method='higher')
+    np.quantile's virtual index is q*(n-1); the conformal index is
+    k=ceil((1-a)(n+1)) on n+1 slots. Those agree only when (1-a)(n+1)
+    is NOT an integer. Swept below.
+    n_y=18   _compute_quantiles=0.999497054665  order stat 18 of 18 (correct k=18)  == correct   (c), clip      (b), always_max   
+    n_y=40   _compute_quantiles=0.994637122802  order stat 37 of 40 (correct k=37)  == correct   (c), clip      (b), nocorr-hi (d)
+    n_y=99   _compute_quantiles=0.994135030858  order stat 91 of 99 (correct k=90)  == NONE of the candidates
+
+  --- OFF-BY-ONE SWEEP: _compute_quantiles vs the conformal k-th ---
+    synthetic scores, so this is a property of the helper, not the fixture
+    agree at 1015 cells, mismatch at 61
+    every mismatch is exactly +1 order statistic?      True
+    every mismatch lies on the class alpha*(n+1) in Z? True
+    every such cell is a mismatch?                     False
+      exceptions: [('1/10', 9), ('1/100', 99), ('1/20', 19)]
+      -> those are exactly n = 1/alpha - 1, where (1-a)(n+1) = n and the
+         two index conventions coincide. That cell is ALSO the one the
+         guard above refuses, so it is unreachable in practice anyway.
+
+    FINDING: MAPIE returns the (k+1)-th order statistic instead of the
+    k-th at exactly the cells alpha*(n+1) in Z with n > 1/alpha - 1.
+    Direction is CONSERVATIVE: coverage (k+1)/(n+1), not k/(n+1). This is
+    over-coverage by 1/(n+1), NOT a validity bug -- say that in sentence one.
+    Same residue class that governs the crepes convention disagreement.
+
+==============================================================================
+Paste the whole output, including Section A.
+==============================================================================

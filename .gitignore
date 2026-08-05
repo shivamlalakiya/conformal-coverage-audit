@@ -14,16 +14,6 @@ __pycache__/
 *.p12
 credentials.json
 
-# ---------------------------------------------------------------------------
-# HELD BACK ON PURPOSE — not redacted, not edited, just not committed yet.
-# These two outputs print a finding that has not been reported upstream yet
-# (see ARTIFACT.md section 1 at the Research root). Both regenerate exactly by
-# running the probes, which ARE committed, so nothing here is unreproducible.
-# Delete these two lines and commit the files once the upstream disclosure is
-# made or the relevant issue is answered.
-outputs/probe_output_sf_rebuttal.txt
-outputs/probe_output_v5.txt
-# ---------------------------------------------------------------------------
 
 # Working documents and non-redistributable material — must never enter this
 # repo, even if a stray copy is dropped in here
