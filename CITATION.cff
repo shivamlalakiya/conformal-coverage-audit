@@ -32,6 +32,9 @@ identifiers:
   - type: doi
     value: 10.5281/zenodo.21816837
     description: "Archives tree v1.3.0 (record labelled v1.2.0)"
+  - type: doi
+    value: 10.5281/zenodo.21816871
+    description: "Version v1.3.1 -- first record whose label matches its contents"
 # verified against the live remote
 repository-code: "https://github.com/shivamlalakiya/conformal-coverage-audit"
 # This is what GitHub's cite widget and the indexers read. Left at v1.1.0 it sent a

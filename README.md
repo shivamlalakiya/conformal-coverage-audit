@@ -17,6 +17,7 @@ table is the mapping, each row checked against the Zenodo API.
 | `10.5281/zenodo.21811491` | v1.1.0 | tree `v1.1.0` |
 | `10.5281/zenodo.21814982` | v1.1.0 | tree **`v1.2.0`** — whole-archive robustness arm, exact feasibility floor, the `conformal_coverage` package |
 | `10.5281/zenodo.21816837` | v1.2.0 | tree **`v1.3.0`** — probes print the ratios the write-up quotes |
+| `10.5281/zenodo.21816871` | v1.3.1 | tree `v1.3.1` — first record whose label matches its contents |
 
 `v1.3.1` and later are labelled correctly; `paperlib/check_release_version.py` in the
 write-up repository fails a release whose `.zenodo.json` and `CITATION.cff` disagree
