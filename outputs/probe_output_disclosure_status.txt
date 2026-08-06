@@ -1,0 +1,64 @@
+============================================================================================================
+THE DISCLOSURE RECORD AS DATA: QUERIED FROM THE TRACKERS, NOT ASSERTED
+============================================================================================================
+self_check() passed at import: every row of DISCLOSURE.md parses to a
+resolvable target, both issues and pull requests are present, no URL appears
+twice, and every date is a date.
+
+queried 2026-08-06 UTC through the gh CLI against the public API.
+
+WHAT A STATE MEANS AND DOES NOT. `merged` is the maintainer accepting a patch
+and is the strongest signal available; it is not an endorsement of this paper.
+`closed` may be a fix, a wontfix, a duplicate or a bot -- the tracker's own
+word is printed and no further reading is imposed. Silence is reported as
+silence with an age beside it, never as rejection. A target the API cannot
+answer for is NOT ATTEMPTED.
+
+filing identity from the local gh credential: shivamlalakiya
+
+------------------------------------------------------------------------------------------------------------
+      date package         target                                state  merged  replies  not mine  age d
+------------------------------------------------------------------------------------------------------------
+2026-08-02 mapie           scikit-learn-contrib/MAPIE#973         open      no        5         2      4
+2026-08-02 mapie           scikit-learn-contrib/MAPIE#974         open       -        1         0      4
+2026-08-04 mapie           scikit-learn-contrib/MAPIE#978         open      no        2         1      2
+2026-07-10 mapie           scikit-learn-contrib/MAPIE#958       closed     yes        0         0     27
+2026-08-02 crepes          henrikbostrom/crepes#46                open       -        0         0      4
+2026-08-02 crepes          henrikbostrom/crepes#47                open       -        0         0      4
+2026-08-02 crepes          henrikbostrom/crepes#48                open       -        1         0      4
+2026-08-02 crepes          henrikbostrom/crepes#49                open      no        0         0      4
+2026-08-02 crepes          henrikbostrom/crepes#50                open      no        0         0      4
+2026-08-04 sktime          sktime/sktime#10757                    open       -        3         2      2
+2026-08-04 sktime          sktime/sktime#10765                    open      no        0         0      2
+2026-08-04 sktime          sktime/sktime#10758                    open       -        0         0      2
+2026-08-05 sktime          sktime/sktime#10766                    open       -        1         0      1
+2026-08-04 statsforecast   Nixtla/statsforecast#1202              open       -        1         0      2
+2026-08-04 torchcp         ml-stat-Sustech/torchcp#122          closed     yes        1         1      2
+2026-08-06 mapie           scikit-learn-contrib/MAPIE#980         open       -        1         0      0
+
+============================================================================================================
+THE TALLY
+============================================================================================================
+targets queried            16 of 16
+  distinct filings         15
+  linked fix PRs           1
+merged                     2
+closed, not merged         0
+open                       14
+drew a reply from someone
+  other than the filer     4
+no comment at all          7
+oldest filing              0 to 27 days
+
+READ THIS AS A SHORT WINDOW, WHICH IS WHAT IT IS. The filings run from
+2026-07-10 to 2026-08-06 and the
+oldest is 27 days old. Maintainer
+response times in these projects are measured in weeks, so the open count is
+a statement about elapsed time and not about the findings. The table is
+regenerated at submission rather than frozen here, and a filing that turns
+into a dispute will appear as one.
+
+WHAT WOULD FALSIFY A FINDING is a maintainer explaining that the probe is
+wrong, and that has a place in this table: it appears as a closed issue with
+replies and no merge. We do not have the standing to grade our own filings,
+which is why the columns are states and counts rather than verdicts.

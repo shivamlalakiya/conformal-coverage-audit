@@ -1,0 +1,84 @@
+====================================================================================================
+INSTALL WEIGHT: WHAT SHARE OF DOWNLOADS DOES THE CENSUS COVER?
+====================================================================================================
+self_check() passed at import: the census names packages, the audited and
+unaudited sets are disjoint, and the unaudited set is at least as large as
+the audited one so the share is not flattered by a thin denominator.
+
+queried 2026-08-06 UTC from pypistats.org; the API's `recent` window is rolling and ends at
+that date, so every figure below is a dated snapshot and not a standing
+claim. DOWNLOADS ARE NOT INSTALLS AND NOT USERS: a CI job pulling a wheel a
+thousand times counts a thousand times, a vendored package counts once. The
+number bounds attention.
+
+----------------------------------------------------------------------------------------------------
+AUDITED -- the census
+----------------------------------------------------------------------------------------------------
+package                      last day    last week   last month
+crepes                          1,033        6,619       22,524
+darts                          12,968       76,982      298,278
+mapie                           8,586       60,596      215,775
+neuralforecast                 11,031       70,008      299,178
+nonconformist                     132          520        3,039
+puncc                             179          966        3,803
+river                           8,652       61,732      214,218
+sktime                         48,468      248,499    1,115,040
+statsforecast                  76,758      469,848    1,888,943
+torchcp                            19          140          460
+
+  audited -- the census monthly total: 4,061,258
+
+----------------------------------------------------------------------------------------------------
+NOT AUDITED -- deliberately adversarial
+----------------------------------------------------------------------------------------------------
+package                      last day    last week   last month
+mapie-learn              no such distribution on PyPI -- not a gap
+fortuna                             2           44        1,124
+uncertainty-toolbox               245        1,110        5,779
+quantile-forest                 2,885       17,270       73,943
+conformal-tights                   25          102          210
+crepes-weighted                     2           51          282
+deel-puncc               no such distribution on PyPI -- not a gap
+venn-abers                        924       11,165       48,140
+nixtla                          3,620       16,469      112,172
+pytorch-forecasting             7,344       72,768      326,433
+gluonts                        24,270      146,730    8,491,561
+prophet                       273,469    1,676,866    6,899,957
+skforecast                      4,804       39,489      137,806
+orbit-ml                        2,303        6,007       18,883
+
+  not audited -- deliberately adversarial monthly total: 16,116,290
+
+====================================================================================================
+THE SHARE
+====================================================================================================
+audited monthly downloads           4,061,258
+unaudited monthly downloads        16,116,290
+combined                           20,177,548
+audited share                           20.1%
+
+over 10 audited and 12 unaudited packages the API answered for.
+
+So the census covers a MINORITY of downloads in the set considered.
+That is the honest figure and it is the one reported. The unaudited
+side is dominated by general forecasting libraries whose conformal
+path is one feature among many, which is why the share is low; a
+denominator restricted to conformal-first packages would be higher
+and would also be chosen to flatter.
+
+THE NARROWER QUESTION, asked separately rather than instead. Restricted
+to packages whose primary purpose IS conformal prediction:
+  audited        245,601    unaudited       55,535    share  81.6%
+
+Both figures are reported because each answers a different objection.
+The broad one answers 'do these packages matter'; the narrow one
+answers 'did you audit the conformal ecosystem or a sample of it'.
+
+====================================================================================================
+WHAT THIS DOES NOT SETTLE
+====================================================================================================
+A share of PyPI downloads says nothing about R, Julia, SQL or spreadsheet
+users, and the interface census covers those separately without a
+denominator of any kind. It says nothing about which code paths inside a
+downloaded package are executed. And a package absent from PyPI entirely --
+vendored, internal, or installed from source -- is invisible here.
