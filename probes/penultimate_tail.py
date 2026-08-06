@@ -85,10 +85,15 @@ def pi_gpd(xi, i, gamma):
     on a scale of 1/i away from zero and the rule finds it.
     """
     def f(t):
+        # exp(-phi) with phi = log(A)/xi and log A = logaddexp(log(1-g), log g + xi t).
+        # Written through logaddexp rather than as (1 + g*expm1(xi*t))**(-1/xi):
+        # that form overflows for xi*t large -- at xi = 10 it raised OverflowError --
+        # and the log form is exact for every xi and t.
         if abs(xi) < 1e-13:
             inner = math.exp(-gamma * t)           # the xi -> 0 limit, s^gamma
         else:
-            inner = (1 + gamma * (math.expm1(xi * t))) ** (-1 / xi)
+            logA = np.logaddexp(math.log1p(-gamma), math.log(gamma) + xi * t)
+            inner = math.exp(-logA / xi)
         return (1 - inner) * i * math.exp(-i * t)
     # split at a few multiples of the Exp(i) scale so the rule cannot step over it
     hi = 60.0 / i
@@ -146,6 +151,41 @@ def penultimate_bound(gamma, i, A_over_rho):
     F in the domain of attraction rather than for the four measured here.
     """
     return abs(A_over_rho) * gamma * (1 - gamma) / i
+
+
+def kernel_h(u, gamma):
+    """h(u) with psi' = u*sigma(1-sigma), so that d(pi)/d(xi) = (i+1) E[e^-phi t^2 h].
+
+    phi = log(A)/xi with A = (1-gamma) + gamma e^{xi t}, and
+    phi' = t^2 h(xi t) with h(u) = psi(u)/u^2,
+    psi(u) = u*sigma(u) - log A,  sigma(u) = gamma e^u / A, the logistic.
+
+    Since psi(0) = 0 and psi'(u) = u*sigma(u)(1-sigma(u)) with sigma(1-sigma) <= 1/4,
+    integrating gives 0 <= psi(u) <= u^2/8 and hence 0 <= h <= 1/8 for EVERY u and
+    gamma. That is the whole proof of the uniform derivative bound below.
+
+    Evaluated through the series for |u| < 1e-2: the direct form divides by u^2, so
+    at u ~ 1e-5 it has lost every significant digit and reports h slightly ABOVE 1/8,
+    which is cancellation and not a counterexample.
+    """
+    if abs(u) < 1e-2:
+        return gamma * (1 - gamma) / 2 - gamma * (1 - gamma) * (1 - 2 * gamma) * u / 6
+    sig = 1.0 / (1.0 + ((1 - gamma) / gamma) * math.exp(-u))
+    return (u * sig - np.logaddexp(math.log1p(-gamma),
+                                   math.log(gamma) + u)) / (u * u)
+
+
+def dpi_dxi_bound(i):
+    """0 <= d(pi)/d(xi) <= (i+1)/(4 i^2), uniformly in xi and gamma.
+
+    From 0 <= h <= 1/8, 0 <= exp(-phi) <= 1 and E[t^2] = 2/i^2 for t ~ Exp(i):
+        d(pi)/d(xi) = (i+1) E[e^-phi t^2 h(xi t)] <= (i+1) * (1/8) * 2/i^2.
+    Uniform over ALL xi, with no asymptotics and an explicit constant -- which is
+    what makes the penultimate deviation bound a theorem rather than an assertion.
+    An earlier draft claimed the derivative was gamma(1-gamma)/i + O(1/i^2)
+    "uniformly" and had only checked that numerically.
+    """
+    return (i + 1) / (4.0 * i * i)
 
 
 def local_shape(dist, u, h=None):
@@ -264,6 +304,31 @@ def self_check():
     # and the bound must be able to fail: a constant ten times too small must not
     # hold, or it is not a bound, it is a number
     assert worst1 > remainder_bound(1.0) / 10
+
+    # ---- (7) the UNIFORM derivative bound, which the penultimate step needs -
+    # h <= 1/8 over a fine grid in both arguments, and it must be attained: a bound
+    # nothing approaches is not the bound, it is an overestimate.
+    grid = ([-(10.0 ** e) for e in np.linspace(2.6, -2, 400)] + [0.0]
+            + [10.0 ** e for e in np.linspace(-2, 2.6, 400)])
+    mx = max(kernel_h(u, g) for g in np.linspace(0.02, 0.98, 97) for u in grid)
+    assert mx <= 0.125 + 1e-12, f"h exceeds 1/8: {mx}"
+    assert mx > 0.124, f"h never approaches 1/8 ({mx}); the bound is not tight"
+    # psi(0) = 0 and psi' = u sigma(1-sigma), checked against a difference quotient
+    for g in (0.05, 0.5, 0.95):
+        for u0 in (-2.0, -0.3, 0.7, 3.0):
+            def psi(x, g=g):
+                sg = 1.0 / (1.0 + ((1 - g) / g) * math.exp(-x))
+                return x * sg - np.logaddexp(math.log1p(-g), math.log(g) + x)
+            hh = 1e-6
+            num = (psi(u0 + hh) - psi(u0 - hh)) / (2 * hh)
+            sg = 1.0 / (1.0 + ((1 - g) / g) * math.exp(-u0))
+            assert abs(num - u0 * sg * (1 - sg)) < 1e-6, (g, u0, num)
+    # and the resulting bound must hold, and be approached
+    ratios = [dpi_dxi(xi, i, g) / dpi_dxi_bound(i)
+              for i in (5, 20, 200, 1000) for g in (0.05, 0.5, 0.95)
+              for xi in (-3.0, -0.9, 0.0, 2.0, 10.0)]
+    assert max(ratios) <= 1.0 + 1e-9, f"derivative exceeds its bound: {max(ratios)}"
+    assert max(ratios) > 0.9, f"bound never approached ({max(ratios)}); too loose"
 
     # ---- (3) the predicted signs ------------------------------------------
     n = 2000
@@ -386,10 +451,6 @@ def main():
     say("    |pi - gamma - c1/i| <= C/i^2 + O(1/i^3),  C = (1+X)(1+3X)/4")
     say(f"    at X = 1 that is C = {remainder_bound(1.0):.2f}")
     say("")
-    say("And off the exactly-GPD family, by the mean value theorem on xi:")
-    say("    |pi - pi_GPD(xi)| <= |A(n/i)/rho| * gamma(1-gamma)/i * (1 + O(1/i))")
-    say("which bounds the deviation for ANY F in the domain of attraction rather")
-    say("than for the four measured above.")
     say("")
     say(f"{'i':>6} {'gamma':>6} {'xi':>6} {'exact':>12} {'gamma+c1/i':>12} "
         f"{'+c2/i^2':>12} {'|r1|i^2':>9} {'|r2|i^3':>9}")
@@ -410,6 +471,66 @@ def main():
         f"C = {remainder_bound(1.0):.2f}")
     say(f"worst |pi - second order| * i^3 = {w2:.3f}, bounded, so the second-order")
     say("term is right and the remainder after it really is O(1/i^3).")
+    say("")
+
+    say("(5b) THE MEAN VALUE STEP, WITH A PROOF INSTEAD OF A GRID")
+    say("An earlier draft took the mean value theorem in xi across the segment from")
+    say("the asymptotic shape to the penultimate one, justified by calling the")
+    say("leading coefficient gamma(1-gamma)/i uniform. We had checked that on a grid")
+    say("and not proved it, and the grid was right while the reasoning was not:")
+    say("d(pi)/d(xi) = (i+1) E[exp(-phi) t^2 h(xi t)] and sup_u h EXCEEDS its value")
+    say("at u = 0. So the leading coefficient is not itself a bound. What is a bound,")
+    say("and needs two lines rather than a grid:")
+    say("")
+    say("    phi = log(A)/xi,  A = (1-g) + g e^{xi t},  d(phi)/d(xi) = t^2 h(xi t)")
+    say("    h(u) = psi(u)/u^2,  psi(u) = u*sigma(u) - log A,  sigma = g e^u / A")
+    say("    psi(0) = 0  and  psi'(u) = u*sigma(u)(1-sigma(u))     [an identity]")
+    say("    sigma(1-sigma) <= 1/4  =>  0 <= psi(u) <= u^2/8  =>  0 <= h <= 1/8")
+    say("    0 < exp(-phi) <= 1,  E[t^2] = 2/i^2  =>  0 <= d(pi)/d(xi) <= (i+1)/(4i^2)")
+    say("")
+    say("uniform in xi over ALL of R and in gamma over (0,1), with no asymptotics.")
+    say("The mean value step is then an inequality and not an expansion:")
+    say("    |pi - pi_GPD(xi)| <= |xi_n - xi| * (i+1)/(4i^2)")
+    say("with xi_n - xi = A(n/i)/rho + o(A) the domain-of-attraction hypothesis, so")
+    say("every remaining error term sits there and none in this step.")
+    say("")
+    # sup h over a fine grid, and how far above h(0) it goes -- the number that
+    # falsified the earlier reasoning
+    grid = ([-(10.0 ** e) for e in np.linspace(2.6, -2, 600)] + [0.0]
+            + [10.0 ** e for e in np.linspace(-2, 2.6, 600)])
+    say(f"{'gamma':>7} {'h(0)=g(1-g)/2':>15} {'sup_u h':>10} {'ratio':>8}")
+    say("-" * 44)
+    hratio = 0.0
+    suph = 0.0
+    for g in (0.01, 0.05, 0.2, 0.5, 0.8, 0.99):
+        s = max(kernel_h(u, g) for u in grid)
+        h0 = g * (1 - g) / 2
+        hratio = max(hratio, s / h0)
+        suph = max(suph, s)
+        say(f"{g:>7.2f} {h0:>15.8f} {s:>10.8f} {s / h0:>8.2f}")
+    suph = max(suph, max(kernel_h(u, g)
+                         for g in np.linspace(0.02, 0.98, 97) for u in grid))
+    say("")
+    say(f"sup h over the whole grid = {suph:.8f}, against the proved 1/8 = 0.125")
+    say(f"largest sup_u h / h(0) = {hratio:.2f}: the leading coefficient understates")
+    say("the derivative by that factor at small gamma, which is why it could not")
+    say("serve as the uniform bound.")
+    say("")
+    say(f"{'i':>6} {'gamma':>6} {'xi':>6} {'d(pi)/d(xi)':>13} {'(i+1)/(4i^2)':>13} "
+        f"{'ratio':>7}")
+    say("-" * 60)
+    tight = 0.0
+    for i in (5, 20, 200, 1000):
+        for g in (0.05, 0.5, 0.95):
+            for xi in (-3.0, -0.9, 0.0, 2.0, 10.0):
+                d, b = dpi_dxi(xi, i, g), dpi_dxi_bound(i)
+                tight = max(tight, d / b)
+                say(f"{i:>6} {g:>6.2f} {xi:>6.1f} {d:>13.8f} {b:>13.8f} "
+                    f"{d / b:>7.4f}")
+        say("")
+    say(f"worst ratio to the bound = {tight:.4f}, so it holds and is attained to")
+    say("within that -- a bound nothing approaches would be an overestimate, not a")
+    say("bound. It is approached at gamma = 1/2, where sigma(1-sigma) is largest.")
     say("")
 
     say("(6) CONVERGENCE OF pi TO gamma BY DOMAIN OF ATTRACTION")
