@@ -198,7 +198,8 @@ def load_series(name, limit, min_len):
 # --------------------------------------------------------------------------
 # one series: both arms off the SAME fitted object, at one or more levels
 # --------------------------------------------------------------------------
-def fit_series(series, initial_window, method, coverages, offset=1):
+def fit_series(series, initial_window, method, coverages, offset=1,
+               forecaster=None):
     """Fit once and read every level off the same fitted object.
 
     `ConformalIntervals(forecaster, method, initial_window)` does not take the
@@ -226,7 +227,8 @@ def fit_series(series, initial_window, method, coverages, offset=1):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             ci = ConformalIntervals(
-                NaiveForecaster(strategy="last"),
+                NaiveForecaster(strategy="last") if forecaster is None
+                else forecaster.clone(),
                 method=method,
                 initial_window=initial_window,
             )
@@ -247,9 +249,17 @@ def fit_series(series, initial_window, method, coverages, offset=1):
     return intervals, point, resid, y_test
 
 
-def run_cells(series, initial_window, method, coverages, offset=1):
-    """One fit, one record per level. `run_cell` is the single-level wrapper."""
-    fitted = fit_series(series, initial_window, method, coverages, offset=offset)
+def run_cells(series, initial_window, method, coverages, offset=1,
+              forecaster=None):
+    """One fit, one record per level. `run_cell` is the single-level wrapper.
+
+    `forecaster` defaults to the NaiveForecaster every committed output was produced
+    with, so the default path is byte-identical; the parameter exists so the
+    base-model breadth probe can drive the SAME code rather than fork it. A 920-line
+    fork of a builder once drifted in this repository and certified two wrong numbers.
+    """
+    fitted = fit_series(series, initial_window, method, coverages, offset=offset,
+                        forecaster=forecaster)
     if fitted is None or isinstance(fitted, dict):
         return {c: fitted for c in coverages}
     intervals, point, resid, y_test = fitted
