@@ -1,0 +1,85 @@
+========================================================================================================
+MULTIPLICITY, AN INDEPENDENT RE-IMPLEMENTATION, AND WHAT A SMALL ERROR COSTS
+========================================================================================================
+self_check() passed at import: the permutation test rejects a planted
+effect and spares noise, a p of exactly zero is unreachable, Holm is
+monotone and never below the raw p, and the absolute one-rank miss is
+1/(n+1) at every level while the rate factor grows as the level tightens.
+
+--------------------------------------------------------------------------------------------------------
+(A) CLUSTERED PERMUTATION TESTS, WITH A FAMILY-WISE CORRECTION
+--------------------------------------------------------------------------------------------------------
+Signs are flipped per SERIES, never per test point, so dependent rolling
+origins are not treated as independent draws. Holm-Bonferroni across the
+arms in the family. The paired arms are one-sided by construction where
+arm B contains arm A, so a two-sided p is conservative here and that is the
+direction to err in.
+
+arm                                  delta     s.e.  units      raw p     Holm p
+--------------------------------------------------------------------------------------------------------
+sktime empirical w=20 (m1)         +0.0360   0.0118    250    0.00170    0.00680
+sktime empirical w=40 (m1)         +0.0640   0.0155    250    0.00015    0.00090
+statsforecast m=10 (m1)            +0.1080   0.0197    250    0.00005    0.00040
+statsforecast m=20 (m1)            +0.0400   0.0124    250    0.00105    0.00525
+statsforecast m=50 (m1)            +0.0120   0.0069    250    0.08155    0.08155
+darts cal=15 (m1)                  +0.0560   0.0146    250    0.00010    0.00070
+darts cal=35 (m1)                  +0.0360   0.0118    250    0.00225    0.00680
+darts cal=55 (m1)                  +0.0280   0.0105    250    0.00660    0.01320
+
+7 of 8 arms remain significant at 0.05 after Holm-Bonferroni across the family.
+
+The arm(s) that do NOT survive, named rather than dropped quietly:
+    statsforecast m=50 (m1)          delta +0.0120  raw p 0.08155  Holm p 0.08155
+These are the smallest effects in the family, which is what a
+family-wise correction is for. The disclosure can now say what
+survives correction and what does not, instead of declining to
+correct and asserting that it would not have mattered.
+
+Two limits, stated. The committed outputs carry cell means and standard
+errors rather than per-series differences, so the permutation runs on
+values matched to that mean and s.e.; the resulting p is an upper bound on
+what the raw differences would give. And the exactly-zero cells are omitted
+from the family because a test of a difference that is identically zero by
+construction has no null to reject.
+
+--------------------------------------------------------------------------------------------------------
+(B) THE INDEX ARITHMETIC, RE-IMPLEMENTED IN R AND CROSS-CHECKED
+--------------------------------------------------------------------------------------------------------
+cells: 56   field comparisons: 672   disagreements: 0
+
+Two implementations written against the same definitions in two
+languages agree on the required rank, the required span, both
+virtual indices and all four delivery decisions, at every cell.
+That is the independence the fixture audit cannot supply: checks 2
+and 4 re-derive through the layer they check, and check 5's oracle
+is hand-audited by whoever wrote the builder.
+
+--------------------------------------------------------------------------------------------------------
+(C) THE SAME ONE-RANK MISS, ABSOLUTELY AND AS AN EXCEEDANCE RATE
+--------------------------------------------------------------------------------------------------------
+A helper one rank short delivers (k*-1)/(n+1) rather than k*/(n+1). The
+absolute coverage miss is 1/(n+1) at every level. The exceedance rate a
+risk or alerting report states is 1 - coverage, and THERE the same miss is
+a multiplicative factor that grows as the level tightens.
+
+     n   level   abs miss  rate asked   rate got   factor
+--------------------------------------------------------------------------------------------------------
+    50   0.900    0.01961     0.09804    0.11765     1.20x
+    50   0.950    0.01961     0.03922    0.05882     1.50x
+    50   0.990   infeasible at this n
+    50   0.999   infeasible at this n
+
+   200   0.900    0.00498     0.09950    0.10448     1.05x
+   200   0.950    0.00498     0.04975    0.05473     1.10x
+   200   0.990    0.00498     0.00995    0.01493     1.50x
+   200   0.999   infeasible at this n
+
+  1000   0.900    0.00100     0.09990    0.10090     1.01x
+  1000   0.950    0.00100     0.04995    0.05095     1.02x
+  1000   0.990    0.00100     0.00999    0.01099     1.10x
+  1000   0.999    0.00100     0.00100    0.00200     2.00x
+
+Worst factor here: 2.00x at n=1000, level=0.999.
+The absolute column is flat and the factor column is not. A reader who
+judges the defect by the absolute column is reading the one that does not
+depend on the level they asked for.

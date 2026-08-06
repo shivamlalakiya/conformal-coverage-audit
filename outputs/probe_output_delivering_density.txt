@@ -1,0 +1,98 @@
+====================================================================================================
+THE DENSITY OF THE DELIVERING SET, IN CLOSED FORM
+====================================================================================================
+self_check() passed at import: every closed form matches enumeration over
+40 full periods at every level; the two densities coincide at unit
+fractions and separate off them; higher is exactly twice inverted_cdf while
+alpha < 1/2; and the two definitions that never deliver enumerate to zero
+rather than to something small.
+
+Level L = p/d in lowest terms, alpha = 1 - L. A definition delivers at n
+when floor(h(n)) >= ceil((n+1)L).
+
+    inverted_cdf, averaged_inverted_cdf   density = alpha = (d-p)/d
+    weibull                               density = 1/d
+    higher                                density = 2*alpha   (alpha < 1/2)
+    linear, median_unbiased               density = 0
+
+   level   alpha    d definition          closed form   enumerated   sizes  first n
+----------------------------------------------------------------------------------------------------
+    9/10    1/10   10 inverted_cdf         1/10 = 0.100       0.1000     400        9
+    9/10    1/10   10 weibull              1/10 = 0.100       0.1000     400        9
+    9/10    1/10   10 higher                1/5 = 0.200       0.2000     400        9
+    9/10    1/10   10 linear                  0 = 0.000       0.0000     400       --
+    9/10    1/10   10 median_unbiased         0 = 0.000       0.0000     400       --
+
+   19/20    1/20   20 inverted_cdf         1/20 = 0.050       0.0500     800       19
+   19/20    1/20   20 weibull              1/20 = 0.050       0.0500     800       19
+   19/20    1/20   20 higher               1/10 = 0.100       0.1000     800       19
+   19/20    1/20   20 linear                  0 = 0.000       0.0000     800       --
+   19/20    1/20   20 median_unbiased         0 = 0.000       0.0000     800       --
+
+  99/100   1/100  100 inverted_cdf        1/100 = 0.010       0.0100    4000       99
+  99/100   1/100  100 weibull             1/100 = 0.010       0.0100    4000       99
+  99/100   1/100  100 higher               1/50 = 0.020       0.0200    4000       99
+  99/100   1/100  100 linear                  0 = 0.000       0.0000    4000       --
+  99/100   1/100  100 median_unbiased         0 = 0.000       0.0000    4000       --
+
+     3/4     1/4    4 inverted_cdf          1/4 = 0.250       0.2500     160        3
+     3/4     1/4    4 weibull               1/4 = 0.250       0.2500     160        3
+     3/4     1/4    4 higher                1/2 = 0.500       0.5000     160        3
+     3/4     1/4    4 linear                  0 = 0.000       0.0000     160       --
+     3/4     1/4    4 median_unbiased         0 = 0.000       0.0000     160       --
+
+     7/8     1/8    8 inverted_cdf          1/8 = 0.125       0.1250     320        7
+     7/8     1/8    8 weibull               1/8 = 0.125       0.1250     320        7
+     7/8     1/8    8 higher                1/4 = 0.250       0.2500     320        7
+     7/8     1/8    8 linear                  0 = 0.000       0.0000     320       --
+     7/8     1/8    8 median_unbiased         0 = 0.000       0.0000     320       --
+
+     2/3     1/3    3 inverted_cdf          1/3 = 0.333       0.3333     120        2
+     2/3     1/3    3 weibull               1/3 = 0.333       0.3333     120        2
+     2/3     1/3    3 higher                2/3 = 0.667       0.6667     120        2
+     2/3     1/3    3 linear                  0 = 0.000       0.0000     120       --
+     2/3     1/3    3 median_unbiased         0 = 0.000       0.0000     120       --
+
+     5/7     2/7    7 inverted_cdf          2/7 = 0.286       0.2857     280        3
+     5/7     2/7    7 weibull               1/7 = 0.143       0.1429     280        6
+     5/7     2/7    7 higher                4/7 = 0.571       0.5714     280        3
+     5/7     2/7    7 linear                  0 = 0.000       0.0000     280       --
+     5/7     2/7    7 median_unbiased         0 = 0.000       0.0000     280       --
+
+   11/13    2/13   13 inverted_cdf         2/13 = 0.154       0.1538     520        6
+   11/13    2/13   13 weibull              1/13 = 0.077       0.0769     520       12
+   11/13    2/13   13 higher               4/13 = 0.308       0.3077     520        6
+   11/13    2/13   13 linear                  0 = 0.000       0.0000     520       --
+   11/13    2/13   13 median_unbiased         0 = 0.000       0.0000     520       --
+
+   17/21    4/21   21 inverted_cdf         4/21 = 0.190       0.1905     840        5
+   17/21    4/21   21 weibull              1/21 = 0.048       0.0476     840       20
+   17/21    4/21   21 higher               8/21 = 0.381       0.3810     840        5
+   17/21    4/21   21 linear                  0 = 0.000       0.0000     840       --
+   17/21    4/21   21 median_unbiased         0 = 0.000       0.0000     840       --
+
+====================================================================================================
+WHAT THE FORM EXPLAINS THAT THE MEASURED TABLE COULD NOT
+
+(a) The factor of two. `higher` delivers exactly twice as often as
+    `inverted_cdf` while alpha < 1/2, because its condition admits an
+    interval of 2(d-p) residues where inverted_cdf's admits (d-p).
+
+(b) Why inverted_cdf and weibull looked identical. At a unit fraction
+    alpha = 1/d the forms alpha and 1/d are the same number, so the two
+    definitions have the same density at 9/10, 19/20 and 99/100 -- a
+    coincidence of the LEVEL, not a property of the definitions. Off the
+    unit fractions they separate:
+      L = 5/7     inverted_cdf 2/7     vs weibull 1/7     ratio 2.000
+      L = 11/13   inverted_cdf 2/13    vs weibull 1/13    ratio 2.000
+      L = 17/21   inverted_cdf 4/21    vs weibull 1/21    ratio 4.000
+
+    So the standing rule that every sweep here carries a non-unit-fraction
+    level is not caution. It is the only way to tell two of these
+    definitions apart, and the closed form is why.
+
+(c) A quantitative form for 'collect more data is not the remedy'. The
+    fraction of calibration sizes at which a raw level is honest is alpha
+    for the rounding definitions -- so the TIGHTER the level requested, the
+    RARER the sizes that honour it. At 0.99 it is one size in a hundred.
+    That is the opposite of the direction a practitioner expects.

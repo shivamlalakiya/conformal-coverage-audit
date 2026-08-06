@@ -104,6 +104,50 @@ def dpi_dxi(xi, i, gamma, h=1e-4):
 # ---------------------------------------------------------------------------
 # the local (penultimate) shape of a distribution above a threshold
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# the remainder, with a constant: answering "bound it, do not just measure it"
+# ---------------------------------------------------------------------------
+def c1(xi, gamma):
+    """First-order coefficient: pi = gamma + c1/i + c2/i^2 + O(1/i^3)."""
+    return gamma * (1 - gamma) * (1 + xi)
+
+
+def c2(xi, gamma):
+    """Second-order coefficient, derived by expanding the integrand to t^3.
+
+    An earlier draft left the remainder as an unbounded O(1/i^2) and argued that a
+    bound in quantities a practitioner cannot evaluate would be decoration. That is
+    the wrong instinct for a statistics audience: an asymptotic-safety bound is
+    worth stating even when it is not computable from data. So the term is derived
+    rather than absorbed.
+
+    Two checks it must pass. At xi = 0 the exact form is (i+1)gamma/(i+gamma),
+    whose 1/i^2 coefficient is -gamma^2(1-gamma); and at xi = -1 both c1 and c2
+    must vanish, because pi = gamma exactly there.
+    """
+    return -gamma * (1 - gamma) * (1 + xi) * (2 * gamma * xi + gamma - xi)
+
+
+def remainder_bound(xi_max=1.0):
+    """A constant C with |pi - gamma - c1/i| <= C/i^2 + O(1/i^3) for |xi| <= xi_max.
+
+    gamma(1-gamma) <= 1/4, |1+xi| <= 1 + xi_max, and
+    |2*gamma*xi + gamma - xi| <= 1 + 3*xi_max, so C = (1+xi_max)(1+3*xi_max)/4.
+    """
+    return (1 + xi_max) * (1 + 3 * xi_max) / 4.0
+
+
+def penultimate_bound(gamma, i, A_over_rho):
+    """|pi - pi_GPD(xi)| <= |xi_n - xi| * sup|d pi/d xi|, by the mean value theorem.
+
+    The supremum is gamma(1-gamma)/i to leading order and free of xi there, so the
+    whole cost of leaving the exactly-GPD family is first order in the second-order
+    auxiliary. Unmeasurable, and that is the point: it bounds the deviation for any
+    F in the domain of attraction rather than for the four measured here.
+    """
+    return abs(A_over_rho) * gamma * (1 - gamma) / i
+
+
 def local_shape(dist, u, h=None):
     """xi_loc(u) = d/du [ (1 - F(u)) / f(u) ], by central difference.
 
@@ -197,6 +241,29 @@ def self_check():
         assert np.sign(xl) == np.sign(fit), (name, n, i, xl, fit)
         worst = max(worst, abs(xl - fit))
     assert worst < 0.02, f"local shape disagrees with the fitted shape by {worst:.4f}"
+
+    # ---- (5) the second-order term, and the bound it gives ----------------
+    for gamma in (0.3, 0.5, 0.9):
+        # at xi = 0 the exact form is (i+1)gamma/(i+gamma)
+        assert abs(c2(0.0, gamma) + gamma ** 2 * (1 - gamma)) < 1e-12, gamma
+        # and both coefficients vanish at xi = -1, where pi = gamma exactly
+        assert abs(c1(-1.0, gamma)) < 1e-12 and abs(c2(-1.0, gamma)) < 1e-12
+    C = remainder_bound(1.0)
+    worst1 = worst2 = 0.0
+    for i in (20, 50, 200, 1000):
+        for gamma in (0.3, 0.5, 0.9):
+            for xi in (0.0, 0.3, -0.5, 1.0):
+                ex = pi_gpd(xi, i, gamma)
+                worst1 = max(worst1, abs(ex - gamma - c1(xi, gamma) / i) * i * i)
+                worst2 = max(worst2, abs(ex - gamma - c1(xi, gamma) / i
+                                         - c2(xi, gamma) / i ** 2) * i ** 3)
+    # the claimed bound must HOLD, and the second-order remainder must be O(1/i^3),
+    # which is what a bounded worst2 says
+    assert worst1 <= C, (worst1, C)
+    assert worst2 < 5.0, worst2
+    # and the bound must be able to fail: a constant ten times too small must not
+    # hold, or it is not a bound, it is a number
+    assert worst1 > remainder_bound(1.0) / 10
 
     # ---- (3) the predicted signs ------------------------------------------
     n = 2000
@@ -304,6 +371,68 @@ def main():
     say("So the sign AND the magnitude of the fitted shape are predicted, for both")
     say("distributions and every size, by a quantity computed from F alone. What was")
     say("an observation with no account behind it is now a prediction.")
+    say("")
+    say("(5) THE REMAINDER, WITH A CONSTANT")
+    say("An earlier draft left it as an unbounded O(1/i^2) and argued a bound in")
+    say("unmeasurable quantities would be decoration. That is the wrong instinct for")
+    say("this audience: an asymptotic-safety bound is worth having even when it")
+    say("cannot be computed from data. So the term is derived.")
+    say("")
+    say("    pi = gamma + c1/i + c2/i^2 + O(1/i^3)")
+    say("    c1 = gamma(1-gamma)(1+xi)")
+    say("    c2 = -gamma(1-gamma)(1+xi)(2*gamma*xi + gamma - xi)")
+    say("")
+    say("Hence for |xi| <= X, since gamma(1-gamma) <= 1/4:")
+    say("    |pi - gamma - c1/i| <= C/i^2 + O(1/i^3),  C = (1+X)(1+3X)/4")
+    say(f"    at X = 1 that is C = {remainder_bound(1.0):.2f}")
+    say("")
+    say("And off the exactly-GPD family, by the mean value theorem on xi:")
+    say("    |pi - pi_GPD(xi)| <= |A(n/i)/rho| * gamma(1-gamma)/i * (1 + O(1/i))")
+    say("which bounds the deviation for ANY F in the domain of attraction rather")
+    say("than for the four measured above.")
+    say("")
+    say(f"{'i':>6} {'gamma':>6} {'xi':>6} {'exact':>12} {'gamma+c1/i':>12} "
+        f"{'+c2/i^2':>12} {'|r1|i^2':>9} {'|r2|i^3':>9}")
+    say("-" * 100)
+    w1 = w2 = 0.0
+    for i in (20, 50, 200, 1000):
+        for gamma in (0.3, 0.5, 0.9):
+            for xi in (0.0, 0.3, -0.5, 1.0):
+                ex = pi_gpd(xi, i, gamma)
+                a1 = gamma + c1(xi, gamma) / i
+                a2 = a1 + c2(xi, gamma) / i ** 2
+                r1, r2 = abs(ex - a1) * i * i, abs(ex - a2) * i ** 3
+                w1, w2 = max(w1, r1), max(w2, r2)
+                say(f"{i:>6} {gamma:>6.1f} {xi:>6.1f} {ex:>12.8f} {a1:>12.8f} "
+                    f"{a2:>12.8f} {r1:>9.4f} {r2:>9.3f}")
+        say("")
+    say(f"worst |pi - first order| * i^2 = {w1:.4f}, against the bound "
+        f"C = {remainder_bound(1.0):.2f}")
+    say(f"worst |pi - second order| * i^3 = {w2:.3f}, bounded, so the second-order")
+    say("term is right and the remainder after it really is O(1/i^3).")
+    say("")
+
+    say("(6) CONVERGENCE OF pi TO gamma BY DOMAIN OF ATTRACTION")
+    say("How fast interpolation stops mattering, and how that depends on tail")
+    say("heaviness. The rate is c1/i = gamma(1-gamma)(1+xi)/i, so the DOMAIN sets the")
+    say("constant: heavier tail, larger xi, slower convergence -- and in the Weibull")
+    say("domain at xi = -1 there is nothing to converge, because pi = gamma already.")
+    say("")
+    say(f"{'domain':<22} {'xi':>7} {'i=1':>9} {'i=2':>9} {'i=5':>9} {'i=20':>9} "
+        f"{'i=100':>9} {'(pi-gamma) at i=5':>18}")
+    say("-" * 100)
+    for name, xi in (("Weibull (bounded)", -1.0), ("Weibull", -0.5),
+                     ("Gumbel (exponential)", 0.0), ("Frechet (Pareto 3)", 1 / 3),
+                     ("Frechet (heavy)", 1.0)):
+        vals = [pi_gpd(xi, i, 0.5) for i in (1, 2, 5, 20, 100)]
+        say(f"{name:<22} {xi:>7.3f} " + " ".join(f"{v:>9.6f}" for v in vals)
+            + f" {vals[2] - 0.5:>+18.6f}")
+    say("")
+    say("At gamma = 1/2 the departure at depth 5 runs from exactly zero in the")
+    say("bounded-tail case to the Frechet figure above -- the same interpolation, the")
+    say("same depth, and an error the tail alone decides. That is the answer to")
+    say("'interpolation is an O(1/n) detail': the constant is not universal, it is")
+    say("the shape index, and nothing about the sample size changes it.")
     say("")
     say("Shrinkage toward the asymptotic shape, which is what Gumbel-domain")
     say("membership requires and what the fitted-shape sweep observes:")
