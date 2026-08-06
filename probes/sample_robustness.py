@@ -157,15 +157,25 @@ def eligible_pool():
 # one series, all its origins, all sktime cells -- the parallel unit
 # --------------------------------------------------------------------------
 def sktime_series(s):
+    """Every sktime cell for one series, over its origins.
+
+    `run_cells` fits once per (origin, window, method) and reads every level off
+    that fit, because ConformalIntervals takes the coverage at predict time and
+    not at fit time. Refitting per level did the same sliding-residual work twice
+    and made this the longest probe in the deposit; the numbers are identical
+    either way and run_real_data.py's committed output is the regression that
+    holds it to that.
+    """
     out = {}
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         for method in ("empirical", "conformal"):
-            for cov in SK.LEVELS:
-                for iw in SK_WINDOWS:
-                    recs = [SK.run_cell(o, iw, cov, method) for o in origins(s, ORIGINS)]
+            for iw in SK_WINDOWS:
+                per = [SK.run_cells(o, iw, method, SK.LEVELS)
+                       for o in origins(s, ORIGINS)]
+                for cov in SK.LEVELS:
                     out[(method, cov, iw)] = [
-                        r for r in recs if r and "error" not in r
+                        p[cov] for p in per if p[cov] and "error" not in p[cov]
                     ]
     return out
 
@@ -207,6 +217,18 @@ def fold(per_series_cells, key):
         for cells in per_series_cells for r in cells.get(key, [])
     ])
     se_naive = (flat.std(ddof=1) / math.sqrt(flat.size)) if flat.size > 1 else float("nan")
+    # Counted, not read off the delta. A clustered mean of per-series means is not
+    # even delta x points, so the count has to come from the points themselves --
+    # and a single loss where arm B contains arm A means the two arms are not the
+    # constructions this probe thinks they are.
+    gains, losses = int(np.sum(flat > 0)), int(np.sum(flat < 0))
+    nests = all(r.get("nests", True) for cells in per_series_cells
+                for r in cells.get(key, []))
+    assert not (nests and losses), (
+        f"{key}: {losses} of {flat.size} points lost coverage under arm B while arm B "
+        f"is meant to contain arm A")
+    two_rail = all(r.get("two_rail", False) for cells in per_series_cells
+                   for r in cells.get(key, []))
     return {
         "series": len(deltas), "points": points,
         "n_med": int(np.median(ns)),
@@ -214,8 +236,26 @@ def fold(per_series_cells, key):
         "delta": mean, "se": se, "se_naive": float(se_naive),
         "a_rank_med": int(np.median(a_rank)),
         "req_med": int(np.median(req)) if req else 0,
+        "gains": gains, "losses": losses, "changed": gains + losses,
+        "unit": "span" if two_rail else "rank",
         "infeasible": infeas,
     }
+
+
+def cell_line(prefix, r):
+    """One self-describing CELL line. Written once because the sktime and the
+    statsforecast blocks carried separate copies of it, and a field added to one
+    copy is a field the other silently lacks."""
+    if r is None:
+        return f"{prefix} -- no usable cells"
+    ratio = (r["se"] / r["se_naive"]) if r["se_naive"] > 0 else 0
+    return (f"{prefix} series={r['series']} points={r['points']} n_med={r['n_med']} "
+            f"a_cov={r['a_cov']:.4f} b_cov={r['b_cov']:.4f} "
+            f"delta={r['delta']:+.4f} se={r['se']:.4f} se_naive={r['se_naive']:.4f} "
+            f"se_ratio={ratio:.4f} "
+            f"a_rank_med={r['a_rank_med']} req_med={r['req_med']} unit={r['unit']} "
+            f"gains={r['gains']} losses={r['losses']} changed={r['changed']} "
+            f"infeasible={r['infeasible']}")
 
 
 def main():
@@ -263,20 +303,36 @@ def main():
     say("share their history, so each series contributes one mean paired difference")
     say("and the s.e. is taken across series. se_naive treats every origin as an")
     say("independent draw; it is printed so the dependence is visible rather than")
-    say("assumed. se exceeds se_naive exactly where origins within a series are")
-    say("positively correlated, and the two coincide where they behave independently,")
-    say("so the comparison is a measurement of the dependence and not a correction")
-    say("applied in one direction on faith.")
+    say("assumed. se exceeds se_naive where origins within a series are positively")
+    say("correlated and falls below it where they are not, so se_ratio goes BOTH ways")
+    say("and this output used to claim the two coincide off the positive side. They do")
+    say("not: read se_ratio per cell. The sharp narrowing sits in the cells where arm")
+    say("B is vacuous at every point, where the paired difference is 1 minus a")
+    say("coverage indicator rather than a comparison of two index rules.")
     say("")
     say("req_med=0 marks a cell with no feasible required rank at all -- read it with")
     say("the infeasible count on the same line, never as a rank of zero.")
+    say("")
+    say("unit=rank for a symmetric band on absolute scores; unit=span for a helper")
+    say("resolving TWO levels on signed ones, whose arm B is the index pair spanning")
+    say("the required number of gaps. Half of an asymmetric width is not an order")
+    say("statistic of anything, so the two figures are not interchangeable.")
+    say("gains/losses/changed are counted over the test points. `changed` is NOT")
+    say("delta x points: a clustered mean of per-series means does not equal that, and")
+    say("gains - losses is the net rather than the count. losses must read 0 wherever")
+    say("arm B contains arm A, which each arm asserts per fit.")
     say("")
 
     # ---- sktime arm, parallel across series -------------------------------
     say("-" * 104)
     say("(i) sktime ConformalIntervals -- arm A shipped, arm B its own residuals at the required rank")
     say("-" * 104)
-    workers = max(1, (os.cpu_count() or 4) - 4)
+    # Each worker holds a fitted sktime object plus its residual matrix, so the
+    # pool's footprint scales with the count. Overlapping this run with another
+    # probe exhausted swap and the OS killed both, silently, mid-cell. PROBE_WORKERS
+    # caps it; the default leaves four cores and is what a dedicated run wants.
+    workers = int(os.environ.get("PROBE_WORKERS") or max(1, (os.cpu_count() or 4) - 4))
+    assert workers >= 1, f"PROBE_WORKERS={workers} is not a usable pool size"
     with ProcessPoolExecutor(max_workers=workers) as ex:
         sk_cells = list(ex.map(sktime_series, pool, chunksize=8))
 
@@ -284,16 +340,8 @@ def main():
         for cov in SK.LEVELS:
             for iw in SK_WINDOWS:
                 r = fold(sk_cells, (method, cov, iw))
-                if r is None:
-                    say(f"CELL arm=sktime method={method} level={cov:.2f} window={iw} -- no usable cells")
-                    continue
-                say(f"CELL arm=sktime method={method} level={cov:.2f} window={iw} "
-                    f"series={r['series']} points={r['points']} n_med={r['n_med']} "
-                    f"a_cov={r['a_cov']:.4f} b_cov={r['b_cov']:.4f} "
-                    f"delta={r['delta']:+.4f} se={r['se']:.4f} se_naive={r['se_naive']:.4f} "
-                    f"se_ratio={(r['se'] / r['se_naive']) if r['se_naive'] > 0 else 0:.4f} "
-                    f"a_rank_med={r['a_rank_med']} req_med={r['req_med']} "
-                    f"infeasible={r['infeasible']}")
+                say(cell_line(f"CELL arm=sktime method={method} level={cov:.2f} "
+                              f"window={iw}", r))
 
     # ---- statsforecast arm ----------------------------------------------
     say("")
@@ -306,17 +354,8 @@ def main():
         for level in SF.LEVELS:
             for nw in SF.N_WINDOWS:
                 r = fold(sf_cells, (method, level, nw))
-                if r is None:
-                    say(f"CELL arm=statsforecast method={method} level={level / 100:.2f} "
-                        f"n_windows={nw} -- no usable cells")
-                    continue
-                say(f"CELL arm=statsforecast method={method} level={level / 100:.2f} "
-                    f"n_windows={nw} series={r['series']} points={r['points']} "
-                    f"n_med={r['n_med']} a_cov={r['a_cov']:.4f} b_cov={r['b_cov']:.4f} "
-                    f"delta={r['delta']:+.4f} se={r['se']:.4f} se_naive={r['se_naive']:.4f} "
-                    f"se_ratio={(r['se'] / r['se_naive']) if r['se_naive'] > 0 else 0:.4f} "
-                    f"a_rank_med={r['a_rank_med']} req_med={r['req_med']} "
-                    f"infeasible={r['infeasible']}")
+                say(cell_line(f"CELL arm=statsforecast method={method} "
+                              f"level={level / 100:.2f} n_windows={nw}", r))
 
     say("")
     say("A positive delta means the required rank covers more than the shipped call.")

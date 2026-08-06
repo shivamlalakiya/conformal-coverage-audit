@@ -1,0 +1,282 @@
+========================================================================================================
+BETA OPTIMISATION AND THE LOWER-RAIL FLOOR
+========================================================================================================
+self_check() passed at import: the beta grid in exact rationals, and the
+fact that its lowest point claims an excluded mass of alpha/(n+1), for which
+a finite lower rail needs alpha >= 1 -- false at every n and every
+conventional level.
+
+REFUTED SECTIONS FOLLOW. (i) and (ii) test the predicate
+`beta*(n+1) >= 1`, which the docstring called feasibility and which is
+really the condition for a rail ABOVE the sample minimum. (iii-a) uses the
+tie-free instrument and shows the returned rail IS the minimum, excluding
+zero mass, hence valid for any budget. Read (iii-a) as the verdict and
+(i)-(ii) as what it overturned.
+
+(i) how much of mapie's beta grid cannot support a NON-TRIVIAL lower rail
+    (i.e. one strictly above the sample minimum -- not a validity question)
+   alpha      n  grid pts  infeasible    frac  smallest beta  beta*(n+1)
+--------------------------------------------------------------------------------------------------------
+   0.100     10        10           9   0.900     0.00909091      0.1000
+   0.100     20        20           9   0.450      0.0047619      0.1000
+   0.100     30        30           9   0.300     0.00322581      0.1000
+   0.100     50        50           9   0.180     0.00196078      0.1000
+   0.100    100       100           9   0.090    0.000990099      0.1000
+   0.100    200       200           9   0.045    0.000497512      0.1000
+   0.100    500       500           9   0.018    0.000199601      0.1000
+
+   0.050     10        10          10   1.000     0.00454545      0.0500
+   0.050     20        20          19   0.950     0.00238095      0.0500
+   0.050     30        30          19   0.633      0.0016129      0.0500
+   0.050     50        50          19   0.380    0.000980392      0.0500
+   0.050    100       100          19   0.190     0.00049505      0.0500
+   0.050    200       200          19   0.095    0.000248756      0.0500
+   0.050    500       500          19   0.038    9.98004e-05      0.0500
+
+   0.010     10        10          10   1.000    0.000909091      0.0100
+   0.010     20        20          20   1.000     0.00047619      0.0100
+   0.010     30        30          30   1.000    0.000322581      0.0100
+   0.010     50        50          50   1.000    0.000196078      0.0100
+   0.010    100       100          99   0.990    9.90099e-05      0.0100
+   0.010    200       200          99   0.495    4.97512e-05      0.0100
+   0.010    500       500          99   0.198    1.99601e-05      0.0100
+
+(ii) what the shipped width-minimising path selects, over four score shapes
+  alpha     n      shape        beta  grid idx  lower ok?  lo finite  hi finite
+--------------------------------------------------------------------------------------------------------
+  0.100    10     normal  0.00909091         0         NO        yes        yes
+  0.100    10      expon  0.00909091         0         NO        yes        yes
+  0.100    10  lognormal  0.00909091         0         NO        yes        yes
+  0.100    10 cauchy-ish  0.00909091         0         NO        yes        yes
+  0.100    20     normal   0.0047619         0         NO        yes        yes
+  0.100    20      expon   0.0047619         0         NO        yes        yes
+  0.100    20  lognormal   0.0047619         0         NO        yes        yes
+  0.100    20 cauchy-ish   0.0047619         0         NO        yes        yes
+  0.100    30     normal   0.0365962        10        yes        yes        yes
+  0.100    30      expon  0.00322581         0         NO        yes        yes
+  0.100    30  lognormal  0.00322581         0         NO        yes        yes
+  0.100    30 cauchy-ish   0.0365962        10        yes        yes        yes
+  0.100    50     normal   0.0219688        10        yes        yes        yes
+  0.100    50      expon   0.0419768        20        yes        yes        yes
+  0.100    50  lognormal   0.0419768        20        yes        yes        yes
+  0.100    50 cauchy-ish   0.0219688        10        yes        yes        yes
+  0.100   100     normal   0.0309931        30        yes        yes        yes
+  0.100   100      expon   0.0209921        20        yes        yes        yes
+  0.100   100  lognormal   0.0209921        20        yes        yes        yes
+  0.100   100 cauchy-ish   0.0409941        40        yes        yes        yes
+  0.100   200     normal   0.0354984        70        yes        yes        yes
+  0.100   200      expon   0.0354984        70        yes        yes        yes
+  0.100   200  lognormal   0.0304983        60        yes        yes        yes
+  0.100   200 cauchy-ish   0.0404985        80        yes        yes        yes
+  0.100   500     normal   0.0421998       210        yes        yes        yes
+  0.100   500      expon   0.0421998       210        yes        yes        yes
+  0.100   500  lognormal   0.0481998       240        yes        yes        yes
+  0.100   500 cauchy-ish   0.0381998       190        yes        yes        yes
+
+  0.050    10     normal  0.00454545         0         NO        yes        yes
+  0.050    10      expon  0.00454545         0         NO        yes        yes
+  0.050    10  lognormal  0.00454545         0         NO        yes        yes
+  0.050    10 cauchy-ish  0.00454545         0         NO        yes        yes
+  0.050    20     normal  0.00238095         0         NO        yes        yes
+  0.050    20      expon  0.00238095         0         NO        yes        yes
+  0.050    20  lognormal  0.00238095         0         NO        yes        yes
+  0.050    20 cauchy-ish  0.00238095         0         NO        yes        yes
+  0.050    30     normal   0.0016129         0         NO        yes        yes
+  0.050    30      expon   0.0016129         0         NO        yes        yes
+  0.050    30  lognormal   0.0016129         0         NO        yes        yes
+  0.050    30 cauchy-ish   0.0016129         0         NO        yes        yes
+  0.050    50     normal 0.000980392         0         NO        yes        yes
+  0.050    50      expon   0.0209884        20        yes        yes        yes
+  0.050    50  lognormal   0.0209884        20        yes        yes        yes
+  0.050    50 cauchy-ish   0.0209884        20        yes        yes        yes
+  0.050   100     normal  0.00049505         0         NO        yes        yes
+  0.050   100      expon    0.020497        40        yes        yes        yes
+  0.050   100  lognormal    0.020497        40        yes        yes        yes
+  0.050   100 cauchy-ish    0.020497        40        yes        yes        yes
+  0.050   200     normal   0.0202493        80        yes        yes        yes
+  0.050   200      expon   0.0202493        80        yes        yes        yes
+  0.050   200  lognormal   0.0152491        60        yes        yes        yes
+  0.050   200 cauchy-ish   0.0202493        80        yes        yes        yes
+  0.050   500     normal   0.0240999       240        yes        yes        yes
+  0.050   500      expon   0.0220999       220        yes        yes        yes
+  0.050   500  lognormal   0.0220999       220        yes        yes        yes
+  0.050   500 cauchy-ish   0.0200999       200        yes        yes        yes
+
+  0.010    10     normal 0.000909091         0         NO        yes        yes
+  0.010    10      expon 0.000909091         0         NO        yes        yes
+  0.010    10  lognormal 0.000909091         0         NO        yes        yes
+  0.010    10 cauchy-ish 0.000909091         0         NO        yes        yes
+  0.010    20     normal  0.00047619         0         NO        yes        yes
+  0.010    20      expon  0.00047619         0         NO        yes        yes
+  0.010    20  lognormal  0.00047619         0         NO        yes        yes
+  0.010    20 cauchy-ish  0.00047619         0         NO        yes        yes
+  0.010    30     normal 0.000322581         0         NO        yes        yes
+  0.010    30      expon 0.000322581         0         NO        yes        yes
+  0.010    30  lognormal 0.000322581         0         NO        yes        yes
+  0.010    30 cauchy-ish 0.000322581         0         NO        yes        yes
+  0.010    50     normal 0.000196078         0         NO        yes        yes
+  0.010    50      expon 0.000196078         0         NO        yes        yes
+  0.010    50  lognormal 0.000196078         0         NO        yes        yes
+  0.010    50 cauchy-ish 0.000196078         0         NO        yes        yes
+  0.010   100     normal 9.90099e-05         0         NO        yes        yes
+  0.010   100      expon 9.90099e-05         0         NO        yes        yes
+  0.010   100  lognormal 9.90099e-05         0         NO        yes        yes
+  0.010   100 cauchy-ish 9.90099e-05         0         NO        yes        yes
+  0.010   200     normal 4.97512e-05         0         NO        yes        yes
+  0.010   200      expon 4.97512e-05         0         NO        yes        yes
+  0.010   200  lognormal 4.97512e-05         0         NO        yes        yes
+  0.010   200 cauchy-ish 4.97512e-05         0         NO        yes        yes
+  0.010   500     normal  0.00401998       200        yes        yes        yes
+  0.010   500      expon  0.00201997       100        yes        yes        yes
+  0.010   500  lognormal  0.00401998       200        yes        yes        yes
+  0.010   500 cauchy-ish  0.00401998       200        yes        yes        yes
+
+========================================================================================================
+cells driven: 84
+cells where the selected beta cannot support a finite lower rail AND a
+finite lower bound was returned anyway: 48
+
+^ THIS COUNT DOES NOT MEAN WHAT AN EARLIER VERSION SAID IT MEANT. It is
+  the number of cells whose selected beta cannot afford a rail above the
+  sample minimum. Section (iii-a) shows the minimum is what is returned
+  and that it is valid. Listed for the record, not as a finding:
+    alpha=0.010 n=200 shape=normal beta=4.97512e-05  beta*(n+1)=0.0100 < 1, lower bound returned finite
+    alpha=0.010 n=200 shape=expon beta=4.97512e-05  beta*(n+1)=0.0100 < 1, lower bound returned finite
+    alpha=0.010 n=200 shape=lognormal beta=4.97512e-05  beta*(n+1)=0.0100 < 1, lower bound returned finite
+    alpha=0.010 n=200 shape=cauchy-ish beta=4.97512e-05  beta*(n+1)=0.0100 < 1, lower bound returned finite
+    alpha=0.010 n=100 shape=normal beta=9.90099e-05  beta*(n+1)=0.0100 < 1, lower bound returned finite
+    alpha=0.010 n=100 shape=expon beta=9.90099e-05  beta*(n+1)=0.0100 < 1, lower bound returned finite
+    alpha=0.010 n=100 shape=lognormal beta=9.90099e-05  beta*(n+1)=0.0100 < 1, lower bound returned finite
+    alpha=0.010 n=100 shape=cauchy-ish beta=9.90099e-05  beta*(n+1)=0.0100 < 1, lower bound returned finite
+
+========================================================================================================
+(iii-a) the tie-free instrument: a returned rail IS its rank
+Scores straddle zero and are strictly increasing, so no predicate of ours
+is needed to interpret what came back. `excluded` is the mass strictly
+below the landed order statistic; `budget` is the beta the optimiser chose.
+valid means excluded <= budget, which is what the rail has to satisfy.
+
+  alpha     n         beta  landed idx     excluded       budget  valid?
+--------------------------------------------------------------------------------------------------------
+  0.100    10   0.00909091           1            0   0.00909091     yes
+  0.100    20    0.0047619           1            0    0.0047619     yes
+  0.100    30   0.00322581           1            0   0.00322581     yes
+  0.100    50   0.00196078           1            0   0.00196078     yes
+  0.100   100  0.000990099           1            0  0.000990099     yes
+  0.100   200  0.000497512           1            0  0.000497512     yes
+  0.100   500  0.000199601           1            0  0.000199601     yes
+
+  0.050    10   0.00454545           1            0   0.00454545     yes
+  0.050    20   0.00238095           1            0   0.00238095     yes
+  0.050    30    0.0016129           1            0    0.0016129     yes
+  0.050    50  0.000980392           1            0  0.000980392     yes
+  0.050   100   0.00049505           1            0   0.00049505     yes
+  0.050   200  0.000248756           1            0  0.000248756     yes
+  0.050   500  9.98004e-05           1            0  9.98004e-05     yes
+
+  0.010    10  0.000909091           1            0  0.000909091     yes
+  0.010    20   0.00047619           1            0   0.00047619     yes
+  0.010    30  0.000322581           1            0  0.000322581     yes
+  0.010    50  0.000196078           1            0  0.000196078     yes
+  0.010   100  9.90099e-05           1            0  9.90099e-05     yes
+  0.010   200  4.97512e-05           1            0  4.97512e-05     yes
+  0.010   500  1.99601e-05           1            0  1.99601e-05     yes
+
+tie-free cells: 21   rails excluding more mass than the
+selected beta allows: 0
+
+========================================================================================================
+(iii) the same question through the PUBLIC method, end to end
+SplitConformalRegressor(prefit, AbsoluteConformityScore(sym=False))
+.predict_interval(X, minimize_interval_width=True)
+
+Section (ii) drives the two expressions the census anchors. This drives the
+documented public keyword. The two are not the same claim and the second is
+the one a caller can reach.
+
+  alpha     n      shape        beta  lower ok?  lo finite  coverage  nominal note                        
+--------------------------------------------------------------------------------------------------------
+  0.100    20     normal   0.0047619         NO        yes    0.7725     0.90 finite rail where none valid
+  0.100    20      expon   0.0047619         NO        yes    0.9525     0.90 finite rail where none valid
+  0.100    20  lognormal   0.0047619         NO        yes    0.8100     0.90 finite rail where none valid
+  0.100    20 cauchy-ish   0.0047619         NO        yes    0.9475     0.90 finite rail where none valid
+  0.100    50     normal   0.0419768        yes        yes    0.9350     0.90                             
+  0.100    50      expon   0.0419768        yes        yes    0.9575     0.90                             
+  0.100    50  lognormal   0.0419768        yes        yes    0.8800     0.90                             
+  0.100    50 cauchy-ish   0.0419768        yes        yes    0.9750     0.90                             
+  0.100   100     normal   0.0309931        yes        yes    0.9450     0.90                             
+  0.100   100      expon   0.0209921        yes        yes    0.9525     0.90                             
+  0.100   100  lognormal   0.0409941        yes        yes    0.9050     0.90                             
+  0.100   100 cauchy-ish   0.0409941        yes        yes    0.9100     0.90                             
+  0.100   200     normal   0.0354984        yes        yes    0.8975     0.90                             
+  0.100   200      expon   0.0454986        yes        yes    0.9250     0.90                             
+  0.100   200  lognormal   0.0454986        yes        yes    0.9075     0.90                             
+  0.100   200 cauchy-ish   0.0454986        yes        yes    0.9275     0.90                             
+
+  0.050    20     normal          --         --         --        --     0.95 ValueError: Number of samples of the score is too low,
+1/confidence_leve
+  0.050    20      expon          --         --         --        --     0.95 ValueError: Number of samples of the score is too low,
+1/confidence_leve
+  0.050    20  lognormal          --         --         --        --     0.95 ValueError: Number of samples of the score is too low,
+1/confidence_leve
+  0.050    20 cauchy-ish          --         --         --        --     0.95 ValueError: Number of samples of the score is too low,
+1/confidence_leve
+  0.050    50     normal   0.0209884        yes        yes    0.9875     0.95                             
+  0.050    50      expon 0.000980392         NO        yes    0.9750     0.95 finite rail where none valid
+  0.050    50  lognormal 0.000980392         NO        yes    0.9550     0.95 finite rail where none valid
+  0.050    50 cauchy-ish   0.0209884        yes        yes    0.9975     0.95                             
+  0.050   100     normal    0.010496        yes        yes    0.9650     0.95                             
+  0.050   100      expon    0.020497        yes        yes    0.9650     0.95                             
+  0.050   100  lognormal    0.020497        yes        yes    0.9725     0.95                             
+  0.050   100 cauchy-ish  0.00049505         NO        yes    0.9875     0.95 finite rail where none valid
+  0.050   200     normal  0.00524888        yes        yes    0.9675     0.95                             
+  0.050   200      expon  0.00524888        yes        yes    0.9650     0.95                             
+  0.050   200  lognormal    0.010249        yes        yes    0.9475     0.95                             
+  0.050   200 cauchy-ish   0.0202493        yes        yes    0.9700     0.95                             
+
+  0.010    20     normal          --         --         --        --     0.99 ValueError: Number of samples of the score is too low,
+1/confidence_leve
+  0.010    20      expon          --         --         --        --     0.99 ValueError: Number of samples of the score is too low,
+1/confidence_leve
+  0.010    20  lognormal          --         --         --        --     0.99 ValueError: Number of samples of the score is too low,
+1/confidence_leve
+  0.010    20 cauchy-ish          --         --         --        --     0.99 ValueError: Number of samples of the score is too low,
+1/confidence_leve
+  0.010    50     normal          --         --         --        --     0.99 ValueError: Number of samples of the score is too low,
+1/confidence_leve
+  0.010    50      expon          --         --         --        --     0.99 ValueError: Number of samples of the score is too low,
+1/confidence_leve
+  0.010    50  lognormal          --         --         --        --     0.99 ValueError: Number of samples of the score is too low,
+1/confidence_leve
+  0.010    50 cauchy-ish          --         --         --        --     0.99 ValueError: Number of samples of the score is too low,
+1/confidence_leve
+  0.010   100     normal          --         --         --        --     0.99 ValueError: Number of samples of the score is too low,
+1/confidence_leve
+  0.010   100      expon          --         --         --        --     0.99 ValueError: Number of samples of the score is too low,
+1/confidence_leve
+  0.010   100  lognormal          --         --         --        --     0.99 ValueError: Number of samples of the score is too low,
+1/confidence_leve
+  0.010   100 cauchy-ish          --         --         --        --     0.99 ValueError: Number of samples of the score is too low,
+1/confidence_leve
+  0.010   200     normal 4.97512e-05         NO        yes    0.9850     0.99 finite rail where none valid
+  0.010   200      expon 4.97512e-05         NO        yes    0.9900     0.99 finite rail where none valid
+  0.010   200  lognormal 4.97512e-05         NO        yes    0.9925     0.99 finite rail where none valid
+  0.010   200 cauchy-ish 4.97512e-05         NO        yes    0.9675     0.99 finite rail where none valid
+
+public-API cells driven: 32   refused by a guard: 16
+cells returning a finite lower rail the selected beta cannot support: 11
+
+The 'finite rail where none valid' note in the last column is the REFUTED
+predicate, printed because that is what this run originally reported.
+Section (iii-a) is the verdict: the rail is the sample minimum, it excludes
+no mass, and it is valid for any budget.
+
+WHAT IS STILL UNEXPLAINED, and is not evidence for the retracted reading:
+the coverage column undercovers in some cells and overcovers in others, and
+the worst miss sits at n = 20 with nominal 0.90 -- one point above the
+two-rail floor of 19 from probes/attainable_grid.py. Two candidates, neither
+tested here: the corrected-level clip already reported for this package, and
+small-n behaviour at the floor. Until a probe separates them this is an
+observation and must not enter a manuscript as a finding.
+
+(cells flagged by the refuted predicate: 11)

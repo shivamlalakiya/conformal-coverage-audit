@@ -20,31 +20,37 @@ nominal 0.90   quantiles=[0.05, 0.5, 0.95]
       arm A (shipped)        coverage 0.8960   lands on median rank 10 of 10
       arm B (required rank)  coverage 0.8960   median required rank 10 of 10
       paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      status changed in 0 of 250 units: gains=0 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 8852   B 8852
   cal_length=15    series=250  median n=15
       arm A (shipped)        coverage 0.8880   lands on median rank 14 of 15
       arm B (required rank)  coverage 0.9440   median required rank 15 of 15
       paired delta (B - A)   +0.0560  (s.e. 0.0146)  3.8 s.e.  <- >=2 s.e.
+      status changed in 14 of 250 units: gains=14 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 7137   B 9413
   cal_length=30    series=250  median n=30
       arm A (shipped)        coverage 0.8960   lands on median rank 28 of 30
       arm B (required rank)  coverage 0.8960   median required rank 28 of 30
       paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      status changed in 0 of 250 units: gains=0 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 7855   B 7855
   cal_length=35    series=250  median n=35
       arm A (shipped)        coverage 0.8680   lands on median rank 32 of 35
       arm B (required rank)  coverage 0.9040   median required rank 33 of 35
       paired delta (B - A)   +0.0360  (s.e. 0.0118)  3.0 s.e.  <- >=2 s.e.
+      status changed in 9 of 250 units: gains=9 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 7336   B 8164
   cal_length=50    series=250  median n=50
       arm A (shipped)        coverage 0.8720   lands on median rank 46 of 50
       arm B (required rank)  coverage 0.8720   median required rank 46 of 50
       paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
+      status changed in 0 of 250 units: gains=0 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 7436   B 7436
   cal_length=55    series=250  median n=55
       arm A (shipped)        coverage 0.8480   lands on median rank 50 of 55
       arm B (required rank)  coverage 0.8760   median required rank 51 of 55
       paired delta (B - A)   +0.0280  (s.e. 0.0105)  2.7 s.e.  <- >=2 s.e.
+      status changed in 7 of 250 units: gains=7 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 7088   B 7610
 
 nominal 0.95   quantiles=[0.025, 0.5, 0.975]
@@ -52,6 +58,7 @@ nominal 0.95   quantiles=[0.025, 0.5, 0.975]
       arm A (shipped)        coverage 0.8960   lands on median rank 10 of 10
       arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
       paired delta (B - A)   +0.1040  (s.e. 0.0193)  5.4 s.e.  <- >=2 s.e.
+      status changed in 26 of 250 units: gains=26 losses=0   [arm B contains arm A: losses must be 0]
       ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
         not the level->rank map. 1 - A is the shortfall against a level no finite
         interval can deliver at this n.
@@ -59,6 +66,7 @@ nominal 0.95   quantiles=[0.025, 0.5, 0.975]
       arm A (shipped)        coverage 0.9440   lands on median rank 15 of 15
       arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
       paired delta (B - A)   +0.0560  (s.e. 0.0146)  3.8 s.e.  <- >=2 s.e.
+      status changed in 14 of 250 units: gains=14 losses=0   [arm B contains arm A: losses must be 0]
       ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
         not the level->rank map. 1 - A is the shortfall against a level no finite
         interval can deliver at this n.
@@ -66,21 +74,25 @@ nominal 0.95   quantiles=[0.025, 0.5, 0.975]
       arm A (shipped)        coverage 0.9240   lands on median rank 29 of 30
       arm B (required rank)  coverage 0.9800   median required rank 30 of 30
       paired delta (B - A)   +0.0560  (s.e. 0.0146)  3.8 s.e.  <- >=2 s.e.
+      status changed in 14 of 250 units: gains=14 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 8754   B 1.014e+04
   cal_length=35    series=250  median n=35
       arm A (shipped)        coverage 0.9320   lands on median rank 34 of 35
       arm B (required rank)  coverage 0.9800   median required rank 35 of 35
       paired delta (B - A)   +0.0480  (s.e. 0.0135)  3.5 s.e.  <- >=2 s.e.
+      status changed in 12 of 250 units: gains=12 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 9104   B 1.03e+04
   cal_length=50    series=250  median n=50
       arm A (shipped)        coverage 0.9200   lands on median rank 48 of 50
       arm B (required rank)  coverage 0.9520   median required rank 49 of 50
       paired delta (B - A)   +0.0320  (s.e. 0.0112)  2.9 s.e.  <- >=2 s.e.
+      status changed in 8 of 250 units: gains=8 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 8636   B 9474
   cal_length=55    series=250  median n=55
       arm A (shipped)        coverage 0.9200   lands on median rank 53 of 55
       arm B (required rank)  coverage 0.9560   median required rank 54 of 55
       paired delta (B - A)   +0.0360  (s.e. 0.0118)  3.0 s.e.  <- >=2 s.e.
+      status changed in 9 of 250 units: gains=9 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 8764   B 9611
 
 A positive delta means the required rank covers more than the shipped call.

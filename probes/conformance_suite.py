@@ -515,6 +515,18 @@ def adapters():
     return out, skipped
 
 
+# One row per CALL PATH. Two of these paths reach the same resolution site under
+# the census's criterion -- one expression turning a level into an index -- and the
+# table shows both deliberately, because what the flag changes is which branch that
+# one expression reaches and the answer is that it changes nothing. A count over
+# rows is therefore a count over paths and not over sites, and a manuscript quoting
+# "N of M helpers" has to say which. Left as data rather than as a docstring so the
+# probe prints the number instead of a reader deriving it.
+SHARED_SITE = {
+    "mapie get_quantile [allow_infinite_bounds=True]": "mapie get_quantile",
+}
+
+
 CHECKLIST = (
     "1. The DELIVERED coverage, not the requested one: the rank the "
     "implementation lands on, divided by n+1.",
@@ -576,6 +588,18 @@ def main():
             f"{_fmt(at_bad):>10} {_fmt(at_ok):>10} "
             f"{(float(delivered) if delivered is not None else float('nan')):>10.4f} "
             f"{(n_min if n_min else '>2000'):>6} {warns:>6}")
+
+    shipped = [r[0] for r in rows if len(r[0]) != 1]
+    dup = {k: v for k, v in SHARED_SITE.items() if k in shipped}
+    for path, site in dup.items():
+        assert site in shipped, f"{path} names {site}, which is not in the table"
+    say("")
+    say(f"shipped call paths: {len(shipped)}   distinct resolution sites: "
+        f"{len(shipped) - len(dup)}   paths sharing a site: {len(dup)}")
+    for path, site in sorted(dup.items()):
+        say(f"      {path}  is the same site as  {site}")
+    say("A count over the rows above is a count over call paths. The site count is")
+    say("what the census criterion measures, and it is the smaller of the two.")
 
     say("")
     say("Evidence per helper")

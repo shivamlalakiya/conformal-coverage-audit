@@ -99,6 +99,8 @@ only the **paired delta** supports a claim. See [`PLAN.md`](PLAN.md) §5.
 
 | Probe | What it measures |
 |---|---|
+| `probes/attainable_grid.py` | What an order-statistic interval can express. The coverage grid by exhaustive enumeration over the `n+1` equally likely ranks; the minimality of the required **span**; and the smallest usable calibration size once `alpha` is shared out among several resolved levels, which turns out to be governed by the smallest share rather than by how many shares there are. Exact rational arithmetic; the Monte Carlo at the end is a control on the enumeration, not evidence for it |
+| `probes/beta_optimize_floor.py` | Whether mapie's width-minimising `beta` search selects a rail level no order statistic of the calibration scores can carry. The grid runs down to `alpha/(n+1)`, where a finite lower rail would need `alpha >= 1`, so unlike the one-rail floor this does not close as `n` grows. Driven three ways: the arithmetic, the composed site the census anchors, and the public `predict_interval(minimize_interval_width=True)` |
 | `probes/conformance_suite.py` | Given any `(scores, level) → threshold` callable: the branch, the rank it lands on, the delivered coverage, the least calibration size that honours the level as asked, and whether a boundary case raises a warning. Validated at import against reference implementations of every branch |
 | `probes/helper_census.py` | Counts the level→rank resolution sites across the audited packages under a stated criterion, verifying each site's file, line and anchor text on disk. Fails loudly once an anchor shifts |
 | `probes/w8_falsification.py` | Whether the level→rank map matters outside conformal prediction: empirical value-at-risk, nonparametric tolerance bounds, and bootstrap percentile intervals. Includes a setting chosen because it was likely to refute the general claim |
@@ -126,9 +128,16 @@ python3 -m venv .venv-probe
 .venv-probe/bin/python probes/run_real_data.py m1_monthly_dataset 250
 .venv-probe/bin/python probes/run_real_data_statsforecast.py m1_monthly_dataset 250
 .venv-probe/bin/python probes/w8_falsification.py
+# what an interval can express, and the floor for any division of alpha.
+# Exact arithmetic only, so it needs no library and runs in seconds.
+.venv-probe/bin/python probes/attainable_grid.py
 # selection/resolution robustness: every eligible series, rolling origin.
-# ~30 min; parallel across series, so it wants a few free cores.
+# ~30 min; parallel across series, so it wants a few free cores AND free memory --
+# each worker holds a fitted forecaster and its residual matrix. Run it alone.
+# PROBE_WORKERS caps the pool; overlapping it with another probe exhausted swap
+# here and the OS killed both runs mid-cell without writing an output.
 .venv-probe/bin/python probes/sample_robustness.py
+# PROBE_WORKERS=4 .venv-probe/bin/python probes/sample_robustness.py   # low-memory
 .venv-probe/bin/python probes/conformance_suite.py \
     --out outputs/probe_output_conformance_forecasting.txt
 
@@ -151,6 +160,8 @@ python3 -m venv .venv-tabular
     "scikit-learn==1.7.2" "crepes==0.9.1" "puncc==0.9.3" \
     "nonconformist==2.1.0" torch torchcp
 .venv-tabular/bin/python probes/run_real_data_tabular.py 15
+# whether the width-minimising beta search selects a level no rank can carry
+.venv-tabular/bin/python probes/beta_optimize_floor.py
 .venv-tabular/bin/python probes/conformance_suite.py \
     --out outputs/probe_output_conformance_tabular.txt
 # both mapie-only; the second takes a few minutes at 50k draws a cell

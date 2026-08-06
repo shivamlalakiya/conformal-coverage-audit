@@ -2,7 +2,7 @@
   "title": "Conformal quantile convention probes: harnesses for auditing finite-sample validity in conformal-prediction implementations",
   "upload_type": "software",
   "license": "MIT",
-  "version": "v1.3.2",
+  "version": "v1.4.0",
   "creators": [
     {
       "name": "Lalakiya, Shivam"

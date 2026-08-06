@@ -34,6 +34,11 @@ crepes ConformalPredictiveSystem.predict_int           c       +inf     39.000  
 puncc api/utils.py quantile (shared utility)           d      8.000     36.000     0.9000      9      -
 nonconformist AbsErrorErrFunc.apply_inverse            b      8.000     37.000     0.9000      9      -
 
+shipped call paths: 13   distinct resolution sites: 12   paths sharing a site: 1
+      mapie get_quantile [allow_infinite_bounds=True]  is the same site as  mapie get_quantile
+A count over the rows above is a count over call paths. The site count is
+what the census criterion measures, and it is the smaller of the two.
+
 Evidence per helper
 --------------------------------------------------------------------------------------------------------
   a

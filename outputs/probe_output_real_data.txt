@@ -5,54 +5,75 @@ self_check() passed at import
 dataset: m1_monthly_dataset   series cap: 250
 arm A: sktime ConformalIntervals via predict_interval, its own defaults
 arm B: sktime's OWN residuals (residuals_matrix_, offset-1 diagonal) and
-       its OWN point forecast, thresholded at rank ceil((n+1)*coverage)
+       its OWN point forecast, at the required order statistic -- matched to
+       arm A's GEOMETRY as well as to its scores and its centre:
+         method=empirical  two rails on the signed residuals, so arm B is the
+                           index pair spanning ceil((n+1)*coverage) gaps
+         method=conformal  symmetric band on the absolute residuals, so arm B
+                           is the rank ceil((n+1)*coverage) threshold
 
 series loaded: 250   frequency: monthly
 
-  empirical  nominal 0.90  initial_window=20  series=250  n_resid median=74
-      arm A (shipped)        coverage 0.8920   width    19097.643   lands on rank 67 of 74
-      arm B (required rank)  coverage 0.9160   width    20949.874   median required rank 68 of 74
-      paired delta (B - A)   +0.0240  (s.e. 0.0112)
+  empirical  nominal 0.90  initial_window=20    series=250  median n=74
+      arm A (shipped)        coverage 0.8920   lands on median span 65 of 74
+      arm B (required rank)  coverage 0.9280   median required span 68 of 74
+      paired delta (B - A)   +0.0360  (s.e. 0.0118)  3.0 s.e.  <- >=2 s.e.
+      status changed in 9 of 250 units: gains=9 losses=0   [arm B contains arm A: losses must be 0]
+      widths:  A 1.91e+04   B 2.263e+04
 
-  empirical  nominal 0.90  initial_window=40  series=250  n_resid median=54
-      arm A (shipped)        coverage 0.8880   width    17789.092   lands on rank 49 of 54
-      arm B (required rank)  coverage 0.9400   width      (+inf mixed)   median required rank 52 of 54   [21/250 infeasible -> +inf]
-      paired delta (B - A)   +0.0520  (s.e. 0.0152)
-      feasible cells only (229):  A 0.8908 (width 19162.348)   B 0.9345 (width 22125.502)   delta +0.0437 (s.e. 0.0149)
+  empirical  nominal 0.90  initial_window=40    series=250  median n=54
+      arm A (shipped)        coverage 0.8880   lands on median span 48 of 54
+      arm B (required rank)  coverage 0.9520   median required span 54 of 54   [37/250 infeasible -> +inf]
+      paired delta (B - A)   +0.0640  (s.e. 0.0155)  4.1 s.e.  <- >=2 s.e.
+      status changed in 16 of 250 units: gains=16 losses=0   [arm B contains arm A: losses must be 0]
+      feasible only (213):  A 0.8967 (width 9544)   B 0.9531 (width 1.067e+04)   delta +0.0563 (s.e. 0.0158)
 
-  empirical  nominal 0.95  initial_window=20  series=250  n_resid median=74
-      arm A (shipped)        coverage 0.9560   width    21879.007   lands on rank 71 of 74
-      arm B (required rank)  coverage 0.9640   width    26097.046   median required rank 72 of 74
-      paired delta (B - A)   +0.0080  (s.e. 0.0080)
+  empirical  nominal 0.95  initial_window=20    series=250  median n=74
+      arm A (shipped)        coverage 0.9560   lands on median span 69 of 74
+      arm B (required rank)  coverage 0.9720   median required span 76 of 74   [37/250 infeasible -> +inf]
+      paired delta (B - A)   +0.0160  (s.e. 0.0080)  2.0 s.e.  <- >=2 s.e.
+      status changed in 4 of 250 units: gains=4 losses=0   [arm B contains arm A: losses must be 0]
+      feasible only (213):  A 0.9531 (width 1.091e+04)   B 0.9671 (width 1.214e+04)   delta +0.0141 (s.e. 0.0081)
 
-  empirical  nominal 0.95  initial_window=40  series=250  n_resid median=54
-      arm A (shipped)        coverage 0.9400   width    19852.526   lands on rank 52 of 54
-      arm B (required rank)  coverage 0.9760   width      (+inf mixed)   median required rank 57 of 54   [37/250 infeasible -> +inf]
-      paired delta (B - A)   +0.0360  (s.e. 0.0118)
-      feasible cells only (213):  A 0.9531 (width 11054.255)   B 0.9718 (width 12447.153)   delta +0.0188 (s.e. 0.0093)
+  empirical  nominal 0.95  initial_window=40    series=250  median n=54
+      arm A (shipped)        coverage 0.9400   lands on median span 49 of 54
+      arm B (required rank)  coverage 0.9800   median required span 62 of 54   [79/250 infeasible -> +inf]
+      paired delta (B - A)   +0.0400  (s.e. 0.0124)  3.2 s.e.  <- >=2 s.e.
+      status changed in 10 of 250 units: gains=10 losses=0   [arm B contains arm A: losses must be 0]
+      feasible only (171):  A 0.9474 (width 1.186e+04)   B 0.9708 (width 1.338e+04)   delta +0.0234 (s.e. 0.0116)
 
-  conformal  nominal 0.90  initial_window=20  series=250  n_resid median=74
-      arm A (shipped)        coverage 0.9000   width    19319.840   lands on rank 67 of 74
-      arm B (required rank)  coverage 0.9160   width    20949.874   median required rank 68 of 74
-      paired delta (B - A)   +0.0160  (s.e. 0.0080)
+  conformal  nominal 0.90  initial_window=20    series=250  median n=74
+      arm A (shipped)        coverage 0.9000   lands on median rank 67 of 74
+      arm B (required rank)  coverage 0.9160   median required rank 68 of 74
+      paired delta (B - A)   +0.0160  (s.e. 0.0080)  2.0 s.e.  <- >=2 s.e.
+      status changed in 4 of 250 units: gains=4 losses=0   [arm B contains arm A: losses must be 0]
+      widths:  A 1.932e+04   B 2.095e+04
 
-  conformal  nominal 0.90  initial_window=40  series=250  n_resid median=54
-      arm A (shipped)        coverage 0.9160   width    18770.714   lands on rank 49 of 54
-      arm B (required rank)  coverage 0.9400   width      (+inf mixed)   median required rank 52 of 54   [21/250 infeasible -> +inf]
-      paired delta (B - A)   +0.0240  (s.e. 0.0097)
-      feasible cells only (229):  A 0.9214 (width 20181.095)   B 0.9345 (width 22125.502)   delta +0.0131 (s.e. 0.0075)
+  conformal  nominal 0.90  initial_window=40    series=250  median n=54
+      arm A (shipped)        coverage 0.9160   lands on median rank 49 of 54
+      arm B (required rank)  coverage 0.9400   median required rank 52 of 54   [21/250 infeasible -> +inf]
+      paired delta (B - A)   +0.0240  (s.e. 0.0097)  2.5 s.e.  <- >=2 s.e.
+      status changed in 6 of 250 units: gains=6 losses=0   [arm B contains arm A: losses must be 0]
+      feasible only (229):  A 0.9214 (width 2.018e+04)   B 0.9345 (width 2.213e+04)   delta +0.0131 (s.e. 0.0075)
 
-  conformal  nominal 0.95  initial_window=20  series=250  n_resid median=74
-      arm A (shipped)        coverage 0.9480   width    22344.763   lands on rank 71 of 74
-      arm B (required rank)  coverage 0.9640   width    26097.046   median required rank 72 of 74
-      paired delta (B - A)   +0.0160  (s.e. 0.0080)
+  conformal  nominal 0.95  initial_window=20    series=250  median n=74
+      arm A (shipped)        coverage 0.9480   lands on median rank 71 of 74
+      arm B (required rank)  coverage 0.9640   median required rank 72 of 74
+      paired delta (B - A)   +0.0160  (s.e. 0.0080)  2.0 s.e.  <- >=2 s.e.
+      status changed in 4 of 250 units: gains=4 losses=0   [arm B contains arm A: losses must be 0]
+      widths:  A 2.234e+04   B 2.61e+04
 
-  conformal  nominal 0.95  initial_window=40  series=250  n_resid median=54
-      arm A (shipped)        coverage 0.9400   width    20735.488   lands on rank 52 of 54
-      arm B (required rank)  coverage 0.9760   width      (+inf mixed)   median required rank 57 of 54   [37/250 infeasible -> +inf]
-      paired delta (B - A)   +0.0360  (s.e. 0.0118)
-      feasible cells only (213):  A 0.9484 (width 11368.476)   B 0.9718 (width 12447.153)   delta +0.0235 (s.e. 0.0104)
+  conformal  nominal 0.95  initial_window=40    series=250  median n=54
+      arm A (shipped)        coverage 0.9400   lands on median rank 52 of 54
+      arm B (required rank)  coverage 0.9760   median required rank 57 of 54   [37/250 infeasible -> +inf]
+      paired delta (B - A)   +0.0360  (s.e. 0.0118)  3.0 s.e.  <- >=2 s.e.
+      status changed in 9 of 250 units: gains=9 losses=0   [arm B contains arm A: losses must be 0]
+      feasible only (213):  A 0.9484 (width 1.137e+04)   B 0.9718 (width 1.245e+04)   delta +0.0235 (s.e. 0.0104)
 
 A positive delta means the required rank covers more than the shipped call.
+`empirical` is two rails on the SIGNED residuals, so its arm B is the same
+two-rail construction at the required SPAN and its landed figure is a span in
+gaps. `conformal` is a symmetric band on the absolute ones and its arm B is a
+rank. Arm B contains arm A in both, asserted per fit rather than argued.
 Real series are not exchangeable, so an absolute miss is not attributable to
 the convention on its own -- the paired delta is what carries the claim.

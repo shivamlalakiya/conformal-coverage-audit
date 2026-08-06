@@ -85,7 +85,7 @@ from fractions import Fraction as F
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from paired_report import format_cell, summarize  # noqa: E402
-from run_real_data import required_rank  # noqa: E402
+from run_real_data import bracket_indices, required_rank, required_span  # noqa: E402
 
 MAX_ROWS = 5000
 MAX_FEATURES = 100
@@ -371,15 +371,19 @@ def cell_mapie_regressor(X, y, n_cal, coverage, rng, sym):
     except ValueError:
         return {"error": "refused_by_guard"}
 
-    scores = np.abs(np.asarray(r._mapie_regressor.conformity_scores_,
-                               dtype=float).ravel())
+    # Under sym=False mapie stores SIGNED scores (regression.py:100 skips the abs)
+    # and resolves two rails at beta and 1 - alpha + beta (regression.py:319-320),
+    # so arm A is not a symmetric band and arm B must be the two-rail one.
+    raw = np.asarray(r._mapie_regressor.conformity_scores_, dtype=float).ravel()
+    scores = np.abs(raw)
     iv = np.asarray(iv)
     lo_a, hi_a = iv[:, 0, 0], iv[:, 1, 0]
     centre = np.asarray(pt, dtype=float)
     half_hi = float(np.mean(hi_a - centre))
     return _finish_regression(scores, centre, y[te], lo_a, hi_a, coverage,
                               clipped=math.isclose(half_hi, scores.max(),
-                                                   rel_tol=1e-9))
+                                                   rel_tol=1e-9),
+                              signed=None if sym else raw)
 
 
 def cell_crepes(X, y, n_cal, coverage, rng):
@@ -422,23 +426,69 @@ def cell_puncc(X, y, n_cal, coverage, rng):
                               clipped=False)
 
 
-def _finish_regression(scores, centre, y_true, lo_a, hi_a, coverage, clipped):
+def _finish_regression(scores, centre, y_true, lo_a, hi_a, coverage, clipped,
+                       signed=None):
+    """One paired cell. `signed` is the SIGNED score set for a two-rail arm A.
+
+    A configuration that splits alpha across two tails does not build a symmetric
+    band, so an arm B thresholding |score| at one rank would differ from it in the
+    score set and in the geometry as well as in the rank. Where `signed` is given,
+    arm B is the same two-rail construction at the required SPAN and what arm A
+    lands on is a span in gaps rather than a rank.
+    """
     n = scores.size
     if n < 2:
         return {"error": "too_few_scores"}
+    lo_a, hi_a = np.asarray(lo_a, dtype=float), np.asarray(hi_a, dtype=float)
+    centre = np.asarray(centre, dtype=float)
+    finite = np.isfinite(lo_a) & np.isfinite(hi_a)
+    a_covered = float(np.mean((lo_a <= y_true) & (y_true <= hi_a)))
+    a_width = float(np.mean(hi_a - lo_a)) if finite.all() else math.inf
+
+    if signed is not None:
+        s = np.sort(np.asarray(signed, dtype=float).ravel())
+        assert s.size == n, (s.size, n)
+        a_idx, b_idx, k = required_span(n, coverage)
+        lo_b = -math.inf if a_idx == 0 else centre + float(s[a_idx - 1])
+        hi_b = math.inf if b_idx == n + 1 else centre + float(s[b_idx - 1])
+        feasible = a_idx >= 1 and b_idx <= n
+        # mapie's rails are centre + a fixed offset, so the offsets are the same
+        # for every test point and one bracket pair describes the cell.
+        off_lo, off_hi = lo_a - centre, hi_a - centre
+        assert np.ptp(off_lo) < 1e-6 and np.ptp(off_hi) < 1e-6, "rails are not offsets"
+        j_lo, j_hi = bracket_indices(float(off_lo[0]), float(off_hi[0]), s)
+        nests = bool(np.all(lo_b <= lo_a + 1e-9) and np.all(hi_b >= hi_a - 1e-9))
+        return {
+            "n": n,
+            "required_rank": k,
+            "two_rail": True,
+            "nests": nests,
+            "feasible": feasible,
+            "a_covered": a_covered,
+            "a_width": a_width,
+            "a_rank": j_hi - j_lo - 1,
+            "b_covered": float(np.mean((lo_b <= y_true) & (y_true <= hi_b))),
+            "b_width": float(np.mean(hi_b - lo_b)) if feasible else math.inf,
+            "clipped": clipped,
+        }
+
     k = required_rank(n, coverage)
     if k is None:
         half_b, feasible = math.inf, False
     else:
         half_b, feasible = float(np.sort(scores)[k - 1]), True
-    half_a = float(np.mean((np.asarray(hi_a) - np.asarray(lo_a)) / 2.0))
-    finite = np.isfinite(lo_a) & np.isfinite(hi_a)
+    half_a = float(np.mean((hi_a - lo_a) / 2.0))
     return {
         "n": n,
         "required_rank": k if k is not None else n + 1,
+        "two_rail": False,
+        # Measured, not declared. A helper landing ABOVE the required rank makes
+        # arm B the narrower interval and the paired difference can then go either
+        # way; saying so here is what lets paired_report assert on the rest.
+        "nests": bool(half_b >= half_a - 1e-9),
         "feasible": feasible,
-        "a_covered": float(np.mean((lo_a <= y_true) & (y_true <= hi_a))),
-        "a_width": float(np.mean(hi_a - lo_a)) if finite.all() else math.inf,
+        "a_covered": a_covered,
+        "a_width": a_width,
         "a_rank": rank_at(half_a, scores),
         "b_covered": float(np.mean(np.abs(y_true - centre) <= half_b)),
         "b_width": 2 * half_b if math.isfinite(half_b) else math.inf,
