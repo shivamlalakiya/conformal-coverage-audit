@@ -29,8 +29,9 @@ identifiers:
 repository-code: "https://github.com/shivamlalakiya/conformal-coverage-audit"
 # This is what GitHub's cite widget and the indexers read. Left at v1.1.0 it sent a
 # reviewer to the snapshot whose DISCLOSURE.md carries one row and an open TODO list,
-# and the write-up's disclosure claim was judged against that.
-version: v1.2.0
+# and the write-up's disclosure claim was judged against that. Bump it in the commit
+# that gets tagged, not after -- a release naming the previous version is the same bug.
+version: v1.3.0
 date-released: "2026-08-05"
 abstract: >-
   Measurement harnesses used to audit how Python conformal-prediction
