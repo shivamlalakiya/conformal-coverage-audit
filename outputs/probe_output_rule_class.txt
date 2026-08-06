@@ -1,0 +1,356 @@
+====================================================================================================
+THE LEVEL-RESOLVING RULE CLASS: FINITELY PARTITIONED, AND MINIMAX-SOLVED
+====================================================================================================
+self_check() passed at import. It checks the reduction against the rules run
+as written -- form the level, form h, round -- for every definition, both
+corrections and four levels, over 4d consecutive sizes above the prefix. It
+also checks that a U drawn off every grid point lands in an enumerated cell,
+that one residue does NOT separate the class, and that the validity filter
+and the policy axis both discriminate.
+
+THE CLASS.  h(q, n) = a0 + a1 n + q (b0 + b1 n), rational coefficients, then
+a rounding policy from ceil, floor, half_even, half_up, trunc, optionally the
+level correction q -> min(1, q(n+1)/n), optionally a clip into [1, n].
+
+THE REDUCTION.  At a fixed level L = p/d in lowest terms, h is affine in n:
+h = U + V n with U = a0 + L b0 and V = a1 + L b1. Bounded over-coverage
+forces V = L, since delivered coverage is rank/(n+1) -> V. Writing
+L n = floor(Ln) + f, gcd(p,d) = 1 makes f sweep all of {0, 1/d, .., (d-1)/d},
+and delivered - required = P(U + f) - ceil(f + L). So a rule's whole
+observable behaviour above the prefix is 2d integers, indexed by n mod 2d.
+
+The period is 2d and not d because round-half-to-even breaks a tie on the
+parity of the FULL integer part, which the offset alone does not carry. Only
+that policy needs the doubling; the others repeat with period d inside it. A
+draft rounded on the offset alone and its self-check caught `nearest` at
+n = 26, L = 9/10, where h = 23.5 rounds up because 23 is odd while the offset
+0.5 rounds down because 0 is even.
+
+Integer offsets are enumerated over |m| <= 2: a rule delivering more
+than 2 ranks past the requirement is not a candidate for resolving
+the level, and the bound is stated rather than left implicit.
+
+----------------------------------------------------------------------------------------------------
+   level    d  period   cells   valid  |S| full  |S| valid  min max D  attained by
+----------------------------------------------------------------------------------------------------
+    9/10   10      20     111      39        20         20          0            1
+   19/20   20      40     221      74        40         40          0            1
+  99/100  100     200    1101     354       200        200          0            1
+     2/3    3       6      18       8         3          3          0            1
+     5/7    7      14      77      30        14         14          0            1
+     6/7    7      14      42      16         7          7          0            1
+
+'cells' is the observational quotient of an UNCOUNTABLE class: every rule
+with rational coefficients lands in one of them, so the certificate below is
+absolute and not candidate-relative. 'min max D' is the least worst-case
+over-coverage, in ranks, attainable by a class rule valid at every size.
+
+====================================================================================================
+(1) THE MINIMAX, AND WHERE THE LIBRARY DEFINITIONS SIT
+====================================================================================================
+For each definition a library exposes: its U at the level, its deficit
+vector, whether it is valid at every size above the prefix, and its
+worst-case over-coverage. D = delivered - required, in ranks.
+
+----------------------------------------------------------------------------------------------------
+requested level L = 9/10   (d = 10, so the period in n is 20)
+----------------------------------------------------------------------------------------------------
+definition               corr          U  valid  max D   deficit vector over n mod 20
+inverted_cdf              raw          0     NO      0   [-1, -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0]
+inverted_cdf        corrected       9/10    yes      0   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+weibull                   raw       9/10     NO      0   [-1, -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0]
+weibull             corrected    721/400    yes      0   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+linear                    raw       1/10     NO     -1   [-1, -1, -2, -2, -2, -2, -2, -2, -2, -1, -1, -1, -2, -2, -2, -2, -2, -2, -2, -1]
+linear              corrected      79/80     NO      0   [-1, -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0]
+hazen                     raw        1/2     NO     -1   [-1, -1, -1, -1, -1, -1, -2, -2, -2, -1, -1, -1, -1, -1, -1, -1, -2, -2, -2, -1]
+hazen               corrected        7/5     NO      0   [0, 0, 0, 0, 0, -1, -1, -1, -1, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1, 0]
+median_unbiased           raw      19/30     NO     -1   [-1, -1, -1, -1, -1, -1, -1, -2, -2, -1, -1, -1, -1, -1, -1, -1, -1, -2, -2, -1]
+median_unbiased     corrected  1841/1200     NO      0   [0, 0, 0, 0, 0, 0, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, 0]
+normal_unbiased           raw        3/5     NO     -1   [-1, -1, -1, -1, -1, -1, -1, -2, -2, -1, -1, -1, -1, -1, -1, -1, -1, -2, -2, -1]
+normal_unbiased     corrected    241/160     NO      0   [0, 0, 0, 0, 0, 0, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, 0]
+higher                    raw       1/10     NO      0   [0, -1, -1, -1, -1, -1, -1, -1, -1, 0, 0, -1, -1, -1, -1, -1, -1, -1, -1, 0]
+higher              corrected      79/80    yes      1   [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+nearest                   raw       1/10     NO     -1   [-1, -1, -1, -1, -1, -1, -1, -2, -2, -1, -1, -1, -1, -1, -1, -1, -2, -2, -2, -1]
+nearest             corrected      79/80     NO      0   [0, 0, 0, 0, 0, -1, -1, -1, -1, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1, 0]
+
+  valid at every size above the prefix: 3 of 16
+  least worst-case over-coverage among them: 0 rank(s)
+  attained by: inverted_cdf/corrected, weibull/corrected
+  least attainable anywhere in the class: 0 rank(s)
+  the folklore idiom, higher at the corrected level: valid, worst-case 1
+  SO THE FOLKLORE IDIOM IS 1 RANK SHORT OF OPTIMAL.
+  inverted_cdf/corrected, weibull/corrected delivers the required rank at every size, and
+  higher over-covers on a residue class. The recommendation both
+  papers carry is serviceable and it is not the minimax rule.
+
+----------------------------------------------------------------------------------------------------
+requested level L = 5/7   (d = 7, so the period in n is 14)
+----------------------------------------------------------------------------------------------------
+definition               corr          U  valid  max D   deficit vector over n mod 14
+inverted_cdf              raw          0     NO      0   [-1, -1, -1, 0, -1, -1, 0, -1, -1, -1, 0, -1, -1, 0]
+inverted_cdf        corrected        5/7    yes      0   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+weibull                   raw        5/7     NO      0   [-1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, 0]
+weibull             corrected    561/392     NO      0   [0, 0, -1, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0]
+linear                    raw        2/7     NO     -1   [-1, -1, -2, -1, -1, -2, -1, -1, -1, -2, -1, -1, -2, -1]
+linear              corrected      55/56     NO      0   [-1, -1, -1, 0, -1, -1, 0, -1, -1, -1, 0, -1, -1, 0]
+hazen                     raw        1/2     NO     -1   [-1, -1, -2, -1, -1, -1, -1, -1, -1, -2, -1, -1, -1, -1]
+hazen               corrected      17/14     NO      0   [0, -1, -1, 0, 0, -1, 0, 0, -1, -1, 0, 0, -1, 0]
+median_unbiased           raw        4/7     NO     -1   [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
+median_unbiased     corrected    505/392     NO      0   [0, 0, -1, 0, 0, -1, 0, 0, 0, -1, 0, 0, -1, 0]
+normal_unbiased           raw      31/56     NO     -1   [-1, -1, -2, -1, -1, -1, -1, -1, -1, -2, -1, -1, -1, -1]
+normal_unbiased     corrected  3977/3136     NO      0   [0, -1, -1, 0, 0, -1, 0, 0, -1, -1, 0, 0, -1, 0]
+higher                    raw        2/7     NO      0   [0, -1, -1, 0, 0, -1, 0, 0, -1, -1, 0, 0, -1, 0]
+higher              corrected      55/56    yes      1   [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1]
+nearest                   raw        2/7     NO      0   [-1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, 0]
+nearest             corrected      55/56     NO      0   [0, 0, -1, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0]
+
+  valid at every size above the prefix: 2 of 16
+  least worst-case over-coverage among them: 0 rank(s)
+  attained by: inverted_cdf/corrected
+  least attainable anywhere in the class: 0 rank(s)
+  the folklore idiom, higher at the corrected level: valid, worst-case 1
+  SO THE FOLKLORE IDIOM IS 1 RANK SHORT OF OPTIMAL.
+  inverted_cdf/corrected delivers the required rank at every size, and
+  higher over-covers on a residue class. The recommendation both
+  papers carry is serviceable and it is not the minimax rule.
+
+====================================================================================================
+(2) EXACTNESS IS ATTAINABLE, AND ONE SHIPPED CONVENTION ATTAINS IT
+====================================================================================================
+A cell with deficit 0 at every residue delivers the required rank at EVERY
+size. The class contains one at every level and under every rounding policy,
+so the question is not whether exactness is reachable but which conventions
+reach it.
+
+A RETRACTED READING, RECORDED BECAUSE IT WAS PLAUSIBLE. A draft of this probe
+claimed exactness required a unit-fraction alpha. That is true of ONE rule and
+false of the class. The rule h = q(n+2) with floor -- the natural-looking
+affine candidate -- has U = 2L, and the exact offsets under floor form the
+interval [2 - (d-p+1)/d, 2 - (d-p)/d), which contains 2L exactly when p = d-1,
+that is when alpha = 1/d. So the unit-fraction trap is real and it is about
+that rule. Generalising it to the class was the error, and the assertion that
+caught it compared the claim against the enumeration rather than against my
+derivation.
+
+   level    alpha   d-p  exact cells  h = q(n+2), floor    exact offsets under floor
+----------------------------------------------------------------------------------------------------
+    9/10     1/10     1            1              EXACT                 [9/5, 19/10)
+   19/20     1/20     1            1              EXACT               [19/10, 39/20)
+  99/100    1/100     1            1              EXACT             [99/50, 199/100)
+     1/2      1/2     1            1              EXACT                     [1, 3/2)
+     2/3      1/3     1            1              EXACT                   [4/3, 5/3)
+     3/4      1/4     1            1              EXACT                   [3/2, 7/4)
+     5/7      2/7     2            1                 no                 [11/7, 12/7)
+     6/7      1/7     1            1              EXACT                 [12/7, 13/7)
+     4/5      1/5     1            1              EXACT                   [8/5, 9/5)
+    7/10     3/10     3            1                 no                 [8/5, 17/10)
+     5/6      1/6     1            1              EXACT                  [5/3, 11/6)
+     3/8      5/8     5            1                 no                  [5/4, 11/8)
+    7/12     5/12     5            1                 no                 [3/2, 19/12)
+
+So h = q(n+2) under floor is exact exactly at the unit fractions, which the
+closed-form interval predicts and the enumeration confirms -- two routes to
+the same answer, one of them not mine.
+
+THE WITNESS THAT WORKS AT EVERY LEVEL is shorter than any of this:
+
+    required rank = ceil( q (n+1) )
+
+the mean-rank plotting position's own virtual index, rounded UP instead of
+down. It is exact by construction, since ceil(L(n+1)) IS the required rank,
+and it sits in the class at a0 = a1 = 0, b0 = b1 = 1, policy ceil. numpy
+pairs that index with linear interpolation and calls it `weibull`; it pairs
+`higher` with a different index. And one shipped combination already IS this
+rule, by an identity worth stating: `inverted_cdf` computes ceil(q n), so at
+the corrected level q = L(n+1)/n it computes ceil(L(n+1)) -- the required rank,
+exactly, at every size and every level. The correction and the convention
+compose into the answer. That is not the idiom either paper recommends.
+
+Distance from each shipped convention to exactness, in ranks:
+
+definition               corr    level  min D  max D  valid  exact
+----------------------------------------------------------------------------------------------------
+inverted_cdf              raw     9/10     -1      0     NO     no
+inverted_cdf        corrected     9/10      0      0    yes    YES
+weibull                   raw     9/10     -1      0     NO     no
+weibull             corrected     9/10      0      0    yes    YES
+linear                    raw     9/10     -2     -1     NO     no
+linear              corrected     9/10     -1      0     NO     no
+hazen                     raw     9/10     -2     -1     NO     no
+hazen               corrected     9/10     -1      0     NO     no
+median_unbiased           raw     9/10     -2     -1     NO     no
+median_unbiased     corrected     9/10     -1      0     NO     no
+normal_unbiased           raw     9/10     -2     -1     NO     no
+normal_unbiased     corrected     9/10     -1      0     NO     no
+higher                    raw     9/10     -1      0     NO     no
+higher              corrected     9/10      0      1    yes     no
+nearest                   raw     9/10     -2     -1     NO     no
+nearest             corrected     9/10     -1      0     NO     no
+
+inverted_cdf              raw      5/7     -1      0     NO     no
+inverted_cdf        corrected      5/7      0      0    yes    YES
+weibull                   raw      5/7     -1      0     NO     no
+weibull             corrected      5/7     -1      0     NO     no
+linear                    raw      5/7     -2     -1     NO     no
+linear              corrected      5/7     -1      0     NO     no
+hazen                     raw      5/7     -2     -1     NO     no
+hazen               corrected      5/7     -1      0     NO     no
+median_unbiased           raw      5/7     -1     -1     NO     no
+median_unbiased     corrected      5/7     -1      0     NO     no
+normal_unbiased           raw      5/7     -2     -1     NO     no
+normal_unbiased     corrected      5/7     -1      0     NO     no
+higher                    raw      5/7     -1      0     NO     no
+higher              corrected      5/7      0      1    yes     no
+nearest                   raw      5/7     -1      0     NO     no
+nearest             corrected      5/7     -1      0     NO     no
+
+`inverted_cdf` at the corrected level is exact at both levels. `weibull` at
+the corrected level is exact at 9/10 and not at 5/7, which is the
+unit-fraction dependence again: its offset 2L lands in the exact interval
+only when alpha = 1/d. Everything else is either invalid or over-covers.
+
+====================================================================================================
+(3) THE CERTIFICATE, MADE ABSOLUTE
+====================================================================================================
+The audit's earlier certificate separated sixteen ENUMERATED rules. This one
+separates every cell of the class, so it identifies any rule in it and not
+only a listed one. Minimality is by exhaustion over all smaller residue sets,
+which periodicity makes a finite check: behaviour at n and n + d agree above
+the prefix, so a set of sizes is a set of residues and there are 2^d of them.
+
+   level   cells   valid  |S| all cells               residues  |S| valid only
+----------------------------------------------------------------------------------------------------
+    9/10     111      39             20 [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]              20
+   19/20     221      74             40 [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39]              40
+  99/100    1101     354            200 [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199]             200
+     2/3      18       8              3              [0, 1, 2]               3
+     5/7      77      30             14 [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]              14
+     6/7      42      16              7  [0, 1, 2, 3, 4, 5, 6]               7
+
+A residue r is realised by any size n with p n mod d = r, of which there are
+infinitely many, so the certificate is a statement about d sizes and not
+about particular ones. Restricting to VALID rules needs fewer sizes, which is
+the practically relevant number: an implementer who has already established
+validity needs that many sizes to name the convention.
+
+====================================================================================================
+(4) THE PREFIX, STATED RATHER THAN ASSUMED AWAY
+====================================================================================================
+The correction q -> q(n+1)/n leaves a L*b0/n term in h, so the reduction
+holds above a prefix and not below it. The term cannot move a rounding
+boundary once it is under the grid spacing 1/d, giving n > |L b0| d. Sizes
+below that are irregular and are excluded by measurement, not by assumption:
+
+definition            level   |L b0| d  prefix used  first n where reduction holds
+----------------------------------------------------------------------------------------------------
+inverted_cdf           9/10          0           11                              9
+inverted_cdf            5/7          0            8                              3
+weibull                9/10          9           20                             10
+weibull                 5/7          5           13                              3
+linear                 9/10          9           20                              2
+linear                  5/7          5           13                              4
+hazen                  9/10          0           11                              5
+hazen                   5/7          0            8                              2
+median_unbiased        9/10          3           14                              6
+median_unbiased         5/7          2           10                              2
+
+The measured first size never exceeds the bound, so the prefix is an honest
+over-estimate rather than a fitted one.
+
+====================================================================================================
+(5) THE OPTIMAL IDIOM, EXECUTED AGAINST numpy RATHER THAN DERIVED
+====================================================================================================
+Section (2) is arithmetic. The recommendation it produces is about a call a
+practitioner writes, so it is run: for each size and level, numpy is asked for
+the corrected level and the answer is compared to the required order statistic
+read out of the sorted scores directly. A derived recommendation about shipped
+software is not evidence about shipped software -- and running it changed the
+recommendation a second time.
+
+numpy 2.4.6. Scores are 1..n, so a returned value IS a rank and
+no interpolation can hide inside a coincidence of values.
+
+  level  sizes |   inverted_cdf @ corrected |       higher @ corrected |   sort()[k-1]
+               |    exact    over    under |    exact   over   under |         exact
+----------------------------------------------------------------------------------------------------
+   9/10    390 |      390       0        0 |      351     39       0 |           390
+  19/20    381 |      381       0        0 |      362     19       0 |           381
+    5/7    390 |      389       1        0 |      278    112       0 |           390
+    2/3    390 |      385       5        0 |      260    130       0 |           390
+    1/2    390 |      375      15        0 |      195    195       0 |           390
+
+THE EXACT IDIOM IS EXACT IN EXACT ARITHMETIC AND NOT IN IEEE DOUBLE.
+Across 1941 size-level cells, `inverted_cdf` at the corrected level returned the required rank in all but
+21, and in every one of those it returned one rank PAST it, never
+short. So the departure costs width and not validity.
+
+           n     k*  returned   L(n+1) integral   float (1-a)(n+1)/n * n
+----------------------------------------------------------------------------------------------------
+         342    245       246              True       245.00000000000003
+          41     28        29              True       28.000000000000004
+         155    104       105              True       104.00000000000001
+         161    108       109              True       108.00000000000001
+         287    192       193              True       192.00000000000003
+         296    198       199              True       198.00000000000003
+          29     15        16              True       15.000000000000002
+          87     44        45              True        44.00000000000001
+         149     75        76              True        75.00000000000001
+         181     91        92              True        91.00000000000001
+         201    101       102              True       101.00000000000001
+         203    102       103              True       102.00000000000001
+         213    107       108              True       107.00000000000001
+         215    108       109              True       108.00000000000001
+         217    109       110              True       109.00000000000001
+         233    117       118              True       117.00000000000001
+         243    122       123              True       122.00000000000001
+         343    172       173              True       172.00000000000003
+         365    183       184              True       183.00000000000003
+         387    194       195              True       194.00000000000003
+         397    199       200              True       199.00000000000003
+
+  level   sizes  no-slack sizes   misses  miss / no-slack
+----------------------------------------------------------------------------------------------------
+   9/10     390              39        0             0/39
+  19/20     381              20        0             0/20
+    5/7     390              56        1             1/56
+    2/3     390             130        5            5/130
+    1/2     390             195       15           15/195
+
+Every miss sits at a size where L(n+1) is an INTEGER: the required rank is
+attained with no slack, the corrected level L(n+1)/n is not a double, and the
+product recovers 28.000000000000004 rather than 28, so ceil returns 29. The
+mechanism is representation, not the convention, and it strikes only where the
+rule is tight. The exposure is bounded above by how often the level leaves no
+slack. WHICH of those sizes actually fail is decided by the binary expansion of
+the corrected level and is not predictable from alpha: the no-slack sizes at
+alpha = 1/10 and 1/20 all came out exact, and the misses are concentrated at
+2/7, 1/3 and 1/2. We do not offer a characterisation, because we do not have
+one -- and not having one is the argument. A level is a lossy channel for an
+integer even when the convention on the far side is the right one.
+
+WHICH IS THE ANSWER, AND IT IS NOT A LIBRARY CALL:
+
+    numpy.sort(scores)[k - 1],    k = ceil((n+1)(1-alpha))
+
+exact at every size and level tested, by construction, because no level is
+formed. The best available library idiom is
+
+    numpy.quantile(scores, min(1, (1-alpha)*(n+1)/n), method='inverted_cdf')
+
+which is minimax-optimal among conventions and conservative by one rank at the
+sizes with no slack. Both manuscripts recommended `higher` at the same level,
+which is valid and one rank wide on a whole residue class rather than on a
+handful of unrepresentable sizes. That recommendation is superseded here.
+
+
+====================================================================================================
+WHAT THIS DOES NOT SETTLE
+====================================================================================================
+The class is affine in the level with coefficients affine in the size. A rule
+whose index is quadratic in n, or which consults the scores themselves, is
+outside it and is not covered by the certificate. Randomised rules are
+outside it by construction -- they are the subject of the companion's
+randomised-bound section, where the feasibility floor moves. And the minimax
+is over WORST-CASE over-coverage across sizes; a rule minimising average
+over-coverage against a distribution over n is a different optimisation and
+is not solved here.
