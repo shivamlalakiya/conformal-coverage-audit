@@ -1,0 +1,32 @@
+============================================================================================
+Does mapie's LAC crossval `quantiles_` determine the returned set?
+mapie 1.4.1, numpy 1.26.4
+self_check() passed at import (the perturbation is larger than any
+count-scale comparison on this path could absorb)
+============================================================================================
+
+  n_calib = 40, classes = 3, test rows = 12, alpha = 0.1
+  cv = 5, agg_scores = 'crossval'  -- the branch reached only when cv is
+  not 'prefit' AND agg_scores is not 'mean'
+
+score    quantiles_ on this path   (n+1)(1-alpha)   set changes under x1000?
+LAC                      36.9000          36.9000                      False
+APS                      36.9000          36.9000                       True
+
+--------------------------------------------------------------------------------------------
+VERDICT
+--------------------------------------------------------------------------------------------
+  Both classes compute the SAME value on the SAME path. Only APS reads it.
+
+  LAC: `quantiles_` is stored, exposed as a documented public fitted
+  attribute (classification.py:1141 copies it onto the estimator), and
+  never consulted by the crossval branch of get_prediction_sets, which
+  thresholds an inclusion count against alpha*(n-1) instead. So the value
+  determines nothing returned, and a caller reading `quantiles_` on this
+  path is reading a number the prediction did not use.
+
+  APS is the control and it moves, so the perturbation discriminates.
+
+  Consequence for the census: the LAC crossval site is re-anchored from
+  lac.py:158 to the expression that actually resolves the level. One site
+  on this path either way -- the total is unchanged.

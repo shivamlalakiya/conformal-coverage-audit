@@ -250,7 +250,11 @@ def main():
         say("")
     wl = max(abs(r["err"]) for r in rows)
     w0 = max(abs(r["err0"]) for r in rows)
-    say(f"    worst |error|:  unified law {wl:.5f}   assuming xi=0 {w0:.5f}"
+    # Six decimals, not five: at five the two printed operands divide to 306 and
+    # the printed multiple says 305, so a reader checking the arithmetic finds a
+    # contradiction that is only rounding. Print them at a width that reproduces
+    # the ratio, or do not print the ratio.
+    say(f"    worst |error|:  unified law {wl:.6f}   assuming xi=0 {w0:.6f}"
         f"   ({w0 / max(wl, 1e-12):.0f}x)")
     say(f"    mean  |error|:  unified law "
         f"{sum(abs(r['err']) for r in rows) / len(rows):.5f}"

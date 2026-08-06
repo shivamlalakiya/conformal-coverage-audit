@@ -23,6 +23,7 @@ reference g                                            g      1.310      2.700  
 numpy method='linear' (sktime, statsforecast, neuralforecast)   d      7.300     36.100        nan  >2000      -
 numpy method='higher' (darts)                          d      8.000     37.000     0.9000      9      -
 mapie get_quantile                                     b      8.000     37.000     0.9000      9      -
+mapie get_quantile [allow_infinite_bounds=True]        b      8.000     37.000     0.9000      9      -
 crepes ConformalRegressor.predict_int                  c       +inf     37.000     0.9091     10  warns
 puncc BaseCalibrator.compute_quantile                  a     raises     37.000     0.9091     10      -
 torchcp calculate_conformal_value                      c       +inf     37.000     0.9000      9  warns
@@ -57,6 +58,9 @@ Evidence per helper
       branch (d): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: raw higher, 1-sided (max deviation 0.000 ranks); no (n+1)/n correction, so the boundary is never reached and no choice is ever made there; NOTE it does return max(scores) at n=8, but that is the uncorrected level landing on rank n by arithmetic, NOT a clamp -- the fitted rule settles it
       first delivers 0.90 at n=9, as 9/10 = 0.9000
   mapie get_quantile
+      branch (b): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: raw order-stat, 1-sided (max deviation 0.000 ranks); corrects, then returns max(scores) at n=8 where the corrected level exceeds 1 -- the clamp
+      first delivers 0.90 at n=9, as 9/10 = 0.9000
+  mapie get_quantile [allow_infinite_bounds=True]
       branch (b): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: raw order-stat, 1-sided (max deviation 0.000 ranks); corrects, then returns max(scores) at n=8 where the corrected level exceeds 1 -- the clamp
       first delivers 0.90 at n=9, as 9/10 = 0.9000
   crepes ConformalRegressor.predict_int

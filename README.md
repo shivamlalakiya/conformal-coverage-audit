@@ -41,7 +41,7 @@ conformal_coverage/   the rank arithmetic, as an installable package
 
 ## The arithmetic, without the harnesses
 
-Most readers want four functions rather than twenty-seven probes. They are packaged
+Most readers want four functions rather than twenty-nine probes. They are packaged
 separately, with no dependencies at all -- stdlib `fractions` and `math` -- so the module
 can be vendored as a single file.
 
@@ -93,7 +93,7 @@ only the **paired delta** supports a claim. See [`PLAN.md`](PLAN.md) §5.
 | `probes/run_real_data_darts.py` | darts `ConformalNaiveModel`, calibration lengths chosen to sample both the coincidence band and the deficit band |
 | `probes/run_real_data_tabular.py` | Seven tabular implementations over OpenML data, each handed identical scores and an identical split |
 | `probes/export_series.py` | Caches Monash series as `.npz`, because the darts probe cannot share an environment with the loader |
-| `probes/sample_robustness.py` | Whether the arms above depend on which series were chosen or on one test point per series. Re-runs the same cells on **every eligible series in the archive** — no sample, so there is no selection to object to — with a rolling origin, and clusters the standard error by series because rolling origins of one series share their history. Adds no forecasting logic: origin `j` is the truncation `s[:len(s)-j]` through each arm's own unmodified code path |
+| `probes/sample_robustness.py` | Whether the arms above depend on which series were chosen or on one test point per series. Re-runs the same cells on **every eligible series in the archive** — settling the question of *which* series, though neither the archive nor the eligibility cutoff — with a rolling origin, and clusters the standard error by series because rolling origins of one series share their history. Adds no forecasting logic: origin `j` is the truncation `s[:len(s)-j]` through each arm's own unmodified code path |
 
 ### Tooling and generalisation
 
@@ -102,6 +102,8 @@ only the **paired delta** supports a claim. See [`PLAN.md`](PLAN.md) §5.
 | `probes/conformance_suite.py` | Given any `(scores, level) → threshold` callable: the branch, the rank it lands on, the delivered coverage, the least calibration size that honours the level as asked, and whether a boundary case raises a warning. Validated at import against reference implementations of every branch |
 | `probes/helper_census.py` | Counts the level→rank resolution sites across the audited packages under a stated criterion, verifying each site's file, line and anchor text on disk. Fails loudly once an anchor shifts |
 | `probes/w8_falsification.py` | Whether the level→rank map matters outside conformal prediction: empirical value-at-risk, nonparametric tolerance bounds, and bootstrap percentile intervals. Includes a setting chosen because it was likely to refute the general claim |
+| `probes/mapie_clip_reachability.py` | Whether mapie's clip on the corrected level is reachable through the public API, and what the path delivers. Walks every size at which the requested rank cannot exist, under exact rational arithmetic, keeping the first *feasible* size as a control that has to score zero, confirms it end to end at 50k draws per cell, counts the signatures carrying `allow_infinite_bounds` with `ast`, and drives every public regressor class that exposes it. Filed as MAPIE#980; **withdraws a retraction of this audit's own** |
+| `probes/lac_crossval_dead_value.py` | Whether mapie's LAC `quantiles_` decides anything on the cross-validation path. Scales it by 1000 and checks whether a single returned set moves. APS computes the identical expression on the identical path and *is* read, so it is the control that makes the negative result mean something |
 | `probes/paired_report.py` | Shared summary arithmetic for the paired arms, including the two reporting subtleties an earlier version of this work got wrong |
 
 **The research plan is in [`PLAN.md`](PLAN.md)** — the question, the method, the protocol, phase status,
@@ -151,6 +153,9 @@ python3 -m venv .venv-tabular
 .venv-tabular/bin/python probes/run_real_data_tabular.py 15
 .venv-tabular/bin/python probes/conformance_suite.py \
     --out outputs/probe_output_conformance_tabular.txt
+# both mapie-only; the second takes a few minutes at 50k draws a cell
+.venv-tabular/bin/python probes/lac_crossval_dead_value.py
+.venv-tabular/bin/python probes/mapie_clip_reachability.py
 ```
 
 Each script writes into `outputs/`. Every real-data forecasting probe takes a dataset name and a series

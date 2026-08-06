@@ -1,0 +1,130 @@
+============================================================================================
+Is mapie's clip in get_quantile reachable through the PUBLIC API?
+mapie 1.4.1, numpy 1.26.4
+self_check() passed at import (the clip window is derived, not assumed)
+============================================================================================
+
+(i) THE FUNCTION IN ISOLATION. Scores are 1..10, so the sample maximum is 10.
+    'unbounded' is what allow_infinite_bounds sets. The infinity branch tests the
+    level BEFORE the finite-sample correction, so it does not fire here.
+
+   level  unbounded  req rank  of n   returned
+   0.800      False         9    10     9.0000
+   0.800       True         9    10     9.0000
+   0.950      False        11    10    10.0000
+   0.950       True        11    10    10.0000
+   0.999      False        11    10    10.0000
+   0.999       True        11    10    10.0000
+
+    Every infeasible row returns 10.0, the maximum, rather than +inf.
+
+--------------------------------------------------------------------------------------------
+(ii) END TO END, through SplitConformalRegressor.predict_interval, whose signature
+     carries allow_infinite_bounds as a public keyword.
+--------------------------------------------------------------------------------------------
+    n_calib = 10, confidence_level = 0.95, required rank = 11 of 10
+    -> no valid finite DETERMINISTIC bound exists at this configuration
+
+    allow_infinite_bounds=False -> ValueError: Number of samples of the score is too low, 1/confidence_level and 1/(1
+    allow_infinite_bounds=True  -> width 5.8683, finite=True
+
+--------------------------------------------------------------------------------------------
+(iii) DELIVERED COVERAGE on the flagged path, over the whole infeasible window.
+      Scores are tie-free 1..n, so the returned threshold IS the rank it landed
+      on. Where the required rank exceeds n the flagged path lands on rank n, so
+      the delivered coverage is n/(n+1) -- and it does not depend on the level
+      that was asked for. Exact arithmetic; the last row is the feasible control.
+--------------------------------------------------------------------------------------------
+  level    n  req rank  feasible  rank got  delivered  nominal  shortfall
+   0.95    2         3     False         2     0.6667     0.95    +0.2833
+   0.95    3         4     False         3     0.7500     0.95    +0.2000
+   0.95    4         5     False         4     0.8000     0.95    +0.1500
+   0.95    5         6     False         5     0.8333     0.95    +0.1167
+   0.95    6         7     False         6     0.8571     0.95    +0.0929
+   0.95    7         8     False         7     0.8750     0.95    +0.0750
+   0.95    8         9     False         8     0.8889     0.95    +0.0611
+   0.95    9        10     False         9     0.9000     0.95    +0.0500
+   0.95   10        11     False        10     0.9091     0.95    +0.0409
+   0.95   11        12     False        11     0.9167     0.95    +0.0333
+   0.95   12        13     False        12     0.9231     0.95    +0.0269
+   0.95   13        14     False        13     0.9286     0.95    +0.0214
+   0.95   14        15     False        14     0.9333     0.95    +0.0167
+   0.95   15        16     False        15     0.9375     0.95    +0.0125
+   0.95   16        17     False        16     0.9412     0.95    +0.0088
+   0.95   17        18     False        17     0.9444     0.95    +0.0056
+   0.95   18        19     False        18     0.9474     0.95    +0.0026
+   0.95   19        19      True        19     0.9500     0.95    +0.0000
+
+   0.90    2         3     False         2     0.6667     0.90    +0.2333
+   0.90    3         4     False         3     0.7500     0.90    +0.1500
+   0.90    4         5     False         4     0.8000     0.90    +0.1000
+   0.90    5         6     False         5     0.8333     0.90    +0.0667
+   0.90    6         7     False         6     0.8571     0.90    +0.0429
+   0.90    7         8     False         7     0.8750     0.90    +0.0250
+   0.90    8         9     False         8     0.8889     0.90    +0.0111
+   0.90    9         9      True         9     0.9000     0.90    +0.0000
+
+    worst infeasible cell: n = 2 at nominal 0.95 delivers 0.6667, shortfall 0.2833
+    the deficit here is a whole missing rank, not the O(1/n) one-rank deficit:
+    no rank in the sample reaches the requested level at these sizes.
+
+--------------------------------------------------------------------------------------------
+(iv) THE SAME COVERAGE, MEASURED through predict_interval(allow_infinite_bounds=True)
+     on i.i.d. draws, against the exact n/(n+1) above. The base model is prefit, so
+     the calibration scores are exchangeable with the test score by construction.
+--------------------------------------------------------------------------------------------
+  level    n   reps  predicted  measured      se      z  finite?
+   0.95   10  50000     0.9091    0.9078  0.0013  -1.03     True
+   0.95   18  50000     0.9474    0.9485  0.0010  +1.19     True
+   0.90    8  50000     0.8889    0.8903  0.0014  +1.02     True
+
+    largest |z| against n/(n+1): 1.19
+    Every interval returned was FINITE, at every cell above, though no valid
+    finite deterministic bound exists at any of them.
+
+--------------------------------------------------------------------------------------------
+(v) HOW MANY PUBLIC ENTRY POINTS CARRY THE FLAG. The signatures are read out of
+    the pinned package with ast, not grepped and not counted by hand, so a
+    renamed or added method changes this number rather than escaping it.
+--------------------------------------------------------------------------------------------
+    conformity_scores/regression.py:232   BaseRegressionScore.get_bounds
+    regression/quantile_regression.py:212   ConformalizedQuantileRegressor.predict_interval
+    regression/quantile_regression.py:983   _MapieQuantileRegressor.predict   (private class or method)
+    regression/regression.py:239   SplitConformalRegressor.predict_interval
+    regression/regression.py:532   CrossConformalRegressor.predict_interval
+    regression/regression.py:907   JackknifeAfterBootstrapRegressor.predict_interval
+    regression/regression.py:1628  _MapieRegressor.predict   (private class or method)
+    regression/time_series_regression.py:411   TimeSeriesRegressor.predict
+
+    8 signatures carry the keyword, 6 of them on a public class and method.
+
+--------------------------------------------------------------------------------------------
+(vi) AND HOW MANY OF THEM ACTUALLY REACH IT, end to end, below the floor.
+     n_calib = 10 at confidence 0.95, the same infeasible configuration as (ii).
+     Any class this probe cannot construct is REPORTED, never dropped.
+--------------------------------------------------------------------------------------------
+    SplitConformalRegressor            default -> ValueError   flagged -> finite (width 1.9179)   REACHES THE CLIP
+    CrossConformalRegressor            default -> ValueError   flagged -> finite (width 4.6722)   REACHES THE CLIP
+    JackknifeAfterBootstrapRegressor   default -> ValueError   flagged -> finite (width 5.7316)   REACHES THE CLIP
+
+    3 of 3 public regressor classes exercised here raise on the default path and return a finite interval on the flagged one.
+    So the path is not a single entry point. It is the shared bound-construction
+    layer, and every public class routing through it inherits the behaviour.
+
+--------------------------------------------------------------------------------------------
+VERDICT
+--------------------------------------------------------------------------------------------
+  The clip is REACHABLE through the public API. The guard that makes it dead code
+  is skipped by the same flag the caller sets to opt into infinite bounds
+  (regression/regression.py:1714, 'if not allow_infinite_bounds:'), and
+  TimeSeriesRegressor passes allow_infinite_bounds=True internally
+  (regression/time_series_regression.py:319), so a caller who never sets the flag
+  can still reach it.
+
+  Direction: ANTI-CONSERVATIVE. A finite interval is returned where no valid finite
+  deterministic bound exists, so it under-covers. The caller asked for an infinite
+  bound and received a silently clamped finite one.
+
+  What the earlier scan established, and still establishes: on the DEFAULT path,
+  allow_infinite_bounds=False, the guard raises before the clip and the clip is
+  dead. That scan was right about the path it scanned. It did not vary this flag.

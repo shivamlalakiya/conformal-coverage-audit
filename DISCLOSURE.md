@@ -33,8 +33,9 @@ applies is stated per site in the next section.
 | 2026-08-05 | `sktime` | `ConformalIntervals._compute_sliding_residuals` / `_predict_interval_series` — residual-alignment off-by-one: a step-*h* forecast is calibrated on (h+1)-step residuals | [sktime/sktime#10766](https://github.com/sktime/sktime/issues/10766) | open |
 | 2026-08-04 | `statsforecast` | `ConformalSeasonalPool`: documented sufficiency rule covers the lower rail only, and its worked example is off by one | [Nixtla/statsforecast#1202](https://github.com/Nixtla/statsforecast/issues/1202) | open |
 | 2026-08-04 | `torchcp` | `calculate_conformal_value` docstring names a threshold the code no longer computes | [ml-stat-Sustech/torchcp#122](https://github.com/ml-stat-Sustech/torchcp/pull/122) (PR) | merged 2026-08-05 |
+| 2026-08-06 | `mapie` | `allow_infinite_bounds=True` skips the calibration-size guard entirely, so the clip returns a finite bound where no valid finite deterministic bound exists | [scikit-learn-contrib/MAPIE#980](https://github.com/scikit-learn-contrib/MAPIE/issues/980) | open |
 
-Filing window: **2026-08-02 to 2026-08-05**, other than the #958 review, which is
+Filing window: **2026-08-02 to 2026-08-06**, other than the #958 review, which is
 2026-07-10 and is a set of findings raised on someone else's pull request rather than a
 report filed by us.
 
@@ -81,16 +82,16 @@ edited silently, and this manifest now carries the committed values.
 
 19 of the 35 census sites are **pre-existing and documented**: a library resolving an
 uncorrected level through a rounding definition is doing something its own
-documentation describes. The other 16 are the ones this audit newly located, which is
-the same 16 the write-up reports as absent from the public record it searched. Where a
-pre-existing site is already public, the census output cites its existing issue or
-pull-request number rather than re-filing it.
+documentation describes. Where such a site is already public, the census output cites
+its existing issue or pull-request number rather than re-filing it. What was surveyed
+here is source, not trackers, so nothing in this file settles who knew what about the
+remaining 16 — and no claim of that shape is made anywhere in the programme.
 
-For the 16 sites this audit newly located, the rule applied is: **file where a maintainer
-would have to change code or documentation to make the shipped behaviour match its own
-stated contract; do not file where the behaviour is intended, documented, and merely
-lossy.** Every filing in the table above meets the first test. The remainder do not, and
-are reported in the manuscript as measurements rather than as defects.
+The rule applied across all 35 is: **file where a maintainer would have to change code
+or documentation to make the shipped behaviour match its own stated contract; do not
+file where the behaviour is intended, documented, and merely lossy.** Every filing in
+the table above meets the first test. The remainder do not, and are reported in the
+manuscript as measurements rather than as defects.
 
 One site is worth naming because it is the paper's largest measured shortfall and is
 nonetheless **not** filed as a defect:
@@ -105,4 +106,39 @@ nonetheless **not** filed as a defect:
   count — rather than treating the configuration as a bug report.
 
 Retracted findings are not filed at all, and are recorded in the manuscript's retraction
-section instead.
+appendix instead. One retraction has since been withdrawn, and the finding it was hiding
+is #980 in the table above.
+
+### MAPIE#980 — what was reported, and the retraction it withdraws
+
+Filed 2026-08-06, after the rest. It is the last row above and the only one filed later
+than the others, so the sequence is worth stating plainly rather than leaving to the dates:
+the audit found it while preparing a revision, wrote it up, and filed it before publishing.
+
+`mapie` 1.4.1, the `np.clip` on the corrected level. `regression/regression.py:1714` makes
+the calibration-size guard conditional on `allow_infinite_bounds`, a documented public
+keyword, so setting the flag removes the guard rather than changing what happens past it.
+The infinity branch tests the level *before* the finite-sample correction, so in exactly
+the infeasible regime it does not fire, the corrected level is clipped down to 1, and the
+call returns the sample maximum. `TimeSeriesRegressor` passes the flag as `True` internally
+(`regression/time_series_regression.py:319`), so the path does not need a caller to opt in.
+Three public regressor classes reach it: `SplitConformalRegressor`,
+`CrossConformalRegressor`, `JackknifeAfterBootstrapRegressor`.
+
+Landing on rank *n* means delivered coverage is *n*/(*n*+1) whatever level was asked for.
+Both levels are swept over every size at which the requested rank cannot exist — 24 in
+all, under exact rational arithmetic, each sweep keeping its first *feasible* size as a
+control that has to score zero. Confirmed through `predict_interval` at 50,000 draws a
+cell, worst departure 1.19 s.e. At `n_calib=10` and 0.95: 0.9091 against 0.95, short by
+0.0409. Direction: **anti-conservative**.
+Reproduction: `probes/mapie_clip_reachability.py`, output committed.
+
+This is the same line as #974, reached differently. #974's window is the asymmetric path,
+where the effective calibration count is halved and the guard is not tight enough; #980's
+is any infeasible size, because the guard does not run. The distinction decides the fix,
+which is why the two are separate reports and are cross-linked.
+
+⚠️ This site was previously **retracted** by this audit as unreachable. The scan behind that
+retraction fixed `allow_infinite_bounds=False` and never varied it; its own output said
+"dead code on this path", and the retraction generalised the qualifier away. #980 is the
+withdrawal of that retraction.

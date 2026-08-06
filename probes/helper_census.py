@@ -95,13 +95,29 @@ MANIFEST = [
       "level is unclipped and np.quantile raises above 1. CLASSIFIED BY RUNNING "
       "in conformance_suite.py, which sees it raise at n=8",
       "a", False, True, ["SplitConformalClassifier.predict_set"]),
-    S("mapie 1.4.1", "mapie/conformity_scores/sets/lac.py", 158,
-      "LACConformityScore.get_conformity_score_quantiles [cv/crossval]",
-      "quantiles_ = (n + 1) * (1 - alpha_np)",
-      "the OTHER rule in the same method, reached only when cv is not 'prefit' "
-      "AND agg_scores is not 'mean'. Returns the raw COUNT (n+1)(1-alpha), not a "
-      "threshold on the score scale -- at n=8 it returns 8.1, above every score. "
-      "No branch letter applies; conformance_suite.py labels it `count`",
+    # RE-ANCHORED. This site used to point at lac.py:158, `quantiles_ =
+    # (n + 1) * (1 - alpha_np)`, on the grounds that it is where a level becomes a
+    # number on the crossval path. It is -- but that number decides nothing. It is
+    # stored on `quantiles_`, surfaced as a documented public fitted attribute
+    # (classification.py:1141), and never read by the branch that builds the set:
+    # perturbing it by a factor of 1000 leaves the returned sets bit-identical,
+    # which probes/lac_crossval_dead_value.py executes and commits rather than
+    # asserting from a reading. The expression that DOES resolve the
+    # level on this path is `_alpha * (n - 1)` inside get_prediction_sets, and it
+    # is not the same rule -- it carries no (n+1) correction at all. APS's
+    # identical-looking line at aps.py:201 is a genuine site by contrast: its set
+    # does move when quantiles_ moves. Anchoring the criterion's own words --
+    # "determines a returned set" -- to the wrong line is exactly the failure this
+    # census exists to prevent, so the anchor moved rather than the criterion.
+    S("mapie 1.4.1", "mapie/conformity_scores/sets/lac.py", 214,
+      "LACConformityScore.get_prediction_sets [cv/crossval]",
+      "np.greater_equal(y_pred_included - _alpha * (n - 1), -EPSILON)",
+      "the crossval branch compares an INCLUSION COUNT against alpha*(n-1), a "
+      "count-scale threshold carrying no (n+1) correction and not the (n+1)"
+      "(1-alpha) computed at line 158. That line's value is exposed as the public "
+      "`quantiles_` attribute and never read here -- scaling it by 1000 leaves the "
+      "sets identical. No branch letter applies; conformance_suite.py labels the "
+      "count-returning helper `count`",
       "count", False, True, ["CrossConformalClassifier.predict_set"]),
     S("mapie 1.4.1", "mapie/conformity_scores/regression.py", 211,
       "BaseRegressionScore._beta_optimize",

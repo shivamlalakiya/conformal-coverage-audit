@@ -110,11 +110,20 @@ def classify(helper, alpha, cert=None):
 # the fixtures, read from the shipped test sources. VALUE only; everything
 # downstream is measured. file:line recorded so each can be checked.
 # ---------------------------------------------------------------------------
+#
+# The last field says whether the value IS a calibration size. `initial_window`
+# is not: it is the initial TRAINING window, and the number of calibration
+# residuals it induces is (series length - initial_window), which the test source
+# does not fix. This probe used to score it as though it were a calibration size,
+# which measured the discriminating power at the wrong n -- and this repository's
+# own `horizon_feasibility.py` says so in a comment, so the contradiction was
+# internal. Non-calibration fixtures are still read and still printed; they are
+# excluded from the scored population rather than dropped from the output.
 FIXTURE_SOURCES = [
     ("sktime 1.1.0", "sktime/forecasting/tests/test_conformal.py",
-     r"initial_window\s*=\s*(\d+)", "initial_window"),
+     r"initial_window\s*=\s*(\d+)", "initial_window", False),
     ("mapie 1.4.1", "mapie/tests/test_utils.py",
-     r"^\s*n\s*=\s*(\d+)\s*$", "n (guard test)"),
+     r"^\s*n\s*=\s*(\d+)\s*$", "n (guard test)", True),
 ]
 def _site_roots():
     """Every site-packages under a sibling virtualenv, whatever it is called.
@@ -138,7 +147,7 @@ SITE_ROOTS = _site_roots()
 
 def read_fixtures():
     found = []
-    for lib, relpath, pat, what in FIXTURE_SOURCES:
+    for lib, relpath, pat, what, is_ncal in FIXTURE_SOURCES:
         path = None
         for root in SITE_ROOTS:
             cand = os.path.join(root, relpath)
@@ -147,7 +156,8 @@ def read_fixtures():
                 break
         if path is None:
             found.append({"lib": lib, "file": relpath, "line": None,
-                          "value": None, "what": what, "note": "source not found"})
+                          "value": None, "what": what, "is_ncal": is_ncal,
+                          "note": "source not found"})
             continue
         with open(path, encoding="utf-8") as fh:
             for ln_no, ln in enumerate(fh, start=1):
@@ -155,7 +165,7 @@ def read_fixtures():
                 if m:
                     found.append({"lib": lib, "file": relpath, "line": ln_no,
                                   "value": int(m.group(1)), "what": what,
-                                  "note": ""})
+                                  "is_ncal": is_ncal, "note": ""})
     return found
 
 
@@ -292,6 +302,11 @@ def main():
                 f"{'---':>7}{'---':>4}   {f['note']}")
             continue
         n = f["value"]
+        if not f["is_ncal"]:
+            say(f"{f['lib']:<16}{f['what']:<20}{n:>7}{'n/a':>11}"
+                f"{'---':>7}{'---':>4}   not a calibration size: initial TRAINING "
+                f"window, so n_cal is (length - this) and the test does not fix it")
+            continue
         inr = n in powers
         p = powers.get(n)
         if not inr:
@@ -312,14 +327,19 @@ def main():
     say(f"    {len(nb)} of {len(scored)} extracted fixtures sit at a calibration size")
     say(f"    with less than maximal discriminating power.")
     say("")
-    say("    LIMIT, stated plainly. Only two of the ten audited packages ship their")
-    say("    tests in the wheel, so this census covers two libraries and a handful of")
-    say("    fixtures, not the ten. pytest is deliberately not installed in the")
-    say("    pinned environments -- adding it would perturb the versions the deposit")
-    say("    exists to fix -- so the suites are not executed and the fixture VALUES")
-    say("    are read. A census over two libraries is still the difference between")
-    say("    the manuscript's anecdote and a measurement, and it is not more than")
-    say("    that.")
+    located = len({f["lib"] for f in fixtures if f["value"] is not None})
+    scored_libs = len({s["lib"] for s in scored})
+    say(f"    test sources located: {located} libraries; "
+        f"libraries contributing a scorable calibration size: {scored_libs}")
+    say("")
+    say("    LIMIT, stated plainly. The two counts above differ, and the difference is")
+    say("    the point: a wheel that ships tests does not necessarily ship a fixture")
+    say("    that names a calibration size. pytest is deliberately not installed in")
+    say("    the pinned environments -- adding it would perturb the versions the")
+    say("    deposit exists to fix -- so the suites are not executed and the fixture")
+    say("    VALUES are read. This is a census over one library's scorable fixtures,")
+    say("    which is more than the manuscript's earlier anecdote and much less than")
+    say("    the ten packages audited elsewhere.")
     say("")
     say("=" * 104)
     say("SUMMARY")

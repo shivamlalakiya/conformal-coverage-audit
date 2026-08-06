@@ -377,6 +377,22 @@ def adapters():
                 np.array([lv]), axis=0)
 
         out.append(("mapie get_quantile", mapie_q))
+
+        def mapie_q_unbounded(s, lv):
+            """The same site on the path a caller opts into.
+
+            `regression.py:1714` makes the calibration-size guard conditional on
+            `allow_infinite_bounds`, a documented public keyword, and the flag
+            arrives here as `unbounded`. A caller sets it to be given +inf where
+            no finite bound is valid, so branch (c) is what it asks for. This row
+            is what it gets.
+            """
+            return AbsoluteConformityScore().get_quantile(
+                np.asarray(s, dtype=float)[..., np.newaxis],
+                np.array([lv]), axis=0, unbounded=True)
+
+        out.append(("mapie get_quantile [allow_infinite_bounds=True]",
+                    mapie_q_unbounded))
     except Exception as exc:
         skipped.append(("mapie get_quantile", type(exc).__name__))
 

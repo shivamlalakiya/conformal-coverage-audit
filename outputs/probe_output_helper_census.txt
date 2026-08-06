@@ -13,7 +13,7 @@ library               site                                                 br   
 mapie 1.4.1           BaseConformityScore.get_quantile                     b        yes  yes  OK
 mapie 1.4.1           _compute_quantiles                                   a        -    yes  OK
 mapie 1.4.1           LACConformityScore.get_conformity_score_quantiles [p a        -    yes  OK
-mapie 1.4.1           LACConformityScore.get_conformity_score_quantiles [c count    -    yes  OK
+mapie 1.4.1           LACConformityScore.get_prediction_sets [cv/crossval] count    -    yes  OK
 mapie 1.4.1           BaseRegressionScore._beta_optimize                   b        -    yes  OK
 mapie 1.4.1           _MapieQuantileRegressor.predict                      a        -    yes  OK
 mapie 1.4.1           _check_alpha_and_n_samples                           a        -    -    OK
@@ -60,9 +60,9 @@ neuralforecast 3.2.1  add_conformal_error_intervals                        d    
   mapie 1.4.1  LACConformityScore.get_conformity_score_quantiles [prefit/mean]
       mapie/conformity_scores/sets/lac.py:156
       rule: delegates to _compute_quantiles, so it inherits branch (a): the corrected level is unclipped and np.quantile raises above 1. CLASSIFIED BY RUNNING in conformance_suite.py, which sees it raise at n=8
-  mapie 1.4.1  LACConformityScore.get_conformity_score_quantiles [cv/crossval]
-      mapie/conformity_scores/sets/lac.py:158
-      rule: the OTHER rule in the same method, reached only when cv is not 'prefit' AND agg_scores is not 'mean'. Returns the raw COUNT (n+1)(1-alpha), not a threshold on the score scale -- at n=8 it returns 8.1, above every score. No branch letter applies; conformance_suite.py labels it `count`
+  mapie 1.4.1  LACConformityScore.get_prediction_sets [cv/crossval]
+      mapie/conformity_scores/sets/lac.py:214
+      rule: the crossval branch compares an INCLUSION COUNT against alpha*(n-1), a count-scale threshold carrying no (n+1) correction and not the (n+1)(1-alpha) computed at line 158. That line's value is exposed as the public `quantiles_` attribute and never read here -- scaling it by 1000 leaves the sets identical. No branch letter applies; conformance_suite.py labels the count-returning helper `count`
   mapie 1.4.1  BaseRegressionScore._beta_optimize
       mapie/conformity_scores/regression.py:211
       rule: beta grid alpha/(n+1)..alpha, then nanquantile(upper, 1-alpha+betas, 'higher') and nanquantile(lower, betas, 'lower'). It returns a BETA, not a threshold: it selects the level get_quantile then resolves, so it is one step removed. Composed with get_quantile and run, the pair is branch (b) -- corrected level, clamped at the boundary. Reached via predict_interval(minimize_interval_width=True)

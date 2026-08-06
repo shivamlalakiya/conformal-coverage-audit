@@ -56,24 +56,25 @@ two-sided/raw/direct              ('X', 20, 21, 38)                 2   yes
         best 6 of 11 classes, worst 3, median 5
 
 library         fixture               value  in range?  power  of   verdict
-sktime 1.1.0    initial_window           15        yes      4  11   partial: 2 classes short of the best size
-                sktime/forecasting/tests/test_conformal.py:104
+sktime 1.1.0    initial_window           15        n/a    --- ---   not a calibration size: initial TRAINING window, so n_cal is (length - this) and the test does not fix it
 mapie 1.4.1     n (guard test)           30        yes      4  11   partial: 2 classes short of the best size
                 mapie/tests/test_utils.py:718
 mapie 1.4.1     n (guard test)           10        yes      3  11   BLIND: worst possible power
                 mapie/tests/test_utils.py:733
 
-    3 of 3 extracted fixtures sit at a calibration size
+    2 of 2 extracted fixtures sit at a calibration size
     with less than maximal discriminating power.
 
-    LIMIT, stated plainly. Only two of the ten audited packages ship their
-    tests in the wheel, so this census covers two libraries and a handful of
-    fixtures, not the ten. pytest is deliberately not installed in the
-    pinned environments -- adding it would perturb the versions the deposit
-    exists to fix -- so the suites are not executed and the fixture VALUES
-    are read. A census over two libraries is still the difference between
-    the manuscript's anecdote and a measurement, and it is not more than
-    that.
+    test sources located: 2 libraries; libraries contributing a scorable calibration size: 1
+
+    LIMIT, stated plainly. The two counts above differ, and the difference is
+    the point: a wheel that ships tests does not necessarily ship a fixture
+    that names a calibration size. pytest is deliberately not installed in
+    the pinned environments -- adding it would perturb the versions the
+    deposit exists to fix -- so the suites are not executed and the fixture
+    VALUES are read. This is a census over one library's scorable fixtures,
+    which is more than the manuscript's earlier anecdote and much less than
+    the ten packages audited elsewhere.
 
 ========================================================================================================
 SUMMARY
@@ -81,6 +82,6 @@ SUMMARY
   The certificate is usable: 4 sizes, a classifier that
   round-trips every candidate rule and reports non-matches as non-matches,
   and a regime reporter that needs no data. Of the fixtures we could extract
-  from shipped test sources, 3 of 3 sit at a size that
+  from shipped test sources, 2 of 2 sit at a size that
   cannot separate all the classes -- so the manuscript's claim about fixture
   choice is measured on two libraries rather than asserted from one.
