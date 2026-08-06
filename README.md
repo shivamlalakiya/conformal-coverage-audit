@@ -3,11 +3,24 @@
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21799203-1682D4)](https://doi.org/10.5281/zenodo.21799203)
 
 Archived on Zenodo. **Cite `10.5281/zenodo.21799203`** — the all-versions DOI, which always resolves to
-the latest release. To pin an exact reproduction, cite the version DOI instead
-(`10.5281/zenodo.21814982` is **v1.2.0**, the current release — the whole-archive
-robustness arm, an exact feasibility floor and the `conformal_coverage` package;
-`10.5281/zenodo.21811491` is v1.1.0; `10.5281/zenodo.21799204` is v1.0.0, which predates
-every real-data arm).
+the latest release.
+
+To pin an exact reproduction, cite a version DOI. Resolve it by **which tree it
+archives**, not by the version string Zenodo shows: `.zenodo.json`'s version field
+was bumped after tagging rather than in the tagged commit, so two records carry a
+label one release behind their contents. The labels are permanent per record; this
+table is the mapping, each row checked against the Zenodo API.
+
+| Version DOI | Zenodo label | Archives |
+|---|---|---|
+| `10.5281/zenodo.21799204` | v1.0.0 | tree `v1.0.0`, predating every real-data arm |
+| `10.5281/zenodo.21811491` | v1.1.0 | tree `v1.1.0` |
+| `10.5281/zenodo.21814982` | v1.1.0 | tree **`v1.2.0`** — whole-archive robustness arm, exact feasibility floor, the `conformal_coverage` package |
+| `10.5281/zenodo.21816837` | v1.2.0 | tree **`v1.3.0`** — probes print the ratios the write-up quotes |
+
+`v1.3.1` and later are labelled correctly; `paperlib/check_release_version.py` in the
+write-up repository fails a release whose `.zenodo.json` and `CITATION.cff` disagree
+with the tag.
 
 Measurement harnesses for auditing how Python conformal-prediction implementations resolve the conformal
 quantile at finite sample sizes.

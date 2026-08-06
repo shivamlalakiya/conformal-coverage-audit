@@ -22,16 +22,23 @@ identifiers:
   - type: doi
     value: 10.5281/zenodo.21811491
     description: "Version v1.1.0"
+  # Resolved against the Zenodo API, not copied forward. The next two records are
+  # each labelled one release behind the tree they archive, because .zenodo.json's
+  # version field was bumped after tagging rather than in the tagged commit. The
+  # label is permanent per record; what each ARCHIVES is the reliable field.
   - type: doi
     value: 10.5281/zenodo.21814982
-    description: "Version v1.2.0"
+    description: "Archives tree v1.2.0 (record labelled v1.1.0)"
+  - type: doi
+    value: 10.5281/zenodo.21816837
+    description: "Archives tree v1.3.0 (record labelled v1.2.0)"
 # verified against the live remote
 repository-code: "https://github.com/shivamlalakiya/conformal-coverage-audit"
 # This is what GitHub's cite widget and the indexers read. Left at v1.1.0 it sent a
 # reviewer to the snapshot whose DISCLOSURE.md carries one row and an open TODO list,
 # and the write-up's disclosure claim was judged against that. Bump it in the commit
 # that gets tagged, not after -- a release naming the previous version is the same bug.
-version: v1.3.0
+version: v1.3.1
 date-released: "2026-08-05"
 abstract: >-
   Measurement harnesses used to audit how Python conformal-prediction
