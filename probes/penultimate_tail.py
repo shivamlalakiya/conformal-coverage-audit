@@ -1,0 +1,340 @@
+#!/usr/bin/env python3
+"""The tail law off the exact-GPD hypothesis: what the sample actually sees.
+
+The gap this closes
+-------------------
+The tail law is proved for F EXACTLY generalised Pareto above a fixed threshold.
+That is the strong hypothesis in the companion paper, and the honest treatment so
+far has been to measure the discrepancy by fitting an effective shape to the
+observed pi -- reporting that the normal fits a NEGATIVE shape and the lognormal a
+POSITIVE one, both shrinking toward zero, as an observation with no account behind
+it. A referee in extreme-value statistics reads that and says: the penultimate
+approximation literature exists.
+
+The claim this probe tests
+--------------------------
+Write the first-order rate from the tail law,
+
+    pi = gamma + gamma(1-gamma)(1 + xi) / i + O(1/i^2).
+
+Differentiating the GPD integrand in xi and integrating against the Beta(i,1)
+spacing law gives
+
+    d(pi)/d(xi) = gamma(1-gamma) / i + O(1/i^2),
+
+which is exactly the xi-derivative of the rate above -- and, to leading order, does
+NOT depend on xi. So a first-order perturbation of the shape enters pi only through
+that one coefficient, and the whole second-order correction is absorbed by replacing
+xi with the PENULTIMATE shape the sample sees at its own depth:
+
+    pi = gamma + gamma(1-gamma)(1 + xi_n) / i + o(1/i),   xi_n = xi + A(n/i)/rho.
+
+That is the statement. It is not a new expansion of pi; it is the observation that
+the existing expansion is a function of the shape alone at first order, so the
+standard penultimate substitution carries it off the exact-GPD hypothesis for free.
+
+What "the shape the sample sees" means, exactly
+-----------------------------------------------
+The local shape of F above u is
+
+    xi_loc(u) = d/du [ (1 - F(u)) / f(u) ].
+
+For a GPD this is identically xi, because (1-F)/f = sigma + xi(u - mu). So
+xi_loc is the right object and it needs no fitting: it is a property of F.
+
+    normal      (1-Phi)/phi ~ 1/u        => xi_loc ~ -1/u^2  < 0
+    lognormal   (1-F)/f ~ x/log x        => xi_loc ~  1/log x > 0
+
+Both tend to 0, which is Gumbel-domain membership, and their SIGNS differ -- which
+is what the fitted-shape sweep reports and could not previously explain.
+
+Three checks, each able to fail
+-------------------------------
+  (1) d(pi)/d(xi) matches gamma(1-gamma)/i by numerical differentiation of exact
+      quadrature, and the agreement improves with i.
+  (2) xi_loc is identically xi for a GPD, to machine precision -- otherwise the
+      definition is not the right one.
+  (3) For the normal and the lognormal, xi_loc at the depth the sweep uses has the
+      sign the fitted effective shape has, and shrinks toward zero with n.
+
+    python probes/penultimate_tail.py
+"""
+
+import math
+import os
+import sys
+
+import numpy as np
+from scipy import integrate, optimize, stats
+
+OUT = "outputs/probe_output_penultimate_tail.txt"
+
+
+# ---------------------------------------------------------------------------
+# pi under an exactly-GPD tail, by quadrature rather than by simulation
+# ---------------------------------------------------------------------------
+def pi_gpd(xi, i, gamma):
+    """pi = (i+1) E[1 - (1 + gamma(s^-xi - 1))^(-1/xi)], s ~ Beta(i,1).
+
+    Integrated in t = -log s rather than in s. Under that substitution
+    s ~ Beta(i,1) becomes t ~ Exp(i), because the Beta(i,1) density i*s^(i-1)
+    times |ds/dt| = e^-t gives i*e^(-it). That matters numerically and not just
+    aesthetically: in s the integrand concentrates within O(1/i) of the endpoint
+    s = 1, so at i = 1000 an adaptive rule on [0, 1] misses the mass and the
+    derivative computed from it came out four times too large. In t the mass sits
+    on a scale of 1/i away from zero and the rule finds it.
+    """
+    def f(t):
+        if abs(xi) < 1e-13:
+            inner = math.exp(-gamma * t)           # the xi -> 0 limit, s^gamma
+        else:
+            inner = (1 + gamma * (math.expm1(xi * t))) ** (-1 / xi)
+        return (1 - inner) * i * math.exp(-i * t)
+    # split at a few multiples of the Exp(i) scale so the rule cannot step over it
+    hi = 60.0 / i
+    v1, _ = integrate.quad(f, 0.0, hi, limit=400)
+    v2, _ = integrate.quad(f, hi, np.inf, limit=200)
+    return (i + 1) * (v1 + v2)
+
+
+def dpi_dxi(xi, i, gamma, h=1e-4):
+    return (pi_gpd(xi + h, i, gamma) - pi_gpd(xi - h, i, gamma)) / (2 * h)
+
+
+# ---------------------------------------------------------------------------
+# the local (penultimate) shape of a distribution above a threshold
+# ---------------------------------------------------------------------------
+def local_shape(dist, u, h=None):
+    """xi_loc(u) = d/du [ (1 - F(u)) / f(u) ], by central difference.
+
+    Identically xi for a GPD, which check (2) asserts. No fitting, no sample: this
+    is a property of F evaluated at u.
+    """
+    h = h or max(1e-4, abs(u) * 1e-4)
+
+    def m(x):
+        sf = dist.sf(x)
+        pdf = dist.pdf(x)
+        if pdf <= 0:
+            return np.nan
+        return sf / pdf
+    return (m(u + h) - m(u - h)) / (2 * h)
+
+
+def depth_threshold(dist, n, i):
+    """The value at the top of a depth-i gap: the (1 - i/n) quantile.
+
+    A gap at depth i sits at tail probability about i/n, so the threshold whose
+    penultimate shape the sample sees at that depth is the (1 - i/n) quantile.
+    """
+    return float(dist.isf(i / n))
+
+
+# The (n, i) cells and fitted effective shapes the gpd_tail_law sweep reports. These
+# are PARSED from that probe's committed output rather than typed here, so the
+# comparison cannot drift from the sweep it is testing.
+def fitted_shapes():
+    import re
+    path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                        "outputs", "probe_output_gpd_tail_law.txt")
+    out = {}
+    for ln in open(path):
+        m = re.match(r"^(normal|lognormal)\s+(\d+)\s+(\d+)\s+[\d.]+\s+[\d.]+"
+                     r"\s+[\d.]+\s+(-?[\d.]+)", ln)
+        if m:
+            out[(m.group(1), int(m.group(2)), int(m.group(3)))] = float(m.group(4))
+    assert out, "no fitted effective shapes found in probe_output_gpd_tail_law.txt"
+    return out
+
+
+def self_check():
+    # ---- (2) the local shape of a GPD is its shape, exactly ---------------
+    for xi in (0.4, 0.15, -0.3):
+        d = stats.genpareto(c=xi, loc=0.0, scale=1.0)
+        # A GPD with xi < 0 has bounded support, ending at -scale/xi. Testing at a
+        # fixed u put the probe outside it and read nan, which is the right answer
+        # to a wrong question -- the test points now scale with the support.
+        top = (-1.0 / xi) if xi < 0 else None
+        us = ([0.2 * top, 0.5 * top, 0.8 * top] if top else [0.5, 2.0, 5.0])
+        for u in us:
+            got = local_shape(d, u)
+            assert not math.isnan(got), (xi, u, "nan -- u outside the support?")
+            assert abs(got - xi) < 1e-4, (xi, u, got)
+    # exponential is the xi = 0 member and must read 0
+    d = stats.expon()
+    for u in (1.0, 3.0, 6.0):
+        assert abs(local_shape(d, u)) < 1e-4, (u, local_shape(d, u))
+
+    # ---- (1) the derivative claim, improving with depth -------------------
+    ratios = []
+    for i in (10, 40, 200):
+        for gamma in (0.3, 0.5, 0.9):
+            for xi in (0.0, 0.25, -0.5):
+                pred = gamma * (1 - gamma) / i
+                ratios.append((i, dpi_dxi(xi, i, gamma) / pred))
+    # monotone improvement in i, on the mean absolute departure from 1
+    err = {}
+    for i, r in ratios:
+        err.setdefault(i, []).append(abs(r - 1))
+    means = [np.mean(err[i]) for i in (10, 40, 200)]
+    assert means[0] > means[1] > means[2], means
+    assert means[-1] < 0.06, means
+    # and the derivative is nearly xi-free at depth, which is what lets the
+    # penultimate substitution work at all
+    for i in (40, 200):
+        vals = [dpi_dxi(x, i, 0.5) for x in (-0.5, 0.0, 0.25)]
+        assert (max(vals) - min(vals)) / np.mean(vals) < 0.05, (i, vals)
+
+    # ---- (4) the local shape predicts the FITTED effective shape ----------
+    # The decisive check. If the penultimate substitution is the right account of
+    # the departure from exact GPD, then the local shape at the sweep's own (n, i)
+    # must agree with the shape that sweep FITTED to its measured pi -- and it must
+    # do so without any sample, because xi_loc is a property of F alone.
+    dd = {"normal": stats.norm(), "lognormal": stats.lognorm(s=1.0)}
+    worst = 0.0
+    for (name, n, i), fit in fitted_shapes().items():
+        xl = local_shape(dd[name], depth_threshold(dd[name], n, i))
+        assert np.sign(xl) == np.sign(fit), (name, n, i, xl, fit)
+        worst = max(worst, abs(xl - fit))
+    assert worst < 0.02, f"local shape disagrees with the fitted shape by {worst:.4f}"
+
+    # ---- (3) the predicted signs ------------------------------------------
+    n = 2000
+    for name, dist, want in (("normal", stats.norm(), -1),
+                             ("lognormal", stats.lognorm(s=1.0), +1)):
+        xl = local_shape(dist, depth_threshold(dist, n, 5))
+        assert np.sign(xl) == want, (name, xl)
+
+
+self_check()
+
+
+def main():
+    lines = []
+
+    def say(s=""):
+        print(s, flush=True)
+        lines.append(s)
+
+    say("=" * 100)
+    say("THE TAIL LAW OFF THE EXACT-GPD HYPOTHESIS")
+    say("=" * 100)
+    say("self_check() passed at import: the local shape of a GPD is its own shape to")
+    say("1e-4; d(pi)/d(xi) approaches gamma(1-gamma)/i and the approach is monotone")
+    say("in depth; and the predicted signs hold for the normal and the lognormal.")
+    say("")
+    say("The claim. The first-order rate is pi = gamma + gamma(1-gamma)(1+xi)/i, and")
+    say("its xi-derivative is gamma(1-gamma)/i, which to leading order does not")
+    say("depend on xi. A first-order shape perturbation therefore enters pi through")
+    say("that single coefficient, so replacing xi by the shape the sample sees at its")
+    say("own depth carries the law off the exactly-GPD hypothesis:")
+    say("")
+    say("    pi = gamma + gamma(1-gamma)(1 + xi_n)/i + o(1/i),   xi_n = xi + A(n/i)/rho")
+    say("")
+    say("(1) d(pi)/d(xi) against gamma(1-gamma)/i, by quadrature")
+    say(f"{'i':>5} {'gamma':>7} {'xi':>7} {'numeric':>12} {'predicted':>12} {'ratio':>8}")
+    say("-" * 100)
+    worst = 0.0
+    for i in (10, 40, 200, 1000):
+        for gamma in (0.3, 0.5, 0.9):
+            for xi in (0.0, 0.25, -0.5):
+                num = dpi_dxi(xi, i, gamma)
+                pred = gamma * (1 - gamma) / i
+                say(f"{i:>5} {gamma:>7.2f} {xi:>7.2f} {num:>12.6f} {pred:>12.6f} "
+                    f"{num / pred:>8.4f}")
+                if i >= 200:
+                    worst = max(worst, abs(num / pred - 1))
+        say("")
+    say(f"worst departure from 1 at i >= 200: {worst:.4f}")
+    say("")
+
+    say("(2) the local shape identifies a GPD's own shape, so it is the right object")
+    say(f"{'xi':>7} {'u':>6} {'xi_loc':>10} {'error':>10}")
+    say("-" * 100)
+    for xi in (0.4, 0.15, 0.0, -0.3):
+        d = stats.genpareto(c=xi, loc=0.0, scale=1.0)
+        top = (-1.0 / xi) if xi < 0 else None
+        us = ([0.2 * top, 0.5 * top, 0.8 * top] if top else [0.5, 2.0, 5.0])
+        for u in us:
+            got = local_shape(d, u)
+            say(f"{xi:>7.2f} {u:>6.2f} {got:>10.6f} {abs(got - xi):>10.2e}")
+    say("")
+
+    say("(3) the shape the sample sees, and the sign the sweep reports")
+    say("A depth-i gap sits at tail probability about i/n, so the threshold is the")
+    say("(1 - i/n) quantile. xi_loc there is what the penultimate substitution uses.")
+    say("")
+    say(f"{'distribution':<14} {'asymptotic xi':>14} {'n':>7} {'i':>4} "
+        f"{'threshold':>11} {'xi_loc':>10} {'sign':>6}")
+    say("-" * 100)
+    cases = (("normal", stats.norm(), 0.0),
+             ("lognormal", stats.lognorm(s=1.0), 0.0),
+             ("exponential", stats.expon(), 0.0),
+             ("pareto(3)", stats.pareto(b=3.0), 1 / 3))
+    trend = {}
+    for name, dist, xi_inf in cases:
+        for n in (200, 2000, 20000):
+            i = 5
+            u = depth_threshold(dist, n, i)
+            xl = local_shape(dist, u)
+            trend.setdefault(name, []).append(xl)
+            say(f"{name:<14} {xi_inf:>14.4f} {n:>7} {i:>4} {u:>11.4f} "
+                f"{xl:>10.5f} {'+' if xl > 0 else '-' if xl < 0 else '0':>6}")
+        say("")
+
+    say("(4) THE DECISIVE CHECK: does the local shape predict the FITTED shape?")
+    say("The gpd_tail_law sweep fits an effective shape to its measured pi and")
+    say("reports it. If the penultimate substitution is the right account, xi_loc at")
+    say("the same (n, i) must agree with it -- and xi_loc uses no sample at all.")
+    say("")
+    say(f"{'distribution':<12} {'n':>6} {'i':>4} {'threshold':>10} {'xi_loc':>9} "
+        f"{'fitted':>9} {'difference':>11}")
+    say("-" * 100)
+    dd = {"normal": stats.norm(), "lognormal": stats.lognorm(s=1.0)}
+    worst4, cells4 = 0.0, 0
+    for (name, n, i), fit in sorted(fitted_shapes().items()):
+        u = depth_threshold(dd[name], n, i)
+        xl = local_shape(dd[name], u)
+        worst4 = max(worst4, abs(xl - fit))
+        cells4 += 1
+        say(f"{name:<12} {n:>6} {i:>4} {u:>10.4f} {xl:>9.4f} {fit:>9.4f} "
+            f"{xl - fit:>+11.4f}")
+    say("")
+    say(f"worst disagreement over {cells4} cells: {worst4:.4f}")
+    say("So the sign AND the magnitude of the fitted shape are predicted, for both")
+    say("distributions and every size, by a quantity computed from F alone. What was")
+    say("an observation with no account behind it is now a prediction.")
+    say("")
+    say("Shrinkage toward the asymptotic shape, which is what Gumbel-domain")
+    say("membership requires and what the fitted-shape sweep observes:")
+    for name, dist, xi_inf in cases:
+        vals = trend[name]
+        gaps = [abs(v - xi_inf) for v in vals]
+        shrinking = all(gaps[k] > gaps[k + 1] for k in range(len(gaps) - 1))
+        say(f"    {name:<14} |xi_loc - xi| : "
+            + " > ".join(f"{g:.5f}" for g in gaps)
+            + ("   shrinking" if shrinking
+               else "   exactly xi at every n (F IS GPD: nothing to shrink)"
+               if all(g < 1e-9 for g in gaps) else "   NOT monotone"))
+    say("")
+    say("=" * 100)
+    say("What this buys, and what it does not. The exactly-GPD hypothesis is no")
+    say("longer the boundary of the result: the rate holds off it with xi read as the")
+    say("shape at the sample's own depth, to first order in the second-order")
+    say("auxiliary. The signs the fitted-shape sweep reports -- negative for the")
+    say("normal, positive for the lognormal, both shrinking -- stop being an")
+    say("observation and become a prediction that xi_loc makes without reference to")
+    say("any sample. What is NOT claimed is a bound on the o(1/i) remainder in terms")
+    say("of quantities a practitioner can evaluate; a bound in unmeasurable terms")
+    say("would be decoration, and the honest substitute is the measured departure")
+    say("above.")
+
+    path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                        OUT)
+    with open(path, "w") as fh:
+        fh.write("\n".join(lines) + "\n")
+    print(f"\nwritten -> {path}")
+
+
+if __name__ == "__main__":
+    main()

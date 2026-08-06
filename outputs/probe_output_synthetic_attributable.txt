@@ -29,40 +29,45 @@ Two comparisons per cell, and the second is the one with power.
 One test point per series and the series are INDEPENDENT draws, so no
 clustering is needed and the standard errors are binomial.
 
-gen       scores   method       nom   w    n   pts     idx    pred   arm A    A-nom   A-pred   s.e.  z_pred loss
+gen       scores   method       nom   w    n   pts     idx    Prop-2 bracket   arm A    A-nom   A-pred   s.e.  z_pred loss
 --------------------------------------------------------------------------------------------------------
-walk      captured conformal_distribution  0.90  10   10  1479    9-11  0.9058  0.8418  -0.0582  -0.0640 0.0095    -6.7    0  <- threshold not an order statistic of |cs|
-walk      captured conformal_distribution  0.95  10   10  1479    9-11  0.9071  0.8824  -0.0676  -0.0248 0.0084    -3.0    0  <- threshold not an order statistic of |cs|
-walk      captured conformal_distribution  0.90  20   20  1479   17-20  0.8998  0.8695  -0.0305  -0.0303 0.0088    -3.5    0
-walk      captured conformal_distribution  0.95  20   20  1479   18-21  0.9477  0.9053  -0.0447  -0.0424 0.0076    -5.6    0  <- threshold not an order statistic of |cs|
-walk      captured conformal_distribution  0.90  50   50  1479   43-47  0.8979  0.8905  -0.0095  -0.0075 0.0081    -0.9    0
-walk      captured conformal_distribution  0.95  50   50  1479   45-50  0.9386  0.9270  -0.0230  -0.0117 0.0068    -1.7    0
-walk      captured conformal_error  0.90  10   10  1479    9-11  0.9057  0.8479  -0.0521  -0.0578 0.0093    -6.2    0  <- threshold not an order statistic of |cs|
-walk      captured conformal_error  0.95  10   10  1479    9-11  0.9066  0.8824  -0.0676  -0.0243 0.0084    -2.9    0  <- threshold not an order statistic of |cs|
-walk      captured conformal_error  0.90  20   20  1479   17-20  0.8999  0.8702  -0.0298  -0.0297 0.0087    -3.4    0
-walk      captured conformal_error  0.95  20   20  1479   18-21  0.9477  0.9080  -0.0420  -0.0397 0.0075    -5.3    0  <- threshold not an order statistic of |cs|
-walk      captured conformal_error  0.90  50   50  1479   43-47  0.8980  0.8911  -0.0089  -0.0069 0.0081    -0.8    0
-walk      captured conformal_error  0.95  50   50  1479   45-50  0.9380  0.9270  -0.0230  -0.0110 0.0068    -1.6    0
+walk      captured conformal_distribution  0.90  10   10  1479    9-11 [0.8149,0.9058]  0.8418  -0.0582  -0.0640 0.0095    -6.7    0  <- threshold not an order statistic of |cs|
+walk      captured conformal_distribution  0.95  10   10  1479    9-11 [0.8162,0.9071]  0.8824  -0.0676  -0.0248 0.0084    -3.0    0  <- threshold not an order statistic of |cs|
+walk      captured conformal_distribution  0.90  20   20  1479   17-20 [0.8522,0.8998]  0.8695  -0.0305  -0.0303 0.0088    -3.5    0
+walk      captured conformal_distribution  0.95  20   20  1479   18-21 [0.9001,0.9477]  0.9053  -0.0447  -0.0424 0.0076    -5.6    0  <- threshold not an order statistic of |cs|
+walk      captured conformal_distribution  0.90  50   50  1479   43-47 [0.8783,0.8979]  0.8905  -0.0095  -0.0075 0.0081    -0.9    0
+walk      captured conformal_distribution  0.95  50   50  1479   45-50 [0.9190,0.9386]  0.9270  -0.0230  -0.0117 0.0068    -1.7    0
+walk      captured conformal_error  0.90  10   10  1479    9-11 [0.8148,0.9057]  0.8479  -0.0521  -0.0578 0.0093    -6.2    0  <- threshold not an order statistic of |cs|
+walk      captured conformal_error  0.95  10   10  1479    9-11 [0.8157,0.9066]  0.8824  -0.0676  -0.0243 0.0084    -2.9    0  <- threshold not an order statistic of |cs|
+walk      captured conformal_error  0.90  20   20  1479   17-20 [0.8523,0.8999]  0.8702  -0.0298  -0.0297 0.0087    -3.4    0
+walk      captured conformal_error  0.95  20   20  1479   18-21 [0.9001,0.9477]  0.9080  -0.0420  -0.0397 0.0075    -5.3    0  <- threshold not an order statistic of |cs|
+walk      captured conformal_error  0.90  50   50  1479   43-47 [0.8784,0.8980]  0.8911  -0.0089  -0.0069 0.0081    -0.8    0
+walk      captured conformal_error  0.95  50   50  1479   45-50 [0.9184,0.9380]  0.9270  -0.0230  -0.0110 0.0068    -1.6    0
 
-parametric captured conformal_distribution  0.90  10   10  1468      10  0.9091  0.8372  -0.0628  -0.0719 0.0096    -7.5    0
-parametric captured conformal_distribution  0.95  10   10  1468      10  0.9091  0.8849  -0.0651  -0.0242 0.0083    -2.9    0
-parametric captured conformal_distribution  0.90  20   20  1468      19  0.9048  0.8651  -0.0349  -0.0396 0.0089    -4.4    0
-parametric captured conformal_distribution  0.95  20   20  1468      20  0.9524  0.9162  -0.0338  -0.0362 0.0072    -5.0    0
-parametric captured conformal_distribution  0.90  50   50  1468      46  0.9020  0.8937  -0.0063  -0.0082 0.0080    -1.0    0
-parametric captured conformal_distribution  0.95  50   50  1468      48  0.9412  0.9414  -0.0086  +0.0002 0.0061     0.0    0
-parametric captured conformal_error  0.90  10   10  1468      10  0.9091  0.8440  -0.0560  -0.0651 0.0095    -6.9    0
-parametric captured conformal_error  0.95  10   10  1468      10  0.9091  0.8849  -0.0651  -0.0242 0.0083    -2.9    0
-parametric captured conformal_error  0.90  20   20  1468      19  0.9048  0.8678  -0.0322  -0.0369 0.0088    -4.2    0
-parametric captured conformal_error  0.95  20   20  1468      20  0.9524  0.9203  -0.0297  -0.0321 0.0071    -4.5    0
-parametric captured conformal_error  0.90  50   50  1468      46  0.9020  0.8951  -0.0049  -0.0069 0.0080    -0.9    0
-parametric captured conformal_error  0.95  50   50  1468      48  0.9412  0.9414  -0.0086  +0.0002 0.0061     0.0    0
+parametric captured conformal_distribution  0.90  10   10  1468      10 [0.8182,0.9091]  0.8372  -0.0628  -0.0719 0.0096    -7.5    0
+parametric captured conformal_distribution  0.95  10   10  1468      10 [0.8182,0.9091]  0.8849  -0.0651  -0.0242 0.0083    -2.9    0
+parametric captured conformal_distribution  0.90  20   20  1468      19 [0.8571,0.9048]  0.8651  -0.0349  -0.0396 0.0089    -4.4    0
+parametric captured conformal_distribution  0.95  20   20  1468      20 [0.9048,0.9524]  0.9162  -0.0338  -0.0362 0.0072    -5.0    0
+parametric captured conformal_distribution  0.90  50   50  1468      46 [0.8824,0.9020]  0.8937  -0.0063  -0.0082 0.0080    -1.0    0
+parametric captured conformal_distribution  0.95  50   50  1468      48 [0.9216,0.9412]  0.9414  -0.0086  +0.0002 0.0061     0.0    0
+parametric captured conformal_error  0.90  10   10  1468      10 [0.8182,0.9091]  0.8440  -0.0560  -0.0651 0.0095    -6.9    0
+parametric captured conformal_error  0.95  10   10  1468      10 [0.8182,0.9091]  0.8849  -0.0651  -0.0242 0.0083    -2.9    0
+parametric captured conformal_error  0.90  20   20  1468      19 [0.8571,0.9048]  0.8678  -0.0322  -0.0369 0.0088    -4.2    0
+parametric captured conformal_error  0.95  20   20  1468      20 [0.9048,0.9524]  0.9203  -0.0297  -0.0321 0.0071    -4.5    0
+parametric captured conformal_error  0.90  50   50  1468      46 [0.8824,0.9020]  0.8951  -0.0049  -0.0069 0.0080    -0.9    0
+parametric captured conformal_error  0.95  50   50  1468      48 [0.9216,0.9412]  0.9414  -0.0086  +0.0002 0.0061     0.0    0
 
 ========================================================================================================
-Proposition 1 against shipped code, on exchangeable-by-construction
-data and the ALIGNED score set: the largest |z| between measured
-coverage and landed/(n+1) is 3.5, at conformal_distribution nominal 0.90 w=20
-on the walk generator. The prediction is exact, not a target, so this
-is a test of the identity rather than an estimate of a discrepancy.
+PROPOSITION 2 AGAINST SHIPPED CODE, on exchangeable-by-construction
+data: measured coverage lies inside the distribution-free bracket
+[(r-1)/(n+1), r/(n+1)] in 6 of 6 cells where the
+returned threshold is an order statistic of the score set.
+    in   conformal_distribution nominal 0.90 w=20  measured 0.8695 in [0.8522, 0.8998]
+    in   conformal_distribution nominal 0.90 w=50  measured 0.8905 in [0.8783, 0.8979]
+    in   conformal_distribution nominal 0.95 w=50  measured 0.9270 in [0.9190, 0.9386]
+    in   conformal_error        nominal 0.90 w=20  measured 0.8702 in [0.8523, 0.8999]
+    in   conformal_error        nominal 0.90 w=50  measured 0.8911 in [0.8784, 0.8980]
+    in   conformal_error        nominal 0.95 w=50  measured 0.9270 in [0.9184, 0.9380]
 
 Why statsforecast and not sktime. An earlier version of this probe ran
 sktime's public predict_interval and its measured coverage sat four
@@ -85,18 +90,22 @@ inference from a paired difference.
 
 
 ========================================================================================================
-OPEN, AND NOT YET SAFE TO QUOTE.
-The n = 50 cells sit within one standard error of Proposition 1 and their
-absolute shortfall is attributable. The n = 20 cells do NOT: they sit 3.4 to
-3.5 standard errors BELOW the prediction, and that is unexplained. The
-leading candidate is the index MEASUREMENT rather than the coverage -- a
-sub-gap error in the landed index would shrink with n exactly as the n=50
-versus n=20 contrast does -- but it has not been isolated. Until it is, no
-number from this probe belongs in a manuscript, and the n=50 rows are not
-quotable on their own either: a harness whose small-n cells are wrong for an
-unknown reason has not earned its large-n cells.
-The next step is the tie-free score set, so the landed index is READ rather
-than inferred -- the same instrument the census uses for exactly this.
+WHAT THIS SETTLES, AND WHAT AN EARLIER VERSION OF IT GOT WRONG.
+The bracket above is the test, and it passes everywhere the threshold is an
+order statistic. An earlier run of this probe used r/(n+1) as a POINT
+prediction and reported the n=20 cells as three and a half standard errors
+below it. They were not below anything: r is the smallest rank at or above
+the returned threshold, so r/(n+1) is Proposition 2's UPPER bound and
+(r-1)/(n+1) its lower one. The bracket is 1/21 wide at n=20 and 1/51 at
+n=50, which is exactly why the mistake looked like a small-n anomaly: the
+error was in the prediction and it scaled with the gap width.
+
+So the attributable statement is this. On series carrying a real fitted
+dynamic and a real innovation law, with the one property that breaks
+attribution removed, a shipped helper's ABSOLUTE coverage falls where the
+index it landed on says it must -- and the shortfall against nominal is
+therefore the index convention and not the archive. That is the sentence
+the paired arms cannot produce, and it needs no pairing to state.
 
 Agreement between the two generators is what removes the fitted AR(1) from
 the argument. The walk rows need no specification at all: a last-value

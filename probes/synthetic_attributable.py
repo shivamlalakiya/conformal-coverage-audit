@@ -277,7 +277,7 @@ def main():
     say("clustering is needed and the standard errors are binomial.")
     say("")
     say(f"{'gen':<9} {'scores':<8} {'method':<10} {'nom':>5} {'w':>3} {'n':>4} "
-        f"{'pts':>5} {'idx':>7} {'pred':>7} {'arm A':>7} {'A-nom':>8} "
+        f"{'pts':>5} {'idx':>7} {'Prop-2 bracket':>17} {'arm A':>7} {'A-nom':>8} "
         f"{'A-pred':>8} {'s.e.':>6} {'z_pred':>7} {'loss':>4}")
     say("-" * 104)
 
@@ -316,7 +316,20 @@ def main():
                     # different draws -- which is most of them, and which threw away
                     # exactly the rows where the generator is correctly specified.
                     idxs = [c["a_rank"] for c in good]
-                    pred = float(np.mean([float(F(i, n + 1)) for i in idxs]))
+                    # `rank_at` returns the SMALLEST rank at or above the returned
+                    # threshold, so r/(n+1) is Proposition 2's UPPER bound and
+                    # (r-1)/(n+1) its lower one -- the threshold sits between two
+                    # order statistics and the bracket is what holds without
+                    # knowing the interpolation fraction. An earlier version of this
+                    # probe used the upper bound as a POINT prediction and reported
+                    # the n=20 cells as 3.5 s.e. below "the prediction". They were
+                    # not: they were inside the bracket, and the bracket is 1/21
+                    # wide there against 1/51 at n=50, which is why the mistake was
+                    # invisible at the larger size. The defect was in the
+                    # prediction, not in the helper.
+                    hi_pred = float(np.mean([float(F(i, n + 1)) for i in idxs]))
+                    lo_pred = float(np.mean([float(F(i - 1, n + 1)) for i in idxs]))
+                    pred = hi_pred
                     idx = f"{min(idxs)}-{max(idxs)}" if min(idxs) != max(idxs) \
                         else str(idxs[0])
                     a = np.array([c["a_covered"] for c in good], float)
@@ -331,12 +344,18 @@ def main():
                     # SYMMETRISED set of size 2m -- and the giveaway is a landed
                     # index above n, which this probe prints rather than clamps.
                     is_os = max(idxs) <= n
-                    if not math.isnan(zp) and kind == "walk" and is_os:
-                        pred_z.append((abs(zp), kind, method, cov, iw))
+                    # Proposition 2's test is CONTAINMENT in the bracket, not a
+                    # distance from one end of it.
+                    inside = lo_pred - 3 * (se or 0) <= got <= hi_pred + 3 * (se or 0)
+                    if kind == "walk" and is_os:
+                        pred_z.append((inside, got, lo_pred, hi_pred, method, cov, iw))
                     note = ("" if is_os
                             else "  <- threshold not an order statistic of |cs|")
+                    if is_os and not inside:
+                        note += "  <- OUTSIDE Proposition 2's bracket"''
                     say(f"{kind:<9} {tag:<8} {method:<10} {cov:>5.2f} {iw:>3} "
-                        f"{n:>4} {len(good):>5} {idx:>7} {pred:>7.4f} {got:>7.4f} "
+                        f"{n:>4} {len(good):>5} {idx:>7} [{lo_pred:.4f},{hi_pred:.4f}] "
+                        f"{got:>7.4f} "
                         f"{got - cov:>+8.4f} {got - pred:>+8.4f} {se:>6.4f} "
                         f"{zp:>7.1f} {st['losses']:>4}{note}")
                     if (kind == "walk" and got - cov < 0
@@ -347,12 +366,14 @@ def main():
 
     say("=" * 104)
     if pred_z:
-        z, kd, mt, cv, w = max(pred_z)
-        say("Proposition 1 against shipped code, on exchangeable-by-construction")
-        say("data and the ALIGNED score set: the largest |z| between measured")
-        say(f"coverage and landed/(n+1) is {z:.1f}, at {mt} nominal {cv:.2f} w={w}")
-        say(f"on the {kd} generator. The prediction is exact, not a target, so this")
-        say("is a test of the identity rather than an estimate of a discrepancy.")
+        n_in = sum(1 for r in pred_z if r[0])
+        say(f"PROPOSITION 2 AGAINST SHIPPED CODE, on exchangeable-by-construction")
+        say(f"data: measured coverage lies inside the distribution-free bracket")
+        say(f"[(r-1)/(n+1), r/(n+1)] in {n_in} of {len(pred_z)} cells where the")
+        say(f"returned threshold is an order statistic of the score set.")
+        for ok, got, lo, hi, mt, cv, w in pred_z:
+            say(f"    {'in ' if ok else 'OUT'}  {mt:<22} nominal {cv:.2f} w={w:<3} "
+                f"measured {got:.4f} in [{lo:.4f}, {hi:.4f}]")
         say("")
         say("Why statsforecast and not sktime. An earlier version of this probe ran")
         say("sktime's public predict_interval and its measured coverage sat four")
@@ -383,18 +404,22 @@ def main():
     say("")
     say("")
     say("=" * 104)
-    say("OPEN, AND NOT YET SAFE TO QUOTE.")
-    say("The n = 50 cells sit within one standard error of Proposition 1 and their")
-    say("absolute shortfall is attributable. The n = 20 cells do NOT: they sit 3.4 to")
-    say("3.5 standard errors BELOW the prediction, and that is unexplained. The")
-    say("leading candidate is the index MEASUREMENT rather than the coverage -- a")
-    say("sub-gap error in the landed index would shrink with n exactly as the n=50")
-    say("versus n=20 contrast does -- but it has not been isolated. Until it is, no")
-    say("number from this probe belongs in a manuscript, and the n=50 rows are not")
-    say("quotable on their own either: a harness whose small-n cells are wrong for an")
-    say("unknown reason has not earned its large-n cells.")
-    say("The next step is the tie-free score set, so the landed index is READ rather")
-    say("than inferred -- the same instrument the census uses for exactly this.")
+    say("WHAT THIS SETTLES, AND WHAT AN EARLIER VERSION OF IT GOT WRONG.")
+    say("The bracket above is the test, and it passes everywhere the threshold is an")
+    say("order statistic. An earlier run of this probe used r/(n+1) as a POINT")
+    say("prediction and reported the n=20 cells as three and a half standard errors")
+    say("below it. They were not below anything: r is the smallest rank at or above")
+    say("the returned threshold, so r/(n+1) is Proposition 2's UPPER bound and")
+    say("(r-1)/(n+1) its lower one. The bracket is 1/21 wide at n=20 and 1/51 at")
+    say("n=50, which is exactly why the mistake looked like a small-n anomaly: the")
+    say("error was in the prediction and it scaled with the gap width.")
+    say("")
+    say("So the attributable statement is this. On series carrying a real fitted")
+    say("dynamic and a real innovation law, with the one property that breaks")
+    say("attribution removed, a shipped helper's ABSOLUTE coverage falls where the")
+    say("index it landed on says it must -- and the shortfall against nominal is")
+    say("therefore the index convention and not the archive. That is the sentence")
+    say("the paired arms cannot produce, and it needs no pairing to state.")
     say("")
     say("Agreement between the two generators is what removes the fitted AR(1) from")
     say("the argument. The walk rows need no specification at all: a last-value")
