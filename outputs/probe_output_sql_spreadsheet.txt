@@ -1,0 +1,302 @@
+====================================================================================================
+QUANTILE CONVENTIONS IN SQL ENGINES AND SPREADSHEETS
+====================================================================================================
+self_check() passed at import: the identifier names five of numpy's own
+conventions correctly, reports a rounding rule as a rounding rule rather
+than forcing it into an (alpha, beta) pair, and its delivery test agrees
+with the known answer for linear and for inverted_cdf on and off the
+residue class.
+
+Instrument: quantile the tie-free set 1..n, so a returned value IS the
+virtual index. (A, B) is fitted at INTERIOR levels, because every engine
+clips the index into [1, n] and an endpoint fit returns linear's
+coefficients whatever the convention.
+
+duckdb v1.5.5: 5 functions, in process
+excel: 3 functions, driven via AppleScript
+
+(1) which convention each function implements, identified at n=50
+function                                   convention                               A       B
+----------------------------------------------------------------------------------------------------
+duckdb quantile_cont                       linear (H&F 7)                      1.0000 49.0000
+duckdb quantile_disc                       not affine (a rounding rule)            --      --
+duckdb percentile_cont (SQL standard)      linear (H&F 7)                      1.0000 49.0000
+duckdb percentile_disc (SQL standard)      not affine (a rounding rule)            --      --
+duckdb median                              unmatched                          25.5000  0.0000
+excel PERCENTILE.INC                       linear (H&F 7)                      1.0000 49.0000
+excel PERCENTILE.EXC                       weibull (H&F 6)                     0.0000 51.0000
+excel PERCENTILE (legacy)                  linear (H&F 7)                      1.0000 49.0000
+
+(2) can the convention carry the requested guarantee?
+A threshold at virtual index h guarantees floor(h)/(n+1), so the test is
+floor(h) >= ceil((n+1)*level). 'yes' means the call is usable as a
+distribution-free bound at that n; 'no' means it is short.
+function                                    level     n         h  required  delivers
+----------------------------------------------------------------------------------------------------
+duckdb quantile_cont                         0.90     9    8.2000         9        no
+duckdb quantile_cont                         0.90    10    9.1000        10        no
+duckdb quantile_cont                         0.90    19   17.2000        18        no
+duckdb quantile_cont                         0.90    20   18.1000        19        no
+duckdb quantile_cont                         0.90    29   26.2000        27        no
+duckdb quantile_cont                         0.90    50   45.1000        46        no
+duckdb quantile_cont                         0.90    99   89.2000        90        no
+duckdb quantile_cont                         0.90   100   90.1000        91        no
+duckdb quantile_cont                         0.95     9    8.6000        10        no
+duckdb quantile_cont                         0.95    10    9.5500        11        no
+duckdb quantile_cont                         0.95    19   18.1000        19        no
+duckdb quantile_cont                         0.95    20   19.0500        20        no
+duckdb quantile_cont                         0.95    29   27.6000        29        no
+duckdb quantile_cont                         0.95    50   47.5500        49        no
+duckdb quantile_cont                         0.95    99   94.1000        95        no
+duckdb quantile_cont                         0.95   100   95.0500        96        no
+duckdb quantile_cont                         0.67     9    6.3333         7        no
+duckdb quantile_cont                         0.67    10    7.0000         8        no
+duckdb quantile_cont                         0.67    19   13.0000        14        no
+duckdb quantile_cont                         0.67    20   13.6667        14        no
+duckdb quantile_cont                         0.67    29   19.6667        20        no
+duckdb quantile_cont                         0.67    50   33.6667        34        no
+duckdb quantile_cont                         0.67    99   66.3333        67        no
+duckdb quantile_cont                         0.67   100   67.0000        68        no
+
+duckdb quantile_disc                         0.90     9    9.0000         9       yes
+duckdb quantile_disc                         0.90    10    9.0000        10        no
+duckdb quantile_disc                         0.90    19   18.0000        18       yes
+duckdb quantile_disc                         0.90    20   18.0000        19        no
+duckdb quantile_disc                         0.90    29   27.0000        27       yes
+duckdb quantile_disc                         0.90    50   45.0000        46        no
+duckdb quantile_disc                         0.90    99   90.0000        90       yes
+duckdb quantile_disc                         0.90   100   90.0000        91        no
+duckdb quantile_disc                         0.95     9    9.0000        10        no
+duckdb quantile_disc                         0.95    10   10.0000        11        no
+duckdb quantile_disc                         0.95    19   19.0000        19       yes
+duckdb quantile_disc                         0.95    20   19.0000        20        no
+duckdb quantile_disc                         0.95    29   28.0000        29        no
+duckdb quantile_disc                         0.95    50   48.0000        49        no
+duckdb quantile_disc                         0.95    99   95.0000        95       yes
+duckdb quantile_disc                         0.95   100   95.0000        96        no
+duckdb quantile_disc                         0.67     9    6.0000         7        no
+duckdb quantile_disc                         0.67    10    7.0000         8        no
+duckdb quantile_disc                         0.67    19   13.0000        14        no
+duckdb quantile_disc                         0.67    20   14.0000        14       yes
+duckdb quantile_disc                         0.67    29   20.0000        20       yes
+duckdb quantile_disc                         0.67    50   34.0000        34       yes
+duckdb quantile_disc                         0.67    99   66.0000        67        no
+duckdb quantile_disc                         0.67   100   67.0000        68        no
+
+duckdb percentile_cont (SQL standard)        0.90     9    8.2000         9        no
+duckdb percentile_cont (SQL standard)        0.90    10    9.1000        10        no
+duckdb percentile_cont (SQL standard)        0.90    19   17.2000        18        no
+duckdb percentile_cont (SQL standard)        0.90    20   18.1000        19        no
+duckdb percentile_cont (SQL standard)        0.90    29   26.2000        27        no
+duckdb percentile_cont (SQL standard)        0.90    50   45.1000        46        no
+duckdb percentile_cont (SQL standard)        0.90    99   89.2000        90        no
+duckdb percentile_cont (SQL standard)        0.90   100   90.1000        91        no
+duckdb percentile_cont (SQL standard)        0.95     9    8.6000        10        no
+duckdb percentile_cont (SQL standard)        0.95    10    9.5500        11        no
+duckdb percentile_cont (SQL standard)        0.95    19   18.1000        19        no
+duckdb percentile_cont (SQL standard)        0.95    20   19.0500        20        no
+duckdb percentile_cont (SQL standard)        0.95    29   27.6000        29        no
+duckdb percentile_cont (SQL standard)        0.95    50   47.5500        49        no
+duckdb percentile_cont (SQL standard)        0.95    99   94.1000        95        no
+duckdb percentile_cont (SQL standard)        0.95   100   95.0500        96        no
+duckdb percentile_cont (SQL standard)        0.67     9    6.3333         7        no
+duckdb percentile_cont (SQL standard)        0.67    10    7.0000         8        no
+duckdb percentile_cont (SQL standard)        0.67    19   13.0000        14        no
+duckdb percentile_cont (SQL standard)        0.67    20   13.6667        14        no
+duckdb percentile_cont (SQL standard)        0.67    29   19.6667        20        no
+duckdb percentile_cont (SQL standard)        0.67    50   33.6667        34        no
+duckdb percentile_cont (SQL standard)        0.67    99   66.3333        67        no
+duckdb percentile_cont (SQL standard)        0.67   100   67.0000        68        no
+
+duckdb percentile_disc (SQL standard)        0.90     9    9.0000         9       yes
+duckdb percentile_disc (SQL standard)        0.90    10    9.0000        10        no
+duckdb percentile_disc (SQL standard)        0.90    19   18.0000        18       yes
+duckdb percentile_disc (SQL standard)        0.90    20   18.0000        19        no
+duckdb percentile_disc (SQL standard)        0.90    29   27.0000        27       yes
+duckdb percentile_disc (SQL standard)        0.90    50   45.0000        46        no
+duckdb percentile_disc (SQL standard)        0.90    99   90.0000        90       yes
+duckdb percentile_disc (SQL standard)        0.90   100   90.0000        91        no
+duckdb percentile_disc (SQL standard)        0.95     9    9.0000        10        no
+duckdb percentile_disc (SQL standard)        0.95    10   10.0000        11        no
+duckdb percentile_disc (SQL standard)        0.95    19   19.0000        19       yes
+duckdb percentile_disc (SQL standard)        0.95    20   19.0000        20        no
+duckdb percentile_disc (SQL standard)        0.95    29   28.0000        29        no
+duckdb percentile_disc (SQL standard)        0.95    50   48.0000        49        no
+duckdb percentile_disc (SQL standard)        0.95    99   95.0000        95       yes
+duckdb percentile_disc (SQL standard)        0.95   100   95.0000        96        no
+duckdb percentile_disc (SQL standard)        0.67     9    6.0000         7        no
+duckdb percentile_disc (SQL standard)        0.67    10    7.0000         8        no
+duckdb percentile_disc (SQL standard)        0.67    19   13.0000        14        no
+duckdb percentile_disc (SQL standard)        0.67    20   14.0000        14       yes
+duckdb percentile_disc (SQL standard)        0.67    29   20.0000        20       yes
+duckdb percentile_disc (SQL standard)        0.67    50   34.0000        34       yes
+duckdb percentile_disc (SQL standard)        0.67    99   66.0000        67        no
+duckdb percentile_disc (SQL standard)        0.67   100   67.0000        68        no
+
+duckdb median                                0.90     9    5.0000         9        no
+duckdb median                                0.90    10    5.5000        10        no
+duckdb median                                0.90    19   10.0000        18        no
+duckdb median                                0.90    20   10.5000        19        no
+duckdb median                                0.90    29   15.0000        27        no
+duckdb median                                0.90    50   25.5000        46        no
+duckdb median                                0.90    99   50.0000        90        no
+duckdb median                                0.90   100   50.5000        91        no
+duckdb median                                0.95     9    5.0000        10        no
+duckdb median                                0.95    10    5.5000        11        no
+duckdb median                                0.95    19   10.0000        19        no
+duckdb median                                0.95    20   10.5000        20        no
+duckdb median                                0.95    29   15.0000        29        no
+duckdb median                                0.95    50   25.5000        49        no
+duckdb median                                0.95    99   50.0000        95        no
+duckdb median                                0.95   100   50.5000        96        no
+duckdb median                                0.67     9    5.0000         7        no
+duckdb median                                0.67    10    5.5000         8        no
+duckdb median                                0.67    19   10.0000        14        no
+duckdb median                                0.67    20   10.5000        14        no
+duckdb median                                0.67    29   15.0000        20        no
+duckdb median                                0.67    50   25.5000        34        no
+duckdb median                                0.67    99   50.0000        67        no
+duckdb median                                0.67   100   50.5000        68        no
+
+excel PERCENTILE.INC                         0.90     9    8.2000         9        no
+excel PERCENTILE.INC                         0.90    10    9.1000        10        no
+excel PERCENTILE.INC                         0.90    19   17.2000        18        no
+excel PERCENTILE.INC                         0.90    20   18.1000        19        no
+excel PERCENTILE.INC                         0.90    29   26.2000        27        no
+excel PERCENTILE.INC                         0.90    50   45.1000        46        no
+excel PERCENTILE.INC                         0.90    99   -- skipped: array of 99 exceeds the 255-charact
+excel PERCENTILE.INC                         0.90   100   -- skipped: array of 100 exceeds the 255-charac
+excel PERCENTILE.INC                         0.95     9    8.6000        10        no
+excel PERCENTILE.INC                         0.95    10    9.5500        11        no
+excel PERCENTILE.INC                         0.95    19   18.1000        19        no
+excel PERCENTILE.INC                         0.95    20   19.0500        20        no
+excel PERCENTILE.INC                         0.95    29   27.6000        29        no
+excel PERCENTILE.INC                         0.95    50   47.5500        49        no
+excel PERCENTILE.INC                         0.95    99   -- skipped: array of 99 exceeds the 255-charact
+excel PERCENTILE.INC                         0.95   100   -- skipped: array of 100 exceeds the 255-charac
+excel PERCENTILE.INC                         0.67     9    6.3333         7        no
+excel PERCENTILE.INC                         0.67    10    7.0000         8        no
+excel PERCENTILE.INC                         0.67    19   13.0000        14        no
+excel PERCENTILE.INC                         0.67    20   13.6667        14        no
+excel PERCENTILE.INC                         0.67    29   19.6667        20        no
+excel PERCENTILE.INC                         0.67    50   33.6667        34        no
+excel PERCENTILE.INC                         0.67    99   -- skipped: array of 99 exceeds the 255-charact
+excel PERCENTILE.INC                         0.67   100   -- skipped: array of 100 exceeds the 255-charac
+
+excel PERCENTILE.EXC                         0.90     9    9.0000         9       yes
+excel PERCENTILE.EXC                         0.90    10    9.9000        10        no
+excel PERCENTILE.EXC                         0.90    19   18.0000        18       yes
+excel PERCENTILE.EXC                         0.90    20   18.9000        19        no
+excel PERCENTILE.EXC                         0.90    29   27.0000        27       yes
+excel PERCENTILE.EXC                         0.90    50   45.9000        46        no
+excel PERCENTILE.EXC                         0.90    99   -- skipped: array of 99 exceeds the 255-charact
+excel PERCENTILE.EXC                         0.90   100   -- skipped: array of 100 exceeds the 255-charac
+excel PERCENTILE.EXC                         0.95     9   -- /Users/lalakiya/Desktop/Opensource/Research/
+excel PERCENTILE.EXC                         0.95    10   -- /Users/lalakiya/Desktop/Opensource/Research/
+excel PERCENTILE.EXC                         0.95    19   19.0000        19       yes
+excel PERCENTILE.EXC                         0.95    20   19.9500        20        no
+excel PERCENTILE.EXC                         0.95    29   28.5000        29        no
+excel PERCENTILE.EXC                         0.95    50   48.4500        49        no
+excel PERCENTILE.EXC                         0.95    99   -- skipped: array of 99 exceeds the 255-charact
+excel PERCENTILE.EXC                         0.95   100   -- skipped: array of 100 exceeds the 255-charac
+excel PERCENTILE.EXC                         0.67     9    6.6667         7        no
+excel PERCENTILE.EXC                         0.67    10    7.3333         8        no
+excel PERCENTILE.EXC                         0.67    19   13.3333        14        no
+excel PERCENTILE.EXC                         0.67    20   14.0000        14       yes
+excel PERCENTILE.EXC                         0.67    29   20.0000        20       yes
+excel PERCENTILE.EXC                         0.67    50   34.0000        34       yes
+excel PERCENTILE.EXC                         0.67    99   -- skipped: array of 99 exceeds the 255-charact
+excel PERCENTILE.EXC                         0.67   100   -- skipped: array of 100 exceeds the 255-charac
+
+excel PERCENTILE (legacy)                    0.90     9    8.2000         9        no
+excel PERCENTILE (legacy)                    0.90    10    9.1000        10        no
+excel PERCENTILE (legacy)                    0.90    19   17.2000        18        no
+excel PERCENTILE (legacy)                    0.90    20   18.1000        19        no
+excel PERCENTILE (legacy)                    0.90    29   26.2000        27        no
+excel PERCENTILE (legacy)                    0.90    50   45.1000        46        no
+excel PERCENTILE (legacy)                    0.90    99   -- skipped: array of 99 exceeds the 255-charact
+excel PERCENTILE (legacy)                    0.90   100   -- skipped: array of 100 exceeds the 255-charac
+excel PERCENTILE (legacy)                    0.95     9    8.6000        10        no
+excel PERCENTILE (legacy)                    0.95    10    9.5500        11        no
+excel PERCENTILE (legacy)                    0.95    19   18.1000        19        no
+excel PERCENTILE (legacy)                    0.95    20   19.0500        20        no
+excel PERCENTILE (legacy)                    0.95    29   27.6000        29        no
+excel PERCENTILE (legacy)                    0.95    50   47.5500        49        no
+excel PERCENTILE (legacy)                    0.95    99   -- skipped: array of 99 exceeds the 255-charact
+excel PERCENTILE (legacy)                    0.95   100   -- skipped: array of 100 exceeds the 255-charac
+excel PERCENTILE (legacy)                    0.67     9    6.3333         7        no
+excel PERCENTILE (legacy)                    0.67    10    7.0000         8        no
+excel PERCENTILE (legacy)                    0.67    19   13.0000        14        no
+excel PERCENTILE (legacy)                    0.67    20   13.6667        14        no
+excel PERCENTILE (legacy)                    0.67    29   19.6667        20        no
+excel PERCENTILE (legacy)                    0.67    50   33.6667        34        no
+excel PERCENTILE (legacy)                    0.67    99   -- skipped: array of 99 exceeds the 255-charact
+excel PERCENTILE (legacy)                    0.67   100   -- skipped: array of 100 exceeds the 255-charac
+
+(2b) PERCENTILE.EXC at the feasibility boundary
+The weibull convention resolves h = q(n+1), so it can only return a
+value for q <= n/(n+1) -- which is exactly the one-sided feasibility
+floor. Does the shipped function refuse there, or clamp?
+
+    n            q    n/(n+1)  in range?                     returned
+----------------------------------------------------------------------------------------------------
+   10     0.889091   0.909091        yes                     9.780000
+   10     0.909090   0.909091        yes                     9.999989
+   10     0.909092   0.909091         no REFUSED (tion error: Microsoft Excel)
+   10     0.929091   0.909091         no REFUSED (tion error: Microsoft Excel)
+   10     0.990000   0.909091         no REFUSED (tion error: Microsoft Excel)
+
+   20     0.932381   0.952381        yes                    19.580000
+   20     0.952380   0.952381        yes                    19.999979
+   20     0.952382   0.952381         no REFUSED (tion error: Microsoft Excel)
+   20     0.972381   0.952381         no REFUSED (tion error: Microsoft Excel)
+   20     0.990000   0.952381         no REFUSED (tion error: Microsoft Excel)
+
+   50     0.960392   0.980392        yes                    48.980000
+   50     0.980391   0.980392        yes                    49.999949
+   50     0.980393   0.980392         no REFUSED (tion error: Microsoft Excel)
+   50     0.990000   0.980392         no REFUSED (tion error: Microsoft Excel)
+
+above the boundary: 8 refusals, 0 values returned
+So this function REFUSES rather than clamping. It is the only
+implementation measured anywhere in this deposit that guards the
+one-sided feasibility boundary by construction -- and it does so
+because its convention makes the boundary a domain error rather
+than because anybody added a check. Against it, 9 of 14 shipped
+conformal helpers hand back a finite number below their floor and
+say nothing.
+
+(3) SQLite: what a query gets when the function does not exist
+sqlite 3.53.0
+    percentile_cont(0.9) within group (order by x)       absent (OperationalError)
+    percentile_disc(0.9) within group (order by x)       absent (OperationalError)
+    quantile(x, 0.9)                                     absent (OperationalError)
+    median(x)                                            present
+
+====================================================================================================
+SUMMARY
+    duckdb quantile_cont                       delivers in 0 of 24 cells
+    duckdb quantile_disc                       delivers in 9 of 24 cells
+    duckdb percentile_cont (SQL standard)      delivers in 0 of 24 cells
+    duckdb percentile_disc (SQL standard)      delivers in 9 of 24 cells
+    duckdb median                              delivers in 0 of 24 cells
+    excel PERCENTILE.INC                       delivers in 0 of 18 cells
+    excel PERCENTILE.EXC                       delivers in 7 of 16 cells
+    excel PERCENTILE (legacy)                  delivers in 0 of 18 cells
+
+The two SQL-standard functions are not interchangeable for this
+purpose. percentile_disc delivers the requested guarantee in 9 of
+24 cells; percentile_cont in 0 of 24. So the standard DOES
+contain a convention that can carry a distribution-free bound, which is
+more than numpy's default manages -- and the two function names differ
+by four characters with no hint that one is usable and the other is not.
+
+Where percentile_disc delivers is a residue class and not a threshold,
+which is the periodicity result showing up in a SQL engine: it is right
+one time in ten at level 9/10, and collecting more rows does not fix a
+size that is off the class.
+
+SQLite has no percentile function at all, so the most widely deployed
+engine in the world offers no convention to get wrong and every caller
+hand-rolls one. That is a different failure mode from a wrong default and
+it is not covered by anything else in this deposit.
