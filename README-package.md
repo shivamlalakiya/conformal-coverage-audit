@@ -22,7 +22,7 @@ conformal_threshold(scores, 0.1) # the threshold, or +inf where none is valid
 ## Why this exists
 
 For `n` scores exchangeable with a fresh one, the bound at rank `r` covers with
-probability exactly `r / (n + 1)`. No numerical library indexes that way. A quantile
+coverage of exactly `r / (n + 1)`, and no numerical library indexes that way. A quantile
 function takes a probability, and each convention maps it to a position by its own
 rule — so `numpy.quantile(scores, 0.9)` and
 `numpy.quantile(scores, 0.9, method="higher")` land on different order statistics,
@@ -40,7 +40,7 @@ support. Returning infinity is the honest answer; widen the calibration set, low
 the confidence, or use a randomised bound.
 
 **A threshold equal to `max(scores)` is not a bug.** Where the required rank is `n`,
-the maximum *is* the correct answer. Treating that as evidence of a clamped level is
+returning the sample maximum *is* right. Treating that as evidence of a clamped level is
 a mistake — one this package's authors made and had to retract.
 
 ## Exactness

@@ -22,22 +22,28 @@ identifiers:
   - type: doi
     value: 10.5281/zenodo.21811491
     description: "Version v1.1.0"
+  - type: doi
+    value: 10.5281/zenodo.21814982
+    description: "Version v1.2.0"
 # verified against the live remote
 repository-code: "https://github.com/shivamlalakiya/conformal-coverage-audit"
-version: v1.1.0
+# This is what GitHub's cite widget and the indexers read. Left at v1.1.0 it sent a
+# reviewer to the snapshot whose DISCLOSURE.md carries one row and an open TODO list,
+# and the write-up's disclosure claim was judged against that.
+version: v1.2.0
 date-released: "2026-08-05"
 abstract: >-
   Measurement harnesses used to audit how Python conformal-prediction
   implementations resolve the conformal quantile at finite sample sizes. Each
-  script validates its closed forms against exact rational arithmetic at import
-  time, and each writes a plain-text output file that is committed alongside it.
+  script re-derives its own formulas with `fractions.Fraction` the moment it
+  loads, and each writes a plain-text output file that is committed alongside it.
   Covers the convention in isolation; the nine Hyndman-Fan quantile definitions
   read as carriers of a coverage guarantee; end-to-end runs through sktime,
   river, darts and statsforecast; paired real-data coverage on two Monash
   collections and two OpenML suites, in which the library arm and a
   required-rank arm are built from the same scores and the same point
   prediction; a census of the level-to-rank resolution sites across the audited
-  packages, verified on disk; a conformance suite that classifies any quantile
+  packages, verified on disk; a classifier that takes an arbitrary quantile
   helper and reports what it delivers; a check of whether the mechanism
   generalises beyond conformal prediction to value-at-risk, tolerance bounds and
   bootstrap intervals; and a rebuttal probe that adjudicates a retracted finding

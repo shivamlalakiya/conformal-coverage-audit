@@ -12,7 +12,7 @@ every real-data arm).
 Measurement harnesses for auditing how Python conformal-prediction implementations resolve the conformal
 quantile at finite sample sizes.
 
-A finite-sample distribution-free interval is a statement about an **order statistic**. The APIs libraries
+Distribution-free intervals at finite sample size are indexed by **order statistics**. The APIs libraries
 use to obtain one accept a **level**, and the map from level to rank depends on an interpolation
 convention. These probes measure which rank each implementation actually lands on, and what coverage that
 rank delivers.
@@ -57,7 +57,7 @@ Check it with `python -m conformal_coverage`. See `README-package.md` for the re
 |---|---|
 | `probes/branch_d_check.py` | The convention in isolation: an uncorrected level versus the required order statistic on identical draws. 200k draws per cell, `fractions.Fraction` oracle |
 | `probes/convention_probe.py` | Structural branch identification, coverage sweeps with paired standard errors, threshold extraction |
-| `probes/rank_map.py` | The nine Hyndman–Fan quantile definitions plus four aliases, read not as estimators of a population quantile but as carriers of a coverage guarantee: which can express `⌈(n+1)(1−α)⌉` at all, and what each delivers instead |
+| `probes/rank_map.py` | The nine Hyndman–Fan quantile definitions plus four aliases, read for what guarantee each can carry rather than for estimation accuracy: which express `⌈(n+1)(1−α)⌉` at all, and what each delivers instead |
 | `probes/run_sktime_river.py` | sktime `ConformalIntervals` via `predict_interval`, river `RegressionJackknife` via `predict_one`, with an oracle independent of both |
 | `probes/run_darts.py` | Exact rank arithmetic, paired Monte Carlo on identical draws, and an end-to-end run through a real `ConformalNaiveModel` |
 | `probes/run_darts_tighten.py` | The same construction at 2000 fits per cell across four calibration lengths, with the exact coverage the convention predicts beside each measurement |
@@ -86,7 +86,7 @@ only the **paired delta** supports a claim. See [`PLAN.md`](PLAN.md) §5.
 | Probe | What it measures |
 |---|---|
 | `probes/conformance_suite.py` | Given any `(scores, level) → threshold` callable: the branch, the rank it lands on, the delivered coverage, the least calibration size that honours the level as asked, and whether a boundary case raises a warning. Validated at import against reference implementations of every branch |
-| `probes/helper_census.py` | Counts the level→rank resolution sites across the audited packages under a stated criterion, verifying each site's file, line and anchor text on disk. Fails loudly if an anchor has moved |
+| `probes/helper_census.py` | Counts the level→rank resolution sites across the audited packages under a stated criterion, verifying each site's file, line and anchor text on disk. Fails loudly once an anchor shifts |
 | `probes/w8_falsification.py` | Whether the level→rank map matters outside conformal prediction: empirical value-at-risk, nonparametric tolerance bounds, and bootstrap percentile intervals. Includes a setting chosen because it was likely to refute the general claim |
 | `probes/paired_report.py` | Shared summary arithmetic for the paired arms, including the two reporting subtleties an earlier version of this work got wrong |
 
@@ -149,12 +149,12 @@ way it **reports** which packages it could not locate rather than quietly counti
 
 ## Two conventions worth knowing before reading the code
 
-**Every script self-checks its closed forms against exact rational arithmetic at import.** A failing
+**Each script re-derives its own formulas with `fractions.Fraction` the moment it loads.** A failing
 self-check aborts the run. This is not decoration: several of these self-checks caught errors in their own
 author's hand-derived assertions, including ones that invalidated claims already written down.
 
 **A returned threshold equal to `max(scores)` is not evidence of a clamped level.** Where the required
-rank *is* `n`, the maximum is the correct answer. Separating those two cases needs the level→rank rule
+rank *is* `n`, returning the sample maximum is right. Separating those two cases needs the level→rank rule
 identified over several `n`, not a single probe — `conformance_suite.py` does it by fitting the rule and
 probing the boundary, and it is written that way because the single-probe version mislabelled a library.
 

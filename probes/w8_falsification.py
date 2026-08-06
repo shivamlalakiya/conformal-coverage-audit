@@ -17,8 +17,13 @@ The wide claim, stated so it can fail
     order statistic the level lands on, and an interpolating estimator
     (numpy's default method='linear') under-delivers.
 
-Three non-conformal settings, each with a shipped implementation and a nominal
-level, and each able to refute the claim:
+Three non-conformal settings, each with a nominal level and each able to refute
+the claim. Only ONE of the three drives a shipped implementation of the bound in
+question -- setting 3, through `scipy.stats.bootstrap`. Settings 1 and 2 are
+constructions written here: the numpy call is real, but the decision to read its
+output as a VaR or as a p-content tolerance bound is ours, and no audited package
+makes it. That distinction is load-bearing and was previously blurred by this
+docstring, so the write-up now states it too.
 
   1. Empirical value-at-risk. `np.quantile(losses, 0.99)` reported as a 99% VaR.
      Exceedance probability is measurable and has an exact expectation.
@@ -144,7 +149,7 @@ def var_block(say):
     say("fresh draw scored against the reported VaR.")
     say("")
     say(f"{'dist':<12} {'n':>5} {'q':>6} {'nominal':>8} {'linear':>9} {'higher':>9} "
-        f"{'required':>9} {'exact req':>10} {'lin - nom':>10}")
+        f"{'required':>9} {'exact req':>10} {'lin - nom':>10} {'lin/nom':>8}")
 
     for name, draw in DISTRIBUTIONS.items():
         for n in (50, 100, 250, 1000):
@@ -166,8 +171,12 @@ def var_block(say):
                 lin, hi = exc_lin / REPS, exc_hi / REPS
                 req = exc_req / REPS if k is not None else 0.0
                 exact = float(exceedance_of_rank(k, n)) if k is not None else 0.0
+                # The ratio is printed here, from the unrounded pair, because the
+                # write-up quotes it. Recovering it by dividing the two 4-dp
+                # columns beside it is a different number in the last digit.
                 say(f"{name:<12} {n:>5} {qf:>6.2f} {nominal:>8.4f} {lin:>9.4f} "
-                    f"{hi:>9.4f} {req:>9.4f} {exact:>10.4f} {lin - nominal:>+10.4f}")
+                    f"{hi:>9.4f} {req:>9.4f} {exact:>10.4f} {lin - nominal:>+10.4f} "
+                    f"{lin / nominal:>8.1f}")
     say("")
     say("'required' is rank ceil((n+1)*q); 'exact req' is its exact exceedance")
     say("1 - k/(n+1), derived. A positive 'lin - nom' is a VaR that is breached MORE")

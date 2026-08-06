@@ -24,7 +24,7 @@ quantile convention turns that level into a position by its own rule. Hence:
 
 Supporting observation already measured on synthetic draws: two libraries that both omit the correction
 sit **0.0000** and **0.1643** from nominal at comparable `n`. One passes an uncorrected level through a
-rounding-based quantile method that coincides with the required rank in a fifth to two-thirds of cells;
+rounding-based method whose landing point coincides with the required rank in a fifth to two-thirds of cells;
 the other interpolates two separate quantiles of signed residuals, which lands between order statistics
 rather than on one.
 
@@ -45,7 +45,7 @@ as estimators of a population quantile but as carriers of a coverage guarantee.*
 ## 4. Unit of analysis
 
 **The quantile helper, not the library.** One package can reach the bound by three unrelated code paths — a p-value path, a quantile path, and a path that never forms an order
-statistic. Any table with one row per library cannot express that, and several published comparisons have
+statistic. One row per library cannot express that, and several published comparisons take
 that shape.
 
 ## 5. Protocol for M3
@@ -98,9 +98,9 @@ Three items, short enough to be asked for in review:
 | **M3 paired real-data coverage** | ✅ Complete, four library arms on two independent Monash collections plus two OpenML suites. v1's attribution was invalid — its two arms did not share a residual set or a centre — and that failure is documented in the probe that replaced it rather than deleted |
 | Tightening the one null result to ≥2000 fits across several calibration sizes | ✅ Complete. **There is no null**: the deficit alternates between 0 and 1 on a residue pattern, and a four-cell table that lands on the coincidence band shows zeros for arithmetic reasons |
 | Conformance suite and the §7 checklist | ✅ Complete, `probes/conformance_suite.py` |
-| Whether the mechanism generalises beyond conformal prediction | ✅ Complete, `probes/w8_falsification.py`. It reproduces in value-at-risk and in nonparametric tolerance bounds; it is **not** the dominant term in bootstrap percentile intervals |
+| Whether the mechanism generalises beyond conformal prediction | ✅ Complete, `probes/w8_falsification.py`. Reproduced under a value-at-risk framing and under a Wilks framing; under bootstrap resampling the index term is swamped |
 | Per-helper count under a stated criterion | ✅ Complete, `probes/helper_census.py` |
-| **Whether M3 depends on the series chosen or on one point per series** | ✅ Complete, `probes/sample_robustness.py`. The same cells on **every** eligible monthly series (1093 of 1428; the rest are shorter than the darts arm's floor) with a rolling origin, standard errors clustered by series. Selection and resolution are now measured rather than conceded; **exchangeability still is not, and no archive size can repair it** |
+| **Whether M3 depends on the series chosen or on one point per series** | ✅ Complete, `probes/sample_robustness.py`. Re-run over all 1093 usable monthly series of 1428 (the rest are shorter than the darts arm's floor) with a rolling origin, standard errors clustered by series. Selection and resolution are now measured rather than conceded; **exchangeability still is not, and no archive size can repair it** |
 
 ### 8.1 What the measurement found, in one paragraph
 
@@ -109,20 +109,20 @@ The level→rank map, not the presence of the `(n+1)/n` correction, predicts whe
 with a paired delta of exactly zero in six cases**; the seventh sits above nominal. The forecasting libraries are where
 the deficit lives, and there the size of it is set by which order statistic the level lands on — one
 library's deficit alternates between zero and one rank on a residue pattern in `n`, so the same code path
-is exact at some calibration sizes and short at others. Separately, one library's **default**
-configuration calibrates on two residuals, where no valid finite bound exists at any conventional level,
+hits the required rank at some calibration sizes and falls one short at others. Separately, one library's **default**
+configuration calibrates on two residuals, a size admitting no valid finite bound at any conventional level,
 and returns a finite interval regardless.
 
 ## 9. Verification rules applied to everything here
 
 These are not aspirations; they have each already caught a real error in this work.
 
-- **Every closed form self-checks against exact rational arithmetic at import.** A failing check aborts
+- **Each formula is re-derived under `fractions.Fraction` the moment its module loads.** A failing check aborts
   the run. Two such checks caught errors in their author's own hand-derived assertions.
-- **A grid is chosen by the bug, not by the author.** Every sweep extends to at least twice the first
-  boundary it finds. Stopping a grid just beyond the first boundary is worse than stopping well short of
+- **A grid is chosen by the bug, not by the author.** Every sweep runs on well past the first boundary,
+  to at least double it. Stopping a grid just beyond the first boundary is worse than stopping well short of
   it, because the short grid does not look finished and the other one does.
-- **Sweep at least one non-unit-fraction level.** Claims of the form "this only happens on that residue
+- **Include a level that is not a unit fraction in every sweep.** Claims of the form "this only happens on that residue
   class" are usually artifacts of sweeping only `1/10`, `1/20`, `1/100`.
 - **Never check an implementation against something that shares its convention.** And a fixture pinned to a
   cell with no discriminating power is worse than no fixture at all.
@@ -151,7 +151,7 @@ These are not aspirations; they have each already caught a real error in this wo
 - One library's calibration residuals are computed from a model already fitted on the whole input series,
   so they are in-sample and optimistically small. That bias is measured **separately** from the level→rank
   map, in `probes/darts_scoring_path.py`, rather than being folded into a single number.
-- The generalisation check found the mechanism present but **not dominant** in bootstrap percentile
+- Under bootstrap resampling the generalisation check found the index term **swamped** by percentile
   intervals. The mechanism generalises; the effect sizes measured here do not.
 - R, Julia and Octave **are** executed, not transferred: `quantile(type = 7)` (R's default, identical to
   numpy's `linear`), `Statistics.quantile(alpha=, beta=)` and Octave's nine methods all agree with the
@@ -162,12 +162,12 @@ These are not aspirations; they have each already caught a real error in this wo
   contradicted it. The probe that adjudicated it is in this repository. Several later claims were
   retracted the same day they were made, by exact-arithmetic checks written to test them; the most
   instructive is that a returned threshold equal to `max(scores)` is **not** evidence of a clamped level,
-  because where the required rank *is* `n`, the maximum is the correct answer.
+  because where the required rank *is* `n`, returning the sample maximum is right.
 
 ## 11. Out of scope
 
 - Closed-source or vendor implementations: not inspectable, and not claimed about.
-- Packages that form no order statistic of a calibration set — learned-quantile models, and probability
+- Packages that never index into a sorted calibration set — learned-quantile models, and probability
   intervals from isotonic calibration. Excluded with the reason stated rather than silently omitted.
 - Sample-path simulators that produce trajectories rather than a split-conformal interval.
 - Which method is *best*. This is a correctness audit, not a benchmark of predictive performance.
@@ -189,8 +189,8 @@ found during it are worth passing on.
 ## 12. What is in this repository
 
 The probes and their committed outputs, listed by purpose in `README.md` — a count is deliberately not
-quoted here, because it went stale twice and `README.md` is the list that has to be right. Every closed form
-self-checks against exact rational arithmetic at import, and a failing check aborts the run.
+quoted here, because it went stale twice and `README.md` is the list that has to be right. Each formula is
+re-derived under `fractions.Fraction` at module load, and a failure stops execution there.
 
 Not included, each for a stated reason: third-party library sources (pinned in
 `probe-requirements.txt` instead of redistributed), and the `.npz` series cache one probe writes (the two

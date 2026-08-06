@@ -79,10 +79,12 @@ edited silently, and this manifest now carries the committed values.
 
 ## Not filed, and why — stated as policy, not left open
 
-The level-to-rank findings in the census are overwhelmingly **pre-existing and
-documented**: a library resolving an uncorrected level through a rounding definition is
-doing something its own documentation describes. Where such a site is already public, the
-census output cites its existing issue or pull-request number rather than re-filing it.
+19 of the 35 census sites are **pre-existing and documented**: a library resolving an
+uncorrected level through a rounding definition is doing something its own
+documentation describes. The other 16 are the ones this audit newly located, which is
+the same 16 the write-up reports as absent from the public record it searched. Where a
+pre-existing site is already public, the census output cites its existing issue or
+pull-request number rather than re-filing it.
 
 For the 16 sites this audit newly located, the rule applied is: **file where a maintainer
 would have to change code or documentation to make the shipped behaviour match its own

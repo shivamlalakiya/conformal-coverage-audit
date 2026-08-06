@@ -291,6 +291,7 @@ def main():
                     f"series={r['series']} points={r['points']} n_med={r['n_med']} "
                     f"a_cov={r['a_cov']:.4f} b_cov={r['b_cov']:.4f} "
                     f"delta={r['delta']:+.4f} se={r['se']:.4f} se_naive={r['se_naive']:.4f} "
+                    f"se_ratio={(r['se'] / r['se_naive']) if r['se_naive'] > 0 else 0:.4f} "
                     f"a_rank_med={r['a_rank_med']} req_med={r['req_med']} "
                     f"infeasible={r['infeasible']}")
 
@@ -313,6 +314,7 @@ def main():
                     f"n_windows={nw} series={r['series']} points={r['points']} "
                     f"n_med={r['n_med']} a_cov={r['a_cov']:.4f} b_cov={r['b_cov']:.4f} "
                     f"delta={r['delta']:+.4f} se={r['se']:.4f} se_naive={r['se_naive']:.4f} "
+                    f"se_ratio={(r['se'] / r['se_naive']) if r['se_naive'] > 0 else 0:.4f} "
                     f"a_rank_med={r['a_rank_med']} req_med={r['req_med']} "
                     f"infeasible={r['infeasible']}")
 
