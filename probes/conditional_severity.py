@@ -1,42 +1,41 @@
 #!/usr/bin/env python3
-"""W15: where the one-rank error stops being O(1/n) -- group-conditional coverage.
+"""W15: the size regime that keeps the index error from washing out -- per-group coverage.
 
 The objection this answers
 --------------------------
-The honest reading of the audit's tabular arm is that six of seven implementations
-show a paired difference of exactly zero, and the reviewer's objection writes itself:
-an O(1/n) discrepancy that vanishes at realistic calibration sizes is a curiosity.
-The manuscript answers it three ways already -- relative error at small alpha, the
-horizon-scaled feasibility floor, and off-grid unattainability at every m. This probe
-adds the most direct answer: settings where the effective calibration set is small BY
-DESIGN, not by accident.
+Read the tabular arm honestly and six implementations out of seven come back at zero
+difference, which invites the obvious complaint: an error that disappears once the
+calibration set is any reasonable size is a footnote. Three replies are already on
+record -- what the error does to a relative rate at small alpha, how the floor grows
+with the horizon, and which levels no index reaches at any m. Here is a fourth and
+the most direct one: places where the calibration set is kept small deliberately.
 
-Group-conditional (Mondrian) conformal prediction is the canonical case. Calibration
-is split by group, so a set of n scores becomes G sets of n/G, and the quantity a
-practitioner reports is usually WORST-GROUP coverage rather than marginal. The audit
-already cites the work on class-conditional prediction with many classes -- the
-regime where n_g is necessarily small -- and never enters it.
+Mondrian conformal prediction is where that happens by design. Scores get partitioned
+by group, n of them turning into G piles of n/G, and what gets reported is normally
+the worst group rather than the average. Work on class-conditional prediction with
+many classes lives in exactly that regime -- small piles, unavoidably -- and is cited
+without ever being entered.
 
 The sharpened prediction, which is what makes this a test and not a demonstration
 ----------------------------------------------------------------------------------
-W12 and W14 say the interior approximation pi = gamma is governed by the DEPTH
-i = n - floor(h), not by n. Splitting the calibration set shrinks n_g and therefore
-shrinks i at a fixed level, so two effects arrive together:
+W12 and W14 put the interior approximation pi = gamma under the control of DEPTH,
+i = n - floor(h), and not of n. Partitioning cuts n_g, which at a fixed level cuts i
+with it, so two things land at once:
 
-  1. the one-rank deficit, worth about 1/(n_g+1), and
-  2. the tail inflation pi/gamma, bounded by (i+1)/i, which GROWS as i falls.
+  1. the missing rank, costing roughly 1/(n_g+1), and
+  2. the inflation pi/gamma, capped at (i+1)/i, which RISES as i drops.
 
-So the prediction is not merely "the same deficit at smaller n". It is that
-per-group coverage tracks (j + pi)/(n_g + 1) with pi from the W14 law at the data's
-own shape index, and that a marginal-only account of the deficit UNDER-states what
-the worst group sees. Block (iii) tests exactly that, against a marginal-only
+What is predicted is therefore sharper than the same shortfall at a smaller size.
+Per-group coverage should follow (j + pi)/(n_g + 1) with pi taken from the W14 law at
+whatever shape the data has, and any account working from the margin alone should come
+out optimistic about the worst group. Block (iii) tests exactly that, against a marginal-only
 baseline, and reports where the prediction fails.
 
 Why the data are synthetic, and what that buys
 ----------------------------------------------
-The scores are i.i.d. within each group, so exchangeability holds by construction and
-ABSOLUTE per-group coverage is attributable -- which the audit's real-data arms
-cannot claim. That is the point of using synthetic data here rather than a shortcut
+Within a group the scores are independent draws, so exchange holds by construction and
+per-group coverage can be attributed in absolute terms -- which the real-data arms
+cannot do. That is the point of using synthetic data here rather than a shortcut
 around it. Groups differ in scale and in tail shape, so the probe also measures
 whether a per-group threshold is genuinely needed or whether a pooled one would do.
 
@@ -312,9 +311,9 @@ def main():
         f"{max(r['coverage'] - r['A']['worst_group'] for r in marg):.4f}")
     say(f"    finely split (G>=50): worst-group shortfall up to "
         f"{max(r['coverage'] - r['A']['worst_group'] for r in split):.4f}")
-    say("    Same total number of calibration scores. The deficit is not O(1/n) in")
-    say("    the budget; it is O(1/n_g) in the per-group size, and the worst group")
-    say("    is where a conditional guarantee is quoted.")
+    say("    Identical total budget. What sets the shortfall is the size of a pile,")
+    say("    not the size of the budget -- and the pile is what a per-group promise")
+    say("    gets quoted against.")
     say("")
     say("=" * 108)
     say("SUMMARY")

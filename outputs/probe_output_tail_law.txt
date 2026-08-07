@@ -3,7 +3,7 @@ W12  THE TAIL LAW FOR pi -- what the fractional-rank result left open
 ==========================================================================================================
 
   pi = E[F(T)-F(a)] / E[F(b)-F(a)]   (a RATIO of expectations)
-  i  = n - floor(h)  is the DEPTH of the landed-in gap from the top
+  i  = n - floor(h)  counts how far the landed-in gap sits below the top
   (G) exponential tail:  pi = (i+1) gamma / (i + gamma)      -- no
       tail parameter, exact
   (F) Pareto(theta):     pi = (i+1) E[1-(1+gamma(R-1))^-theta],
@@ -38,10 +38,10 @@ exponential    100  0.995    99   1   0.505   0.6711    0.6713  +0.0002   0.505 
     up to 0.2437 of a rank.
 
 ----------------------------------------------------------------------------------------------------------
-(ii) (G) BEYOND THE EXPONENTIAL. normal and lognormal are also in the
-     Gumbel domain but approach it at different rates. (G) is exact for
-     the exponential and a calibrated approximation for the others; the
-     residual is reported per distribution, not averaged away.
+(ii) (G) BEYOND THE EXPONENTIAL. The normal and the lognormal share that
+     domain and arrive at different speeds. Exact on the exponential, a
+     calibrated approximation on the other two, with the residual printed
+     per distribution instead of averaged away.
 ----------------------------------------------------------------------------------------------------------
 dist             n      q   i   gamma      (G)  measured      err   position vs (G)
 exponential     50  0.990   1   0.510   0.6755    0.6751  -0.0004   exact
@@ -66,9 +66,9 @@ lognormal      200  0.950  10   0.050   0.0547    0.0563  +0.0015   above -- hea
     normal       mean err -0.0093   worst -0.0241
     lognormal    mean err +0.0125   worst +0.0342
 
-    normal sits below (G) and lognormal above, in the direction each tail
-    sits relative to the exponential. That is the bracket, and it is the
-    honest statement of (G)'s reach outside its exact case.
+    normal comes in under (G), lognormal over it, each on the side its own
+    tail sits against exponential. Those two are the bracket, and the
+    bracket is all (G) can claim away from its exact case.
 
 ----------------------------------------------------------------------------------------------------------
 (iii) COVERAGE. The prediction the manuscript currently makes is
@@ -133,10 +133,9 @@ pareto         200   0.99  0.99492   0.9902  +0.0002  0.99488   0.9906  +0.0006
 pareto         100   0.98  0.98970   0.9802  +0.0002  0.98953   0.9801  +0.0001
 
     mean |coverage - nominal|:  interior-corrected 0.00106   tail-corrected 0.00030
-    Both remain ASYMPTOTIC. The distribution-free floor is still
-    floor(h)/(n+1); neither level buys a finite-sample guarantee, and a
-    reader who needs one should use a rounding definition at the
-    required rank.
+    Both stay ASYMPTOTIC. What survives every law is floor(h)/(n+1), and
+    neither level buys a finite-sample promise. Anyone needing one should
+    ask a rounding definition for the required rank outright.
 
 ----------------------------------------------------------------------------------------------------------
 (v) WHICH REGIME, from n and the level alone -- no data needed. A library
@@ -154,9 +153,9 @@ pareto         100   0.98  0.98970   0.9802  +0.0002  0.98953   0.9801  +0.0001
 
     The practical rule: a requested level puts you in the tail regime when
     (1-alpha) is close enough to 1 that fewer than a handful of order
-    statistics sit above the virtual index. That is a statement about
-    n(1-alpha), not about n, which is why collecting more data does not
-    leave the regime if the level rises with it.
+    statistics sit above the virtual index -- a fact about n(1-alpha) and
+    not about n, which is why more data buys nothing once the level climbs
+    alongside it.
 
 ==========================================================================================================
 SUMMARY

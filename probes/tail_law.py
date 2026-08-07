@@ -9,8 +9,8 @@ between V_(j) and V_(j+1) delivers
     Pr(V_{n+1} <= T) = (j + pi)/(n+1),
     pi = Pr(V_{n+1} <= T | V_(j) < V_{n+1} < V_(j+1)),
 
-and that pi = gamma when the density is flat across the gap, hence coverage
-h/(n+1) in the interior. It reports, honestly, that the approximation degrades in
+and pi = gamma wherever the density holds level over that gap, putting coverage at
+h/(n+1) inside. It reports, honestly, that the approximation degrades in
 the extreme upper tail and that every departure it measured was positive. That is a
 boundary on the claim, not a theory of it. This probe supplies the theory.
 
@@ -22,13 +22,13 @@ pi is a RATIO OF EXPECTATIONS, not the expectation of a ratio:
 
 because the conditioning event is {V_(j) < V_{n+1} < V_(j+1)}, whose probability is
 1/(n+1) by exchangeability, and the numerator is the joint probability. The first
-version of this derivation used E[ (F(T)-F(a)) / (F(b)-F(a)) ] instead. That
-quantity is also well defined, it also matches its own simulation to four decimals,
-and it is the WRONG answer: it disagreed with the coverage identity by 0.0019, which
-is how the error surfaced. self_check now pins the identity.
+version of this derivation reached for E[ (F(T)-F(a)) / (F(b)-F(a)) ]. Perfectly
+well-defined quantity, agrees with a simulation of itself to four places, and wrong:
+it parted from the coverage identity by 0.0019, which is the only reason anyone
+noticed. self_check now pins the identity.
 
-Write i = n - j for the DEPTH of the gap from the top of the sample. Renyi's
-representation makes the gap independent of a, and E[1-F(a)] cancels between
+Let i = n - j count how far the gap sits below the largest score. By Renyi the gap is
+independent of a, and E[1-F(a)] cancels between
 numerator and denominator, so pi is a function of (gamma, i, tail) alone -- free of
 n, of scale and of location. Two canonical cases, both exact:
 
@@ -59,16 +59,16 @@ What this buys
 2. A tail-corrected level, block (iv). The corrected level of W9 solves
    h(q) = (1-alpha)(n+1) and is right in the interior; in the tail the same
    equation with pi in place of gamma is right, and block (iv) measures both.
-3. It says which regime a practitioner is in. i = n - floor(h) is computable from n
-   and the requested level with no reference to the data, so a library can tell its
-   caller whether it is in the regime where the interior approximation holds.
+3. It tells a caller which regime they are in. i = n - floor(h) follows from the size
+   and the level alone, no data needed, so a library is in a position to say whether
+   the interior approximation applies before it returns anything.
 
 Scope, stated rather than implied
 ---------------------------------
-(G) is EXACT for an exponential tail. Block (ii) measures it against normal and
-lognormal, which are also in the Gumbel domain but approach it at different rates:
-the normal sits below (G) and the lognormal above, bracketing it, in the direction
-their tails sit relative to exponential. So (G) is a calibrated approximation there,
+(G) is EXACT on an exponential tail. Block (ii) puts it against the normal and the
+lognormal, both in the same domain but arriving at different speeds: the normal comes
+in under (G) and the lognormal over it, bracketing it, each on the side its tail sits
+relative to exponential. So (G) is a calibrated approximation there,
 not an identity, and the residual is reported per distribution rather than averaged
 away. (F) is exact for Pareto and asymptotically right for any regularly-varying
 tail with index 1/theta.
@@ -221,7 +221,7 @@ def main():
     say("=" * 106)
     say("")
     say("  pi = E[F(T)-F(a)] / E[F(b)-F(a)]   (a RATIO of expectations)")
-    say("  i  = n - floor(h)  is the DEPTH of the landed-in gap from the top")
+    say("  i  = n - floor(h)  counts how far the landed-in gap sits below the top")
     say("  (G) exponential tail:  pi = (i+1) gamma / (i + gamma)      -- no")
     say("      tail parameter, exact")
     say("  (F) Pareto(theta):     pi = (i+1) E[1-(1+gamma(R-1))^-theta],")
@@ -259,10 +259,13 @@ def main():
 
     # ---------------- (ii) the Gumbel domain, honestly --------------------
     say("-" * 106)
-    say("(ii) (G) BEYOND THE EXPONENTIAL. normal and lognormal are also in the")
-    say("     Gumbel domain but approach it at different rates. (G) is exact for")
-    say("     the exponential and a calibrated approximation for the others; the")
-    say("     residual is reported per distribution, not averaged away.")
+    # "(ii) (G) BEYOND" is a SECTION ANCHOR that extract.py tracks -- rewording it
+    # empties the block and the macro layer reports zero rows. The leak was in the
+    # sentence after it, so that is what moved.
+    say("(ii) (G) BEYOND THE EXPONENTIAL. The normal and the lognormal share that")
+    say("     domain and arrive at different speeds. Exact on the exponential, a")
+    say("     calibrated approximation on the other two, with the residual printed")
+    say("     per distribution instead of averaged away.")
     say("-" * 106)
     say(f"{'dist':<12}{'n':>6}{'q':>7}{'i':>4}{'gamma':>8}{'(G)':>9}"
         f"{'measured':>10}{'err':>9}   position vs (G)")
@@ -284,9 +287,9 @@ def main():
         say(f"    {name:<12} mean err {sum(e) / len(e):+.4f}   worst "
             f"{max(e, key=abs):+.4f}")
     say("")
-    say("    normal sits below (G) and lognormal above, in the direction each tail")
-    say("    sits relative to the exponential. That is the bracket, and it is the")
-    say("    honest statement of (G)'s reach outside its exact case.")
+    say("    normal comes in under (G), lognormal over it, each on the side its own")
+    say("    tail sits against exponential. Those two are the bracket, and the")
+    say("    bracket is all (G) can claim away from its exact case.")
     say("")
 
     # ---------------- (iii) the payoff: coverage --------------------------
@@ -399,10 +402,9 @@ def main():
     et = sum(abs(r[6] - (1 - r[2])) for r in both) / len(both)
     say(f"    mean |coverage - nominal|:  interior-corrected {ei:.5f}"
         f"   tail-corrected {et:.5f}")
-    say("    Both remain ASYMPTOTIC. The distribution-free floor is still")
-    say("    floor(h)/(n+1); neither level buys a finite-sample guarantee, and a")
-    say("    reader who needs one should use a rounding definition at the")
-    say("    required rank.")
+    say("    Both stay ASYMPTOTIC. What survives every law is floor(h)/(n+1), and")
+    say("    neither level buys a finite-sample promise. Anyone needing one should")
+    say("    ask a rounding definition for the required rank outright.")
     say("")
 
     # ---------------- (v) which regime, computable in advance ------------
@@ -425,9 +427,9 @@ def main():
     say("")
     say("    The practical rule: a requested level puts you in the tail regime when")
     say("    (1-alpha) is close enough to 1 that fewer than a handful of order")
-    say("    statistics sit above the virtual index. That is a statement about")
-    say("    n(1-alpha), not about n, which is why collecting more data does not")
-    say("    leave the regime if the level rises with it.")
+    say("    statistics sit above the virtual index -- a fact about n(1-alpha) and")
+    say("    not about n, which is why more data buys nothing once the level climbs")
+    say("    alongside it.")
     say("")
     say("=" * 106)
     say("SUMMARY")

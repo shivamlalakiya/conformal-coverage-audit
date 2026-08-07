@@ -103,9 +103,9 @@ W15  GROUP-CONDITIONAL SEVERITY -- where the deficit stops being O(1/n)
 
     ungrouped (G=1): worst-group shortfall 0.0000
     finely split (G>=50): worst-group shortfall up to 0.0520
-    Same total number of calibration scores. The deficit is not O(1/n) in
-    the budget; it is O(1/n_g) in the per-group size, and the worst group
-    is where a conditional guarantee is quoted.
+    Identical total budget. What sets the shortfall is the size of a pile,
+    not the size of the budget -- and the pile is what a per-group promise
+    gets quoted against.
 
 ============================================================================================================
 SUMMARY
