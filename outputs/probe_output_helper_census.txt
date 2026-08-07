@@ -194,6 +194,68 @@ COUNTS
       statsforecast 2.1.1       4   (1 new)
       torchcp 1.2.1             1
 
+  --------------------------------------------------------------------------------------------------------
+  HOW THE P2 SITES REACH THE CONFORMANCE TABLE
+  --------------------------------------------------------------------------------------------------------
+  Sites and table rows are two different tallies, so the mapping between
+  them is printed instead of left to a reader. Each row is a call path
+  the suite could build. A site gets to one by three routes below, or by
+  none.
+
+  driven    12   the suite constructs this helper and calls it
+  shared    11   resolves through a numpy quantile expression the table carries once
+  pvalue     3   a p-value denominator: no threshold, so no rank to report
+  absent     9   not in the conformance table; the suite does not reach it
+
+      driven    mapie          BaseConformityScore.get_quantile             mapie get_quantile
+      driven    mapie          _compute_quantiles                           mapie LAC quantiles [prefit/mean -> delegates]
+      driven    mapie          LACConformityScore.get_conformity_score_quan mapie LAC quantiles [prefit/mean -> delegates]
+      driven    mapie          LACConformityScore.get_prediction_sets [cv/c mapie LAC quantiles [cv=5/crossval -> raw count]
+      driven    mapie          BaseRegressionScore._beta_optimize           mapie _beta_optimize + get_quantile (composed)
+      driven    crepes         ConformalRegressor.predict_int               crepes ConformalRegressor.predict_int
+      driven    crepes         ConformalPredictiveSystem.predict_int        crepes ConformalPredictiveSystem.predict_int
+      driven    puncc          BaseCalibrator.compute_quantile              puncc BaseCalibrator.compute_quantile
+      driven    puncc          quantile                                     puncc api/utils.py quantile (shared utility)
+      driven    torchcp        calculate_conformal_value                    torchcp calculate_conformal_value
+      driven    nonconformist  AbsErrorErrFunc.apply_inverse                nonconformist AbsErrorErrFunc.apply_inverse
+      driven    statsforecast  ConformalSeasonalPool._oriented_index        statsforecast _oriented_index
+      shared    sktime         ConformalIntervals._predict_interval [method numpy method='linear'
+      shared    sktime         ConformalIntervals._predict_interval [method numpy method='linear'
+      shared    sktime         ConformalIntervals._predict_interval [method numpy method='linear'
+      shared    sktime         ConformalIntervals._predict_interval [method numpy method='linear'
+      shared    sktime         EnbPI.conformal_interval                     numpy method='linear'
+      shared    statsforecast  _add_conformal_distribution_intervals        numpy method='linear'
+      shared    statsforecast  _add_conformal_error_intervals               numpy method='linear'
+      shared    darts          ConformalNaiveModel._calibrate_interval      numpy method='higher'
+      shared    darts          ConformalQRModel._calibrate_interval         numpy method='higher'
+      shared    neuralforecast add_conformal_distribution_intervals         numpy method='linear'
+      shared    neuralforecast add_conformal_error_intervals                numpy method='linear'
+      pvalue    crepes         ConformalClassifier.predict_set              
+      pvalue    crepes         p_values_batch                               
+      pvalue    nonconformist  IcpClassifier.predict                        
+      absent    mapie          _MapieQuantileRegressor.predict              
+      absent    crepes         ConformalRegressor.predict_int_online        
+      absent    crepes         ConformalPredictiveSystem.predict_int_online 
+      absent    puncc          ClasswiseCalibrator.compute_quantile         
+      absent    puncc          EnbPI.predict                                
+      absent    puncc          EnbPI.predict (online update)                
+      absent    nonconformist  SignErrorErrFunc.apply_inverse               
+      absent    river          RegressionJackknife.predict_one              
+      absent    statsforecast  ConformalSeasonalPool._intervals_from_sample 
+
+  and the arithmetic closes, which a four-way split of the sites does not:
+      12 driven sites  ->  11 table row(s)
+      11 shared sites  ->   2 table row(s)
+                        ->  13 distinct resolution sites in the table
+                        +   1 second path on one of them (a public keyword)
+                        ->  14 call paths, which is what the table's rows count
+
+  So a proportion over 14 call paths is not a proportion over
+  35 sites and not a proportion of the ecosystem. The manuscript must say
+  which, and the two rows below are the ones that stand for more than one site.
+      numpy method='higher'                                       2 site(s)
+      numpy method='linear'                                       9 site(s)
+
   excluded from P2, listed so the exclusion is auditable (5):
       mapie 1.4.1           _check_alpha_and_n_samples                       GUARD, not a resolver: raises when 1/alpha exceeds n
       puncc 0.9.3           BaseCalibrator.compute_quantile (Bonferroni)     alpha is Bonferroni-divided across output dimensions BEFORE 

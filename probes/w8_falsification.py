@@ -149,8 +149,10 @@ def var_block(say):
     say("fresh draw scored against the reported VaR.")
     say("")
     say(f"{'dist':<12} {'n':>5} {'q':>6} {'nominal':>8} {'linear':>9} {'higher':>9} "
-        f"{'required':>9} {'exact req':>10} {'lin - nom':>10} {'lin/nom':>8}")
+        f"{'required':>9} {'exact req':>10} {'lin - nom':>10} {'lin/nom':>8} "
+        f"{'feasible':>9}")
 
+    worst_feasible = None
     for name, draw in DISTRIBUTIONS.items():
         for n in (50, 100, 250, 1000):
             for q in (F(19, 20), F(99, 100)):
@@ -174,13 +176,32 @@ def var_block(say):
                 # The ratio is printed here, from the unrounded pair, because the
                 # write-up quotes it. Recovering it by dividing the two 4-dp
                 # columns beside it is a different number in the last digit.
+                # k is None exactly when ceil((n+1)q) > n. Every order statistic
+                # then falls short of q, and +inf is the one valid bound. The
+                # division still returns a number, and printing that number
+                # unlabelled is how a write-up came to headline a size where no
+                # bound exists. multiplicity_and_reimpl.py drops such sizes
+                # outright; this table keeps them, flagged, and names the worst
+                # ratio among the sizes that do support a bound.
+                feasible = k is not None
+                if feasible and (worst_feasible is None
+                                 or lin / nominal > worst_feasible[0]):
+                    worst_feasible = (lin / nominal, name, n, qf)
                 say(f"{name:<12} {n:>5} {qf:>6.2f} {nominal:>8.4f} {lin:>9.4f} "
                     f"{hi:>9.4f} {req:>9.4f} {exact:>10.4f} {lin - nominal:>+10.4f} "
-                    f"{lin / nominal:>8.1f}")
+                    f"{lin / nominal:>8.1f} {'yes' if feasible else 'NO':>9}")
     say("")
     say("'required' is rank ceil((n+1)*q); 'exact req' is its exact exceedance")
     say("1 - k/(n+1), derived. A positive 'lin - nom' is a VaR that is breached MORE")
     say("often than advertised.")
+    say("")
+    assert worst_feasible is not None, "no feasible VaR cell: nothing to report"
+    r, name, n, qf = worst_feasible
+    say(f"Worst ratio at a FEASIBLE size: {r:.1f}x at {name}, n={n}, q={qf:.2f}.")
+    say("'feasible' reads NO where ceil((n+1)*q) exceeds n. Every order statistic")
+    say("there falls short of q, so that row prices the absence of a bound, not")
+    say("the cost of resolving one through a level. The two are separated")
+    say("elsewhere in this artifact and must stay separated here.")
 
 
 # --------------------------------------------------------------------------

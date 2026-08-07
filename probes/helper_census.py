@@ -57,6 +57,7 @@ import argparse
 import glob
 import importlib.util
 import os
+import re
 import sys
 
 WINDOW = 6  # lines of drift tolerated before a site is reported as MOVED
@@ -369,6 +370,121 @@ MASTER_ONLY = [
     ("mapie master", "QuantileRegressionScore", "(b) via cancelled halving, PR #978"),
 ]
 
+# ---------------------------------------------------------------------------
+# How each P2 site reaches the conformance table, declared per site.
+#
+# The census counts 35 resolution sites and Table "conformance" carries 14 rows.
+# Those are counts of different populations -- a row is a call path the suite can
+# construct, and one row can stand for several sites that call the same
+# expression -- and until this block existed nothing in either paper said so. A
+# reader who put "8 of 14 call paths" beside a 35-site census had no way to close
+# the gap.
+#
+#   driven    the suite builds this library's helper and calls it; the row is
+#             named here so the join is checkable against the printed table
+#   shared    the site hands its level straight to numpy, uncorrected, and the
+#             table lists that one expression once instead of repeating it under
+#             every caller that reaches it. Asserted to be branch (d) below: the
+#             claim is only that the site resolves through the expression the row
+#             executes, which is what branch (d) means
+#   pvalue    a p-value denominator. Nothing here is an order statistic, so the
+#             suite has no rank to extract and no coverage figure to print.
+#             Asserted to be branch e/f
+#   absent    not in the conformance table. Says what this suite reaches, nothing
+#             about the site itself -- no per-site explanation is offered, since
+#             an unmeasured explanation is what got retracted here twice
+# ---------------------------------------------------------------------------
+# The rows of the conformance table, read off its committed outputs rather than
+# retyped. A 'driven' site must name one of these, so the join counts rows and the
+# 35-sites-to-14-rows arithmetic closes instead of stopping at a four-way split.
+def _conformance_rows():
+    here = os.path.dirname(os.path.abspath(__file__))
+    rows = set()
+    for env in ("forecasting", "tabular"):
+        path = os.path.join(here, "..", "outputs",
+                            f"probe_output_conformance_{env}.txt")
+        with open(path, encoding="utf-8") as fh:
+            for ln in fh:
+                m = re.match(r"^(\S.*?)\s{2,}(?:a|b|c|d|e/f|f/e|g|count)\s+"
+                             r"(?:raises|\+inf|[\d.]+)\s", ln)
+                if m and not m.group(1).startswith("reference"):
+                    rows.add(m.group(1).strip())
+    assert len(rows) >= 12, (
+        f"parsed {len(rows)} conformance rows; the table has more than that, so "
+        f"the row parser is dropping rows and every join below is understated")
+    return rows
+
+
+CONFORMANCE_ROWS = _conformance_rows()
+
+DISPOSITION_LABELS = [
+    ("driven", "the suite constructs this helper and calls it"),
+    ("shared", "resolves through a numpy quantile expression the table carries once"),
+    ("pvalue", "a p-value denominator: no threshold, so no rank to report"),
+    ("absent", "not in the conformance table; the suite does not reach it"),
+]
+
+SUITE_DISPOSITION = {
+    # ---- mapie -----------------------------------------------------------
+    "BaseConformityScore.get_quantile": ("driven", "mapie get_quantile"),
+    # Same row as the LAC prefit/mean site below: that row delegates here, so one
+    # row executes two sites. Naming the row rather than the delegation is what
+    # lets the join count ROWS and reconcile 35 sites against 14 table rows.
+    "_compute_quantiles":
+        ("driven", "mapie LAC quantiles [prefit/mean -> delegates]"),
+    "LACConformityScore.get_conformity_score_quantiles [prefit/mean]":
+        ("driven", "mapie LAC quantiles [prefit/mean -> delegates]"),
+    "LACConformityScore.get_prediction_sets [cv/crossval]":
+        ("driven", "mapie LAC quantiles [cv=5/crossval -> raw count]"),
+    "BaseRegressionScore._beta_optimize":
+        ("driven", "mapie _beta_optimize + get_quantile (composed)"),
+    "_MapieQuantileRegressor.predict": ("absent", ""),
+    # ---- crepes ----------------------------------------------------------
+    "ConformalClassifier.predict_set": ("pvalue", ""),
+    "p_values_batch": ("pvalue", ""),
+    "ConformalRegressor.predict_int": ("driven", "crepes ConformalRegressor.predict_int"),
+    "ConformalRegressor.predict_int_online": ("absent", ""),
+    "ConformalPredictiveSystem.predict_int":
+        ("driven", "crepes ConformalPredictiveSystem.predict_int"),
+    "ConformalPredictiveSystem.predict_int_online": ("absent", ""),
+    # ---- puncc -----------------------------------------------------------
+    "BaseCalibrator.compute_quantile": ("driven", "puncc BaseCalibrator.compute_quantile"),
+    "ClasswiseCalibrator.compute_quantile": ("absent", ""),
+    "quantile": ("driven", "puncc api/utils.py quantile (shared utility)"),
+    "EnbPI.predict": ("absent", ""),
+    "EnbPI.predict (online update)": ("absent", ""),
+    # ---- torchcp ---------------------------------------------------------
+    "calculate_conformal_value": ("driven", "torchcp calculate_conformal_value"),
+    # ---- nonconformist ---------------------------------------------------
+    "IcpClassifier.predict": ("pvalue", ""),
+    "AbsErrorErrFunc.apply_inverse": ("driven", "nonconformist AbsErrorErrFunc.apply_inverse"),
+    "SignErrorErrFunc.apply_inverse": ("absent", ""),
+    # ---- sktime ----------------------------------------------------------
+    "ConformalIntervals._predict_interval [method='empirical']":
+        ("shared", "numpy method='linear'"),
+    "ConformalIntervals._predict_interval [method='empirical_residual']":
+        ("shared", "numpy method='linear'"),
+    "ConformalIntervals._predict_interval [method='conformal_bonferroni']":
+        ("shared", "numpy method='linear'"),
+    "ConformalIntervals._predict_interval [method='conformal']":
+        ("shared", "numpy method='linear'"),
+    "EnbPI.conformal_interval": ("shared", "numpy method='linear'"),
+    # ---- river -----------------------------------------------------------
+    "RegressionJackknife.predict_one": ("absent", ""),
+    # ---- statsforecast ---------------------------------------------------
+    "_add_conformal_distribution_intervals": ("shared", "numpy method='linear'"),
+    "_add_conformal_error_intervals": ("shared", "numpy method='linear'"),
+    "ConformalSeasonalPool._oriented_index":
+        ("driven", "statsforecast _oriented_index"),
+    "ConformalSeasonalPool._intervals_from_samples": ("absent", ""),
+    # ---- darts -----------------------------------------------------------
+    "ConformalNaiveModel._calibrate_interval": ("shared", "numpy method='higher'"),
+    "ConformalQRModel._calibrate_interval": ("shared", "numpy method='higher'"),
+    # ---- neuralforecast --------------------------------------------------
+    "add_conformal_distribution_intervals": ("shared", "numpy method='linear'"),
+    "add_conformal_error_intervals": ("shared", "numpy method='linear'"),
+}
+
 DIST_DIRS = {  # cp-src directory name -> path prefix inside it, when they differ
     "puncc": "",
     "nonconformist": "",
@@ -394,6 +510,46 @@ def self_check():
         # and one that does not must name none -- that is what makes P3 a count
         # of the user-facing surface rather than a restatement of P2
         assert bool(s["entries"]) == s["output"], s["symbol"]
+
+    # ---- the join to the conformance table ---------------------------------
+    # Every P2 site is placed and nothing else is. A site added to the manifest
+    # without a disposition fails here rather than quietly shrinking a
+    # denominator the manuscript quotes, which is how a 35-versus-14 gap went
+    # unstated through three revisions.
+    p2_syms = [s["symbol"] for s in MANIFEST if s["output"]]
+    assert len(p2_syms) == len(set(p2_syms)), "two P2 sites share a symbol"
+    missing = [x for x in p2_syms if x not in SUITE_DISPOSITION]
+    extra = [x for x in SUITE_DISPOSITION if x not in p2_syms]
+    assert not missing, f"P2 sites with no declared disposition: {missing}"
+    assert not extra, f"SUITE_DISPOSITION names non-P2 sites: {extra}"
+    known = {k for k, _ in DISPOSITION_LABELS}
+    for s in MANIFEST:
+        if not s["output"]:
+            continue
+        disp, detail = SUITE_DISPOSITION[s["symbol"]]
+        assert disp in known, (s["symbol"], disp)
+        # The two substantive dispositions are claims about the site, so each is
+        # tied to the branch letter the census already recorded. 'shared' says the
+        # site resolves through the bare quantile expression, which is what branch
+        # (d) means; 'pvalue' says there is no threshold, which is branch e/f.
+        # Relabel a site without changing its branch and this fires.
+        if disp == "shared":
+            assert s["branch"] == "d", (
+                f"{s['symbol']} is declared to resolve through the shared numpy "
+                f"expression but its branch is ({s['branch']}), not (d) -- a site "
+                f"that corrects its level does not share that row")
+            assert detail, f"{s['symbol']}: 'shared' must name the row"
+        if disp == "pvalue":
+            assert s["branch"] in {"e/f", "f/e"}, (
+                f"{s['symbol']} is declared a p-value path but its branch is "
+                f"({s['branch']})")
+        if disp == "driven":
+            assert detail, f"{s['symbol']}: 'driven' must name its table row"
+            assert detail in CONFORMANCE_ROWS, (
+                f"{s['symbol']} names the row {detail!r}, which is not a row of "
+                f"the conformance table. A 'driven' detail that is a sentence "
+                f"rather than a row name satisfies a non-empty check and still "
+                f"leaves the site/row join uncountable")
     libs = {s["lib"].split()[0] for s in MANIFEST}
     assert libs == set(TOP_MODULE), libs ^ set(TOP_MODULE)
 
@@ -507,6 +663,50 @@ def main():
         n = len([s for s in p2 if s["lib"] == lib])
         new = len([s for s in p2 if s["lib"] == lib and not s["in_map"]])
         say(f"      {lib:<24} {n:>2}" + (f"   ({new} new)" if new else ""))
+    say("")
+    say("  " + "-" * 104)
+    say("  HOW THE P2 SITES REACH THE CONFORMANCE TABLE")
+    say("  " + "-" * 104)
+    say("  Sites and table rows are two different tallies, so the mapping between")
+    say("  them is printed instead of left to a reader. Each row is a call path")
+    say("  the suite could build. A site gets to one by three routes below, or by")
+    say("  none.")
+    say("")
+    for key, label in DISPOSITION_LABELS:
+        members = [s for s in p2 if SUITE_DISPOSITION[s["symbol"]][0] == key]
+        say(f"  {key:<9} {len(members):>2}   {label}")
+    say("")
+    for key, _ in DISPOSITION_LABELS:
+        for s in p2:
+            disp, detail = SUITE_DISPOSITION[s["symbol"]]
+            if disp == key:
+                say(f"      {key:<9} {s['lib'].split()[0]:<14} "
+                    f"{s['symbol'][:44]:<44} {detail}")
+    say("")
+    driven_rows = sorted({SUITE_DISPOSITION[s["symbol"]][1] for s in p2
+                          if SUITE_DISPOSITION[s["symbol"]][0] == "driven"})
+    shared_rows = sorted({SUITE_DISPOSITION[s["symbol"]][1] for s in p2
+                          if SUITE_DISPOSITION[s["symbol"]][0] == "shared"})
+    n_driven = len([s for s in p2 if SUITE_DISPOSITION[s["symbol"]][0] == "driven"])
+    n_shared = len([s for s in p2 if SUITE_DISPOSITION[s["symbol"]][0] == "shared"])
+    say("  and the arithmetic closes, which a four-way split of the sites does not:")
+    say(f"      {n_driven:>2} driven sites  ->  {len(driven_rows):>2} table row(s)")
+    say(f"      {n_shared:>2} shared sites  ->  {len(shared_rows):>2} table row(s)")
+    say(f"                        ->  {len(driven_rows) + len(shared_rows):>2} "
+        f"distinct resolution sites in the table")
+    extra = len(CONFORMANCE_ROWS) - (len(driven_rows) + len(shared_rows))
+    say(f"                        +   {extra:>1} second path on one of them "
+        f"(a public keyword)")
+    say(f"                        ->  {len(CONFORMANCE_ROWS):>2} call paths, "
+        f"which is what the table's rows count")
+    say("")
+    say(f"  So a proportion over {len(CONFORMANCE_ROWS)} call paths is not a proportion over")
+    say(f"  {len(p2)} sites and not a proportion of the ecosystem. The manuscript must say")
+    say("  which, and the two rows below are the ones that stand for more than one site.")
+    for row in shared_rows:
+        n_here = len([s for s in p2
+                      if SUITE_DISPOSITION[s["symbol"]] == ("shared", row)])
+        say(f"      {row:<58} {n_here:>2} site(s)")
     say("")
     say(f"  excluded from P2, listed so the exclusion is auditable ({len(excluded)}):")
     for s in excluded:
