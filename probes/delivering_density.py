@@ -3,14 +3,15 @@
 
 What was missing
 ----------------
-The residue table MEASURES how often each definition delivers a requested level --
-one in ten for inverted_cdf at 9/10, one in five for higher, one in seven at 5/7 --
-and the periodicity proposition proves the delivering set is a residue class without
-saying how big it is. So "collect more data is not the remedy" was qualitative: the
-set is periodic, and the fraction of sizes at which your call is honest was a number
-read off a sweep.
+The residue table counts deliveries by enumeration -- one size in ten for
+inverted_cdf at 9/10, one in five for higher, one in seven at 5/7 -- and the
+periodicity argument establishes that the delivering sizes form a residue class
+without pinning its size. So the claim that more data will not fix a lossy index map
+rested on a sweep: periodic, yes, but the proportion of honest sizes was a measured
+figure rather than a derived one.
 
-It has a closed form, and the form explains the table's own coincidences.
+There is a closed form for it, and having one accounts for coincidences the table
+shows but cannot explain.
 
 The result
 ----------
@@ -24,32 +25,30 @@ definition delivers at n exactly when floor(h(n)) >= ceil((n+1)L). Then:
 
 Derivations, each three lines.
 
-  inverted_cdf. h = ceil(Ln), and ceil(Ln) >= ceil(Ln + L) holds iff adding L does
-  not cross an integer: iff Ln is not an integer and L <= ceil(Ln) - Ln. With
-  frac(Ln) = r/d and r = pn mod d, that is 1 <= r <= d - p. Since gcd(p,d) = 1 the
-  map n -> pn mod d is a bijection on Z_d, so exactly d - p of the d residues
-  qualify, giving (d-p)/d = alpha.
+  inverted_cdf. h = ceil(Ln). The inequality ceil(Ln) >= ceil(Ln + L) survives only
+  where the step by L stays inside one integer gap: Ln off an integer, and L no
+  larger than the distance up to the next one. Writing frac(Ln) = r/d with
+  r = pn mod d turns that into 1 <= r <= d - p. Coprimality permutes Z_d under
+  n -> pn mod d, so d - p residues out of d clear it: (d-p)/d = alpha.
 
-  weibull. h = L(n+1), so floor(h) >= ceil(h) iff h is an integer iff d | p(n+1) iff
-  d | (n+1). One residue in d.
+  weibull. h = L(n+1). floor and ceil agree only on integers, which needs
+  d dividing p(n+1) and hence d dividing n+1. That is one residue out of d.
 
-  higher. h = ceil(L(n-1)) + 1. With s = p(n-1) mod d the condition is s = 0 together
-  with 2p <= d, or 1 <= s <= 2(d-p). For alpha < 1/2 the first case is empty and the
-  count is 2(d-p), giving 2*alpha.
+  higher. h = ceil(L(n-1)) + 1. Put s = p(n-1) mod d; delivery needs either s at zero
+  alongside 2p <= d, or s in 1 .. 2(d-p). Below alpha = 1/2 the first branch admits
+  nothing, leaving 2(d-p) residues and a density of 2*alpha.
 
-  linear, median_unbiased. Their virtual index never reaches ceil((n+1)L) at any n,
-  which the residue table already reports as a zero density and the periodicity
-  proposition explains.
+  linear, median_unbiased. Neither index ever climbs to ceil((n+1)L), at any size.
+  The residue table already prints zero for both.
 
 Why this settles a question about the SWEEP, not just about the definitions
 --------------------------------------------------------------------------
-At a unit fraction alpha = 1/d the two formulas alpha and 1/d COINCIDE, so
-inverted_cdf and weibull have identical densities at 9/10 and at 19/20 -- which is
-exactly what the measured table shows, and it is a coincidence of the level rather
-than a property of the definitions. They separate only off the unit fractions:
-at 5/7, inverted_cdf is 2/7 and weibull is 1/7. So the standing rule that every
-sweep here carries a non-unit-fraction level is not caution, it is the only way to
-tell two of these definitions apart, and this file is the proof of that.
+Where alpha = 1/d the expressions alpha and 1/d evaluate to one number, which puts
+inverted_cdf and weibull on the same density at 9/10 and at 19/20 -- and that is what
+the enumerated table shows. The level does it; neither definition has the property.
+Move off the unit fractions and they part: 2/7 against 1/7 at L = 5/7. Hence the
+standing rule that a non-unit-fraction level goes into every sweep. Without one the
+two cannot be told apart at all, and this file is where that is established.
 
 Enumeration over forty full periods per level checks every closed form, in exact
 rational arithmetic.
@@ -188,8 +187,8 @@ def main():
     say("alpha < 1/2; and the two definitions that never deliver enumerate to zero")
     say("rather than to something small.")
     say("")
-    say("Level L = p/d in lowest terms, alpha = 1 - L. A definition delivers at n")
-    say("when floor(h(n)) >= ceil((n+1)L).")
+    say("Take L = p/d reduced, alpha = 1 - L. Delivery at n means")
+    say("floor(h(n)) >= ceil((n+1)L).")
     say("")
     say("    inverted_cdf, averaged_inverted_cdf   density = alpha = (d-p)/d")
     say("    weibull                               density = 1/d")
@@ -214,30 +213,29 @@ def main():
     say("=" * 100)
     say("WHAT THE FORM EXPLAINS THAT THE MEASURED TABLE COULD NOT")
     say("")
-    say("(a) The factor of two. `higher` delivers exactly twice as often as")
-    say("    `inverted_cdf` while alpha < 1/2, because its condition admits an")
-    say("    interval of 2(d-p) residues where inverted_cdf's admits (d-p).")
+    say("(a) The factor of two. Below alpha = 1/2, `higher` lands honestly at twice")
+    say("    the sizes `inverted_cdf` does, because its condition takes in a stretch")
+    say("    of 2(d-p) residues against the other's (d-p).")
     say("")
-    say("(b) Why inverted_cdf and weibull looked identical. At a unit fraction")
-    say("    alpha = 1/d the forms alpha and 1/d are the same number, so the two")
-    say("    definitions have the same density at 9/10, 19/20 and 99/100 -- a")
-    say("    coincidence of the LEVEL, not a property of the definitions. Off the")
-    say("    unit fractions they separate:")
+    say("(b) Why inverted_cdf and weibull looked alike. Where alpha = 1/d the two")
+    say("    expressions alpha and 1/d evaluate to one number, which is why the pair")
+    say("    agrees at 9/10, 19/20 and 99/100. The LEVEL causes that, not anything")
+    say("    about either definition. Away from unit fractions they come apart:")
     for L in (F(5, 7), F(11, 13), F(17, 21)):
         a = predicted_density("inverted_cdf", L)
         w = predicted_density("weibull", L)
         say(f"      L = {str(L):<7} inverted_cdf {str(a):<7} vs weibull {str(w):<7} "
             f"ratio {float(a / w):.3f}")
     say("")
-    say("    So the standing rule that every sweep here carries a non-unit-fraction")
-    say("    level is not caution. It is the only way to tell two of these")
-    say("    definitions apart, and the closed form is why.")
+    say("    Hence the standing rule that a non-unit-fraction level appears in every")
+    say("    sweep. It is not caution: without one, two of these definitions are")
+    say("    indistinguishable, and the closed form shows why.")
     say("")
-    say("(c) A quantitative form for 'collect more data is not the remedy'. The")
-    say("    fraction of calibration sizes at which a raw level is honest is alpha")
-    say("    for the rounding definitions -- so the TIGHTER the level requested, the")
-    say("    RARER the sizes that honour it. At 0.99 it is one size in a hundred.")
-    say("    That is the opposite of the direction a practitioner expects.")
+    say("(c) A number in place of an adjective. For the rounding definitions the")
+    say("    proportion of honest calibration sizes is alpha itself, so asking for a")
+    say("    TIGHTER level leaves FEWER sizes that can honour it -- one in a hundred")
+    say("    at 0.99. Precisely the wrong way round for anyone who tightens a level")
+    say("    expecting a safer answer.")
 
     path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                         OUT)

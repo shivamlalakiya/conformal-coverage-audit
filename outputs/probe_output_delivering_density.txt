@@ -7,8 +7,8 @@ fractions and separate off them; higher is exactly twice inverted_cdf while
 alpha < 1/2; and the two definitions that never deliver enumerate to zero
 rather than to something small.
 
-Level L = p/d in lowest terms, alpha = 1 - L. A definition delivers at n
-when floor(h(n)) >= ceil((n+1)L).
+Take L = p/d reduced, alpha = 1 - L. Delivery at n means
+floor(h(n)) >= ceil((n+1)L).
 
     inverted_cdf, averaged_inverted_cdf   density = alpha = (d-p)/d
     weibull                               density = 1/d
@@ -74,25 +74,24 @@ when floor(h(n)) >= ceil((n+1)L).
 ====================================================================================================
 WHAT THE FORM EXPLAINS THAT THE MEASURED TABLE COULD NOT
 
-(a) The factor of two. `higher` delivers exactly twice as often as
-    `inverted_cdf` while alpha < 1/2, because its condition admits an
-    interval of 2(d-p) residues where inverted_cdf's admits (d-p).
+(a) The factor of two. Below alpha = 1/2, `higher` lands honestly at twice
+    the sizes `inverted_cdf` does, because its condition takes in a stretch
+    of 2(d-p) residues against the other's (d-p).
 
-(b) Why inverted_cdf and weibull looked identical. At a unit fraction
-    alpha = 1/d the forms alpha and 1/d are the same number, so the two
-    definitions have the same density at 9/10, 19/20 and 99/100 -- a
-    coincidence of the LEVEL, not a property of the definitions. Off the
-    unit fractions they separate:
+(b) Why inverted_cdf and weibull looked alike. Where alpha = 1/d the two
+    expressions alpha and 1/d evaluate to one number, which is why the pair
+    agrees at 9/10, 19/20 and 99/100. The LEVEL causes that, not anything
+    about either definition. Away from unit fractions they come apart:
       L = 5/7     inverted_cdf 2/7     vs weibull 1/7     ratio 2.000
       L = 11/13   inverted_cdf 2/13    vs weibull 1/13    ratio 2.000
       L = 17/21   inverted_cdf 4/21    vs weibull 1/21    ratio 4.000
 
-    So the standing rule that every sweep here carries a non-unit-fraction
-    level is not caution. It is the only way to tell two of these
-    definitions apart, and the closed form is why.
+    Hence the standing rule that a non-unit-fraction level appears in every
+    sweep. It is not caution: without one, two of these definitions are
+    indistinguishable, and the closed form shows why.
 
-(c) A quantitative form for 'collect more data is not the remedy'. The
-    fraction of calibration sizes at which a raw level is honest is alpha
-    for the rounding definitions -- so the TIGHTER the level requested, the
-    RARER the sizes that honour it. At 0.99 it is one size in a hundred.
-    That is the opposite of the direction a practitioner expects.
+(c) A number in place of an adjective. For the rounding definitions the
+    proportion of honest calibration sizes is alpha itself, so asking for a
+    TIGHTER level leaves FEWER sizes that can honour it -- one in a hundred
+    at 0.99. Precisely the wrong way round for anyone who tightens a level
+    expecting a safer answer.

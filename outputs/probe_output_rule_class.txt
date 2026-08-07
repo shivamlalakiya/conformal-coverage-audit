@@ -9,18 +9,18 @@ that one residue does NOT separate the class, and that the validity filter
 and the policy axis both discriminate.
 
 THE CLASS.  h(q, n) = a0 + a1 n + q (b0 + b1 n), rational coefficients, then
-a rounding policy from ceil, floor, half_even, half_up, trunc, optionally the
-level correction q -> min(1, q(n+1)/n), optionally a clip into [1, n].
+a rounding policy out of ceil, floor, half_even, half_up, trunc, then optionally
+the correction q -> min(1, q(n+1)/n), then optionally a clip into [1, n].
 
-THE REDUCTION.  At a fixed level L = p/d in lowest terms, h is affine in n:
-h = U + V n with U = a0 + L b0 and V = a1 + L b1. Bounded over-coverage
-forces V = L, since delivered coverage is rank/(n+1) -> V. Writing
-L n = floor(Ln) + f, gcd(p,d) = 1 makes f sweep all of {0, 1/d, .., (d-1)/d},
-and delivered - required = P(U + f) - ceil(f + L). So a rule's whole
+THE REDUCTION.  Pin the level at L = p/d, lowest terms, and h goes linear in
+n: h = U + V n, U = a0 + L b0, V = a1 + L b1. Coverage approaches V, so
+bounded over-coverage pins V to L. Split L n into its integer part plus a
+remainder f; p and d share no factor, so f visits every multiple of 1/d
+below one, and delivered - required = P(U + f) - ceil(f + L). A rule's whole
 observable behaviour above the prefix is 2d integers, indexed by n mod 2d.
 
-The period is 2d and not d because round-half-to-even breaks a tie on the
-parity of the FULL integer part, which the offset alone does not carry. Only
+2d and not d: round-half-to-even settles a tie on whether the integer part
+is even, which the offset by itself does not carry. Only
 that policy needs the doubling; the others repeat with period d inside it. A
 draft rounded on the offset alone and its self-check caught `nearest` at
 n = 26, L = 9/10, where h = 23.5 rounds up because 23 is odd while the offset
@@ -79,9 +79,9 @@ nearest             corrected      79/80     NO      0   [0, 0, 0, 0, 0, -1, -1,
   least attainable anywhere in the class: 0 rank(s)
   the folklore idiom, higher at the corrected level: valid, worst-case 1
   SO THE FOLKLORE IDIOM IS 1 RANK SHORT OF OPTIMAL.
-  inverted_cdf/corrected, weibull/corrected delivers the required rank at every size, and
-  higher over-covers on a residue class. The recommendation both
-  papers carry is serviceable and it is not the minimax rule.
+  inverted_cdf/corrected, weibull/corrected hits the required rank at every size, while
+  higher lands past it on a residue class. Serviceable advice, then,
+  and not the rule that minimises the worst case.
 
 ----------------------------------------------------------------------------------------------------
 requested level L = 5/7   (d = 7, so the period in n is 14)
@@ -110,9 +110,9 @@ nearest             corrected      55/56     NO      0   [0, 0, -1, 0, 0, 0, 0, 
   least attainable anywhere in the class: 0 rank(s)
   the folklore idiom, higher at the corrected level: valid, worst-case 1
   SO THE FOLKLORE IDIOM IS 1 RANK SHORT OF OPTIMAL.
-  inverted_cdf/corrected delivers the required rank at every size, and
-  higher over-covers on a residue class. The recommendation both
-  papers carry is serviceable and it is not the minimax rule.
+  inverted_cdf/corrected hits the required rank at every size, while
+  higher lands past it on a residue class. Serviceable advice, then,
+  and not the rule that minimises the worst case.
 
 ====================================================================================================
 (2) EXACTNESS IS ATTAINABLE, AND ONE SHIPPED CONVENTION ATTAINS IT
@@ -156,9 +156,9 @@ THE WITNESS THAT WORKS AT EVERY LEVEL is shorter than any of this:
 
     required rank = ceil( q (n+1) )
 
-the mean-rank plotting position's own virtual index, rounded UP instead of
-down. It is exact by construction, since ceil(L(n+1)) IS the required rank,
-and it sits in the class at a0 = a1 = 0, b0 = b1 = 1, policy ceil. numpy
+the mean-rank plotting position's own index, rounded UP where numpy rounds
+down. Exact by construction: ceil(L(n+1)) is what the requirement asks for.
+It sits in the class at a0 = a1 = 0, b0 = b1 = 1, policy ceil. numpy
 pairs that index with linear interpolation and calls it `weibull`; it pairs
 `higher` with a different index. And one shipped combination already IS this
 rule, by an identity worth stating: `inverted_cdf` computes ceil(q n), so at
@@ -205,9 +205,9 @@ nearest                   raw      5/7     -1      0     NO     no
 nearest             corrected      5/7     -1      0     NO     no
 
 `inverted_cdf` at the corrected level is exact at both levels. `weibull` at
-the corrected level is exact at 9/10 and not at 5/7, which is the
-unit-fraction dependence again: its offset 2L lands in the exact interval
-only when alpha = 1/d. Everything else is either invalid or over-covers.
+the corrected level is exact at 9/10 and not at 5/7 -- the unit-fraction
+dependence again, since its offset 2L falls inside the exact window only for
+alpha = 1/d. Every other cell is invalid or lands wide.
 
 ====================================================================================================
 (3) THE CERTIFICATE, MADE ABSOLUTE
@@ -260,15 +260,15 @@ over-estimate rather than a fitted one.
 ====================================================================================================
 (5) THE OPTIMAL IDIOM, EXECUTED AGAINST numpy RATHER THAN DERIVED
 ====================================================================================================
-Section (2) is arithmetic. The recommendation it produces is about a call a
-practitioner writes, so it is run: for each size and level, numpy is asked for
+Section (2) is arithmetic, and what it recommends is something somebody
+types, so it gets run: at each size and level numpy is handed
 the corrected level and the answer is compared to the required order statistic
 read out of the sorted scores directly. A derived recommendation about shipped
 software is not evidence about shipped software -- and running it changed the
 recommendation a second time.
 
-numpy 2.4.6. Scores are 1..n, so a returned value IS a rank and
-no interpolation can hide inside a coincidence of values.
+numpy 2.4.6. Scores run 1..n, so whatever comes back IS the rank
+it selected, and no interpolation can hide behind equal values.
 
   level  sizes |   inverted_cdf @ corrected |       higher @ corrected |   sort()[k-1]
                |    exact    over    under |    exact   over   under |         exact
@@ -280,9 +280,10 @@ no interpolation can hide inside a coincidence of values.
     1/2    390 |      375      15        0 |      195    195       0 |           390
 
 THE EXACT IDIOM IS EXACT IN EXACT ARITHMETIC AND NOT IN IEEE DOUBLE.
-Across 1941 size-level cells, `inverted_cdf` at the corrected level returned the required rank in all but
-21, and in every one of those it returned one rank PAST it, never
-short. So the departure costs width and not validity.
+Over 1941 size-level cells, `inverted_cdf` fed the corrected level hit the requirement everywhere except
+21 of them, and each exception overshot by a single rank rather
+than falling short. The cost is width, never validity.
+MACHINE exec_cells=1941 exec_misses=21
 
            n     k*  returned   L(n+1) integral   float (1-a)(n+1)/n * n
 ----------------------------------------------------------------------------------------------------
@@ -316,41 +317,40 @@ short. So the departure costs width and not validity.
     2/3     390             130        5            5/130
     1/2     390             195       15           15/195
 
-Every miss sits at a size where L(n+1) is an INTEGER: the required rank is
-attained with no slack, the corrected level L(n+1)/n is not a double, and the
-product recovers 28.000000000000004 rather than 28, so ceil returns 29. The
-mechanism is representation, not the convention, and it strikes only where the
-rule is tight. The exposure is bounded above by how often the level leaves no
-slack. WHICH of those sizes actually fail is decided by the binary expansion of
-the corrected level and is not predictable from alpha: the no-slack sizes at
-alpha = 1/10 and 1/20 all came out exact, and the misses are concentrated at
-2/7, 1/3 and 1/2. We do not offer a characterisation, because we do not have
-one -- and not having one is the argument. A level is a lossy channel for an
-integer even when the convention on the far side is the right one.
+Every miss lands where L(n+1) comes out whole: the requirement is met with
+nothing to spare, L(n+1)/n has no exact double, and the product returns
+28.000000000000004 in place of 28, so ceil hands back 29. Floating-point
+representation does this, not the convention, and only where nothing is to
+spare -- so how often it can bite is capped by how often the level is tight.
+Which of those sizes break is settled by the bits of the corrected level and
+does not follow from alpha: every tight size came out clean at alpha = 1/10
+and 1/20, while 2/7, 1/3 and 1/2 hold all the failures. No characterisation
+is offered here because none was found, and that absence is itself the
+finding. Routing an integer through a level loses information even when the
+convention receiving it is the correct one.
 
 WHICH IS THE ANSWER, AND IT IS NOT A LIBRARY CALL:
 
     numpy.sort(scores)[k - 1],    k = ceil((n+1)(1-alpha))
 
-exact at every size and level tested, by construction, because no level is
-formed. The best available library idiom is
+clean in every cell tried, by construction, since it forms no level at all.
+The best a library call manages is
 
     numpy.quantile(scores, min(1, (1-alpha)*(n+1)/n), method='inverted_cdf')
 
-which is minimax-optimal among conventions and conservative by one rank at the
-sizes with no slack. Both manuscripts recommended `higher` at the same level,
-which is valid and one rank wide on a whole residue class rather than on a
-handful of unrepresentable sizes. That recommendation is superseded here.
+least bad in the worst case among the conventions, and one rank wide at the
+tight sizes. Earlier write-ups pointed at `higher` on the same level; that is
+valid too, but wide across an entire residue class instead of a few sizes a
+double cannot hold. Superseded here.
 
 
 ====================================================================================================
 WHAT THIS DOES NOT SETTLE
 ====================================================================================================
-The class is affine in the level with coefficients affine in the size. A rule
-whose index is quadratic in n, or which consults the scores themselves, is
-outside it and is not covered by the certificate. Randomised rules are
-outside it by construction -- they are the subject of the companion's
-randomised-bound section, where the feasibility floor moves. And the minimax
-is over WORST-CASE over-coverage across sizes; a rule minimising average
-over-coverage against a distribution over n is a different optimisation and
-is not solved here.
+Linear in the level, linear in the size: that is the whole class. An index
+quadratic in n, or reading the scores themselves, falls outside and the
+certificate is silent on it. Anything randomised is out by
+construction; randomized_bound.py is where those live, and the floor itself
+moves there. The optimisation solved here is the worst case across sizes.
+Averaging over some distribution on n asks a different question and this
+probe does not answer it.

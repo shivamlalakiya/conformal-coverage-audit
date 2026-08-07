@@ -1,66 +1,60 @@
 #!/usr/bin/env python3
 """The level-resolving rule class: finitely partitioned, and minimax-solved.
 
-WHAT WAS MISSING
-----------------
-Two admissions, one in each paper.
-
-  * The certificate separates the sixteen rules ENUMERATED. A referee reads that as
-    candidate-relative, and correctly: nothing said what happens to a rule nobody
-    listed.
-  * Both papers recommend `higher` at a corrected level, and both call the
-    recommendation folklore rather than a result. Advice, not a theorem.
-
-Both fall to the same observation, which is why they are one probe.
-
-THE REDUCTION
+WHY THIS RUNS
 -------------
-Define the class: a rule computes a virtual index affine in the requested level with
-coefficients affine in the calibration size,
+The certificate probe separates sixteen listed candidates and says nothing about a
+seventeenth nobody wrote down, so a maintainer whose helper is off the list gets no
+verdict from it. Separately, `higher` at a corrected level had been passed along as
+received practice rather than computed. One reduction closes both, so one probe.
+
+THE CLASS
+---------
+Take every rule whose virtual index is linear in the level asked for, with
+coefficients themselves linear in how many scores there are:
 
     h(q, n) = a0 + a1 n + q (b0 + b1 n),        a, b rational,
 
-applies a rounding policy from a fixed finite set, optionally corrects the level to
-min(1, q(n+1)/n), and optionally clips the result into [1, n]. Every Hyndman-Fan
-definition is in it (a0 = alpha, a1 = 0, b0 = 1 - alpha - beta, b1 = 1), and so is
-every numpy alias, `percentile_disc`, and Excel's two functions.
+followed by a rounding policy out of a fixed finite set, then optionally the level
+correction q -> min(1, q(n+1)/n), then optionally a clip into [1, n]. The nine types
+of Hyndman and Fan land inside at a0 = alpha, a1 = 0, b0 = 1 - alpha - beta, b1 = 1.
+numpy's aliases land inside. So do SQL's discrete aggregate and both spreadsheet
+functions. Membership is uncountable.
 
-At a FIXED requested level L = p/d in lowest terms, h collapses to an affine function
-of n alone:
+WHAT COLLAPSES IT
+-----------------
+Pin the level at L = p/d, written down in lowest terms. h is then linear in n by
+itself:
 
     h(n) = U + V n,     U = a0 + L b0,   V = a1 + L b1.
 
-Two facts follow, and they are the whole probe.
+The slope goes first. Coverage approaches V, so a slope under L cannot be valid in
+the limit and a slope over L widens without bound; bounded over-coverage pins V to L.
 
-  (1) Bounded over-coverage forces V = L. Delivered coverage is rank/(n+1) -> V, so
-      V < L is asymptotically invalid and V > L over-covers without bound.
-  (2) With V = L, write L n = floor(Ln) + f. Because gcd(p, d) = 1 the fractional
-      part f runs over ALL of {0, 1/d, ..., (d-1)/d} as n varies, and
+The offset goes second. Split L n into its integer part and a remainder f. Since p and
+d share no factor, f visits every multiple of 1/d below one as n moves, and
 
-          delivered rank = floor(Ln) + P(U + f)
+    delivered = floor(Ln) + P(U + f)      required = floor(Ln) + ceil(f + L)
 
-      for the rule's policy P. The required rank is floor(Ln) + ceil(f + L). So the
-      SIGNED DEFICIT depends on n only through the residue p n mod d -- d numbers per
-      rule, and nothing else.
+for the policy P, so the difference reads n only through p n mod d. That is d numbers
+for a rule and nothing more. The quotient is finite -- one cell per policy, integer
+part of U, and position of frac(U) on the grid -- and each cell is settled in exact
+rationals. Validity and worst-case width then come from d residues instead of a
+search over n.
 
-That is the finite partition. The class is uncountable; its observational quotient at
-a fixed level has at most |policies| * d * (window in the integer offset) cells, all
-computable in exact rational arithmetic. Validity and worst-case over-coverage are
-then decided by evaluating d residues, not by searching over n.
+WHAT IT REPORTS
+---------------
+  * the quotient and how big it is, level by level;
+  * a certificate covering the whole class, shown minimal by exhausting every
+    smaller residue set rather than by exhibiting one that happens to work;
+  * the smallest worst-case over-coverage any valid cell reaches, and the cells
+    reaching it;
+  * where `higher` at a corrected level falls against that, and where the wider
+    class does better.
 
-WHAT THIS PROBE CLAIMS
-----------------------
-  * the partition, with its size, per level;
-  * the minimal certificate for the WHOLE class rather than for a candidate list,
-    proved minimal by exhausting every smaller set of residues;
-  * the minimax: among class rules valid at every size above the prefix, the least
-    attainable worst-case over-coverage, and which cells attain it;
-  * that `higher` at the corrected level attains the minimum among rules a library
-    exposes, and that the wider class does better at unit-fraction levels only.
-
-Every cell prediction is checked against brute-force simulation of the rule over a
-long run of n. The reduction is the thing being tested; a closed form agreeing with
-itself is this project's characteristic failure.
+Each cell's prediction is re-checked by running the rule over a long stretch of n.
+The reduction is the thing under test, and a closed form that only agrees with itself
+is this programme's signature failure.
 
     python probes/rule_class.py
 """
@@ -101,9 +95,9 @@ def p_round_half_up(x, base=0):
 def p_round_half_even(x, base=0):
     """Round half to even, on x offset by an integer `base` that is not passed in x.
 
-    The parity that breaks a tie is the parity of the FULL integer part, so this is
-    the one policy here whose answer is not a function of the offset alone. It is why
-    the reduction below runs over 2d residues rather than d: the deficit depends on n
+    A tie is settled by whether the whole integer part is even, so this is the one
+    policy whose answer is not fixed by the offset by itself. Hence 2d residues below
+    rather than d: the deficit depends on n
     through frac(Ln), period d, AND through the parity of floor(Ln), period 2d.
 
     A first version rounded on the offset alone and its self-check caught `nearest`
@@ -133,8 +127,8 @@ def p_trunc(x, base=0):
 
 POLICIES = {"floor": p_floor_b, "ceil": p_ceil_b, "half_up": p_round_half_up,
             "half_even": p_round_half_even, "trunc": p_trunc}
-# the policies whose answer depends on the parity of the full integer part, and so
-# force the period to 2d. Named rather than detected: a policy silently promoted into
+# the policies that read whether the whole integer part is even, and so push the
+# period to 2d. Named rather than detected: a policy silently promoted into
 # this set would change every period in the output with nothing to say so.
 PARITY_POLICIES = {"half_even"}
 
@@ -249,9 +243,9 @@ def separates(vecs, residues):
 def forced_residues(vecs):
     """Residues that EVERY separating set must contain, with the pairs forcing them.
 
-    Two cells are distinguished exactly by the residues where their deficit vectors
-    differ. If a pair differs at one residue only, that residue is in every separating
-    set. So the forced residues are a lower bound on |S| that needs no search.
+    A pair of cells is told apart precisely at the residues where their deficit
+    vectors disagree. Where a pair disagrees at a single residue, no separating set
+    can omit it. Collecting those gives a floor on |S| with no search involved.
     """
     vecs = list(vecs)
     forced, witness = set(), {}
@@ -382,18 +376,18 @@ def main():
     say("and the policy axis both discriminate.")
     say("")
     say("THE CLASS.  h(q, n) = a0 + a1 n + q (b0 + b1 n), rational coefficients, then")
-    say("a rounding policy from " + ", ".join(sorted(POLICIES)) + ", optionally the")
-    say("level correction q -> min(1, q(n+1)/n), optionally a clip into [1, n].")
+    say("a rounding policy out of " + ", ".join(sorted(POLICIES)) + ", then optionally")
+    say("the correction q -> min(1, q(n+1)/n), then optionally a clip into [1, n].")
     say("")
-    say("THE REDUCTION.  At a fixed level L = p/d in lowest terms, h is affine in n:")
-    say("h = U + V n with U = a0 + L b0 and V = a1 + L b1. Bounded over-coverage")
-    say("forces V = L, since delivered coverage is rank/(n+1) -> V. Writing")
-    say("L n = floor(Ln) + f, gcd(p,d) = 1 makes f sweep all of {0, 1/d, .., (d-1)/d},")
-    say("and delivered - required = P(U + f) - ceil(f + L). So a rule's whole")
+    say("THE REDUCTION.  Pin the level at L = p/d, lowest terms, and h goes linear in")
+    say("n: h = U + V n, U = a0 + L b0, V = a1 + L b1. Coverage approaches V, so")
+    say("bounded over-coverage pins V to L. Split L n into its integer part plus a")
+    say("remainder f; p and d share no factor, so f visits every multiple of 1/d")
+    say("below one, and delivered - required = P(U + f) - ceil(f + L). A rule's whole")
     say("observable behaviour above the prefix is 2d integers, indexed by n mod 2d.")
     say("")
-    say("The period is 2d and not d because round-half-to-even breaks a tie on the")
-    say("parity of the FULL integer part, which the offset alone does not carry. Only")
+    say("2d and not d: round-half-to-even settles a tie on whether the integer part")
+    say("is even, which the offset by itself does not carry. Only")
     say("that policy needs the doubling; the others repeat with period d inside it. A")
     say("draft rounded on the offset alone and its self-check caught `nearest` at")
     say("n = 26, L = 9/10, where h = 23.5 rounds up because 23 is odd while the offset")
@@ -482,9 +476,9 @@ def main():
         assert hi_valid, "higher at the corrected level is not valid: the papers' own recommendation fails"
         if hi_worst > bestlib:
             say(f"  SO THE FOLKLORE IDIOM IS {hi_worst - bestlib} RANK SHORT OF OPTIMAL.")
-            say(f"  {', '.join(champs)} delivers the required rank at every size, and")
-            say("  higher over-covers on a residue class. The recommendation both")
-            say("  papers carry is serviceable and it is not the minimax rule.")
+            say(f"  {', '.join(champs)} hits the required rank at every size, while")
+            say("  higher lands past it on a residue class. Serviceable advice, then,")
+            say("  and not the rule that minimises the worst case.")
         else:
             say("  So the folklore idiom attains the minimum among shipped conventions.")
         say("")
@@ -546,9 +540,9 @@ def main():
     say("")
     say("    required rank = ceil( q (n+1) )")
     say("")
-    say("the mean-rank plotting position's own virtual index, rounded UP instead of")
-    say("down. It is exact by construction, since ceil(L(n+1)) IS the required rank,")
-    say("and it sits in the class at a0 = a1 = 0, b0 = b1 = 1, policy ceil. numpy")
+    say("the mean-rank plotting position's own index, rounded UP where numpy rounds")
+    say("down. Exact by construction: ceil(L(n+1)) is what the requirement asks for.")
+    say("It sits in the class at a0 = a1 = 0, b0 = b1 = 1, policy ceil. numpy")
     say("pairs that index with linear interpolation and calls it `weibull`; it pairs")
     say("`higher` with a different index. And one shipped combination already IS this")
     say("rule, by an identity worth stating: `inverted_cdf` computes ceil(q n), so at")
@@ -572,9 +566,9 @@ def main():
                     f"{('YES' if min(v) == max(v) == 0 else 'no'):>6}")
         say("")
     say("`inverted_cdf` at the corrected level is exact at both levels. `weibull` at")
-    say("the corrected level is exact at 9/10 and not at 5/7, which is the")
-    say("unit-fraction dependence again: its offset 2L lands in the exact interval")
-    say("only when alpha = 1/d. Everything else is either invalid or over-covers.")
+    say("the corrected level is exact at 9/10 and not at 5/7 -- the unit-fraction")
+    say("dependence again, since its offset 2L falls inside the exact window only for")
+    say("alpha = 1/d. Every other cell is invalid or lands wide.")
     say("")
     say("=" * 100)
     say("(3) THE CERTIFICATE, MADE ABSOLUTE")
@@ -642,16 +636,16 @@ def main():
     say("=" * 100)
     say("(5) THE OPTIMAL IDIOM, EXECUTED AGAINST numpy RATHER THAN DERIVED")
     say("=" * 100)
-    say("Section (2) is arithmetic. The recommendation it produces is about a call a")
-    say("practitioner writes, so it is run: for each size and level, numpy is asked for")
+    say("Section (2) is arithmetic, and what it recommends is something somebody")
+    say("types, so it gets run: at each size and level numpy is handed")
     say("the corrected level and the answer is compared to the required order statistic")
     say("read out of the sorted scores directly. A derived recommendation about shipped")
     say("software is not evidence about shipped software -- and running it changed the")
     say("recommendation a second time.")
     say("")
     import numpy as np
-    say(f"numpy {np.__version__}. Scores are 1..n, so a returned value IS a rank and")
-    say("no interpolation can hide inside a coincidence of values.")
+    say(f"numpy {np.__version__}. Scores run 1..n, so whatever comes back IS the rank")
+    say("it selected, and no interpolation can hide behind equal values.")
     say("")
     say(f"{'level':>7} {'sizes':>6} | {'inverted_cdf @ corrected':>26} | "
         f"{'higher @ corrected':>24} | {'sort()[k-1]':>13}")
@@ -684,10 +678,14 @@ def main():
     say("")
     allmiss = [m for r in exec_rows for m in r["misses"]]
     say("THE EXACT IDIOM IS EXACT IN EXACT ARITHMETIC AND NOT IN IEEE DOUBLE.")
-    say(f"Across {sum(r['n'] for r in exec_rows)} size-level cells, "
-        f"`inverted_cdf` at the corrected level returned the required rank in all but")
-    say(f"{len(allmiss)}, and in every one of those it returned one rank PAST it, never")
-    say("short. So the departure costs width and not validity.")
+    say(f"Over {sum(r['n'] for r in exec_rows)} size-level cells, `inverted_cdf` fed "
+        f"the corrected level hit the requirement everywhere except")
+    say(f"{len(allmiss)} of them, and each exception overshot by a single rank rather")
+    say("than falling short. The cost is width, never validity.")
+    # A stable line for the macro layer to parse. The numbers above are prose and
+    # prose gets reworded; a parser anchored on a sentence breaks when it does.
+    say(f"MACHINE exec_cells={sum(r['n'] for r in exec_rows)} "
+        f"exec_misses={len(allmiss)}")
     say("")
     if allmiss:
         say(f"{'n':>12} {'k*':>6} {'returned':>9} {'L(n+1) integral':>17} "
@@ -708,31 +706,31 @@ def main():
         say(f"{str(r['L']):>7} {r['n']:>7} {r['noslack']:>15} "
             f"{len(r['misses']):>8} {frac:>16}")
     say("")
-    say("Every miss sits at a size where L(n+1) is an INTEGER: the required rank is")
-    say("attained with no slack, the corrected level L(n+1)/n is not a double, and the")
-    say("product recovers 28.000000000000004 rather than 28, so ceil returns 29. The")
-    say("mechanism is representation, not the convention, and it strikes only where the")
-    say("rule is tight. The exposure is bounded above by how often the level leaves no")
-    say("slack. WHICH of those sizes actually fail is decided by the binary expansion of")
-    say("the corrected level and is not predictable from alpha: the no-slack sizes at")
-    say("alpha = 1/10 and 1/20 all came out exact, and the misses are concentrated at")
-    say("2/7, 1/3 and 1/2. We do not offer a characterisation, because we do not have")
-    say("one -- and not having one is the argument. A level is a lossy channel for an")
-    say("integer even when the convention on the far side is the right one.")
+    say("Every miss lands where L(n+1) comes out whole: the requirement is met with")
+    say("nothing to spare, L(n+1)/n has no exact double, and the product returns")
+    say("28.000000000000004 in place of 28, so ceil hands back 29. Floating-point")
+    say("representation does this, not the convention, and only where nothing is to")
+    say("spare -- so how often it can bite is capped by how often the level is tight.")
+    say("Which of those sizes break is settled by the bits of the corrected level and")
+    say("does not follow from alpha: every tight size came out clean at alpha = 1/10")
+    say("and 1/20, while 2/7, 1/3 and 1/2 hold all the failures. No characterisation")
+    say("is offered here because none was found, and that absence is itself the")
+    say("finding. Routing an integer through a level loses information even when the")
+    say("convention receiving it is the correct one.")
     say("")
     say("WHICH IS THE ANSWER, AND IT IS NOT A LIBRARY CALL:")
     say("")
     say("    numpy.sort(scores)[k - 1],    k = ceil((n+1)(1-alpha))")
     say("")
-    say("exact at every size and level tested, by construction, because no level is")
-    say("formed. The best available library idiom is")
+    say("clean in every cell tried, by construction, since it forms no level at all.")
+    say("The best a library call manages is")
     say("")
     say("    numpy.quantile(scores, min(1, (1-alpha)*(n+1)/n), method='inverted_cdf')")
     say("")
-    say("which is minimax-optimal among conventions and conservative by one rank at the")
-    say("sizes with no slack. Both manuscripts recommended `higher` at the same level,")
-    say("which is valid and one rank wide on a whole residue class rather than on a")
-    say("handful of unrepresentable sizes. That recommendation is superseded here.")
+    say("least bad in the worst case among the conventions, and one rank wide at the")
+    say("tight sizes. Earlier write-ups pointed at `higher` on the same level; that is")
+    say("valid too, but wide across an entire residue class instead of a few sizes a")
+    say("double cannot hold. Superseded here.")
     say("")
     for r in exec_rows:
         # exact arithmetic must be exact: the CELL for inverted_cdf/corrected is zero
@@ -768,14 +766,13 @@ def main():
     say("=" * 100)
     say("WHAT THIS DOES NOT SETTLE")
     say("=" * 100)
-    say("The class is affine in the level with coefficients affine in the size. A rule")
-    say("whose index is quadratic in n, or which consults the scores themselves, is")
-    say("outside it and is not covered by the certificate. Randomised rules are")
-    say("outside it by construction -- they are the subject of the companion's")
-    say("randomised-bound section, where the feasibility floor moves. And the minimax")
-    say("is over WORST-CASE over-coverage across sizes; a rule minimising average")
-    say("over-coverage against a distribution over n is a different optimisation and")
-    say("is not solved here.")
+    say("Linear in the level, linear in the size: that is the whole class. An index")
+    say("quadratic in n, or reading the scores themselves, falls outside and the")
+    say("certificate is silent on it. Anything randomised is out by")
+    say("construction; randomized_bound.py is where those live, and the floor itself")
+    say("moves there. The optimisation solved here is the worst case across sizes.")
+    say("Averaging over some distribution on n asks a different question and this")
+    say("probe does not answer it.")
 
     path = os.path.abspath(OUT)
     with open(path, "w") as fh:
