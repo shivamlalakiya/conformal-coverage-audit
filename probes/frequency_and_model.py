@@ -65,10 +65,26 @@ COVERAGES = (0.90, 0.95)
 # than by the window, and a first version of this probe pooled different n under one
 # label before its own index-agreement test caught it.
 WINDOWS = (20, 30)
+# `empirical` and not `empirical_residual`. The latter takes the wrong tail -- it is
+# sktime #10757, reported in the companion audit as delivering 0.000 against a nominal
+# 0.9 -- so its arm A covers nothing and the paired difference is 1.000 everywhere,
+# carrying that defect rather than the index convention. A first run of this probe used
+# it and its own contrast assertion fired: the coincidence cells showed a LARGER mean
+# difference than the deficit cells, which is the signature of a comparison measuring
+# something else. `empirical` is also the method run_real_data lists in TWO_RAIL, so it
+# is the one whose two rails are a span.
+METHOD = "empirical"
+# (name, path, frequency, max observations per series). The length cap matters only
+# for the daily collection, whose series run past a thousand observations: the
+# gradient-boosted arm refits once per sliding window, so an uncapped daily series costs
+# minutes and the arm costs hours. What this probe tests is whether the index arithmetic
+# agrees across frequencies at a given RESIDUAL COUNT, and a hundred residuals settle
+# that as well as a thousand. The cap is printed per collection and the truncation is
+# reported, not silent.
 COLLECTIONS = [
-    ("m1_quarterly", "/tmp/m1_quarterly.npz", "quarterly"),
-    ("m3_quarterly", "/tmp/m3_quarterly.npz", "quarterly"),
-    ("m4_daily", "/tmp/m4_daily.npz", "daily"),
+    ("m1_quarterly", "/tmp/m1_quarterly.npz", "quarterly", None),
+    ("m3_quarterly", "/tmp/m3_quarterly.npz", "quarterly", None),
+    ("m4_daily", "/tmp/m4_daily.npz", "daily", 140),
 ]
 
 LINES = []
@@ -156,7 +172,7 @@ def main():
 
     mdl = models()
     rows = []
-    for name, path, freq in COLLECTIONS:
+    for name, path, freq, lcap in COLLECTIONS:
         series, meta = load(path)
         say("-" * 106)
         if series is None:
@@ -165,8 +181,16 @@ def main():
             say("  reported rather than inferred.")
             continue
         used = series[:cap]
+        raw_lens = [len(x) for x in used]
+        if lcap:
+            used = [x[:lcap] for x in used]
         say(f"{name} ({freq}): {len(series)} series available, {len(used)} used, "
             f"{len(series) - len(used)} skipped for compute")
+        if lcap and max(raw_lens) > lcap:
+            trimmed = sum(1 for L in raw_lens if L > lcap)
+            say(f"  length cap {lcap}: {trimmed} of {len(used)} series truncated "
+                f"(longest was {max(raw_lens)}). The cap is compute, not selection --"
+                f" the head of each series is kept and the count is stated.")
         say("")
         say(f"{'model':<18}{'win':>5}{'n':>5}{'level':>7}{'req rank':>9}"
             f"{'lo idx':>7}{'nests':>7}{'cells':>7}{'A cov':>8}{'B cov':>8}"
@@ -176,7 +200,7 @@ def main():
                 # (window, n, level) -> records. n is the count the record reports.
                 acc = {}
                 for ser in used:
-                    recs = run_cells(ser, win, "empirical_residual", COVERAGES,
+                    recs = run_cells(ser, win, METHOD, COVERAGES,
                                      forecaster=fc)
                     for c in COVERAGES:
                         r = recs[c]

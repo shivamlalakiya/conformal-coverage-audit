@@ -1,0 +1,150 @@
+==========================================================================================================
+FREQUENCY AND BASE-MODEL BREADTH: DOES THE MAP MOVE?
+==========================================================================================================
+self_check() passed at import: the cell grid contains cells with a deficit
+and cells without one, and the deficit is a function of (n, level) alone --
+checked as arithmetic before any forecaster exists.
+
+THE PREDICTION, FIXED BEFORE THE RUN. The landed and required indices read a
+residual COUNT and never a residual VALUE, so the deficit at a given
+calibration size must be identical across frequencies and across base
+models, and the paired difference must be non-negative and near zero where
+the deficit is zero. A base model that moved a landed index would falsify
+the central claim; the assertions below stop the run rather than report it
+in a column.
+
+series cap per collection: 20. The gradient-boosted arm refits once per
+sliding window, so the cap is compute and not selection: series are taken in
+file order and the number skipped is printed.
+
+----------------------------------------------------------------------------------------------------------
+m1_quarterly (quarterly): 44 series available, 20 used, 24 skipped for compute
+
+model               win    n  level req rank lo idx  nests  cells   A cov   B cov   delta   s.e.
+naive                20   42   0.90       39     35      1      3  0.6667  1.0000  0.3333 0.3333
+naive                20   42   0.95       41     37      1      3  1.0000  1.0000  0.0000 0.0000
+naive                20   46   0.90       43     39      1     11  0.8182  0.9091  0.0909 0.0909
+naive                20   46   0.95       45     41      1     11  0.9091  1.0000  0.0909 0.0909
+naive                20  12 group(s) with under three series, not averaged
+naive                30   32   0.90       30     27      1      3  1.0000  1.0000  0.0000 0.0000
+naive                30   32   0.95       32     29      1      3  1.0000  1.0000  0.0000 0.0000
+naive                30   36   0.90       34     31      1     11  0.8182  0.9091  0.0909 0.0909
+naive                30   36   0.95       36     33      1     11  0.9091  1.0000  0.0909 0.0909
+naive                30  12 group(s) with under three series, not averaged
+gradient-boosted     20   42   0.90       39     35      1      3  0.6667  1.0000  0.3333 0.3333
+gradient-boosted     20   42   0.95       41     37      1      3  1.0000  1.0000  0.0000 0.0000
+gradient-boosted     20   46   0.90       43     39      1     11  0.8182  0.8182  0.0000 0.0000
+gradient-boosted     20   46   0.95       45     41      1     11  0.8182  0.8182  0.0000 0.0000
+gradient-boosted     20  12 group(s) with under three series, not averaged
+gradient-boosted     30   32   0.90       30     27      1      3  1.0000  1.0000  0.0000 0.0000
+gradient-boosted     30   32   0.95       32     29      1      3  1.0000  1.0000  0.0000 0.0000
+gradient-boosted     30   36   0.90       34     31      1     11  0.8182  0.8182  0.0000 0.0000
+gradient-boosted     30   36   0.95       36     33      1     11  0.8182  0.8182  0.0000 0.0000
+gradient-boosted     30  12 group(s) with under three series, not averaged
+
+----------------------------------------------------------------------------------------------------------
+m3_quarterly (quarterly): 94 series available, 20 used, 74 skipped for compute
+
+model               win    n  level req rank lo idx  nests  cells   A cov   B cov   delta   s.e.
+naive                20   42   0.90       39     35      1     10  1.0000  1.0000  0.0000 0.0000
+naive                20   42   0.95       41     37      1     10  1.0000  1.0000  0.0000 0.0000
+naive                20   46   0.90       43     39      1      4  1.0000  1.0000  0.0000 0.0000
+naive                20   46   0.95       45     41      1      4  1.0000  1.0000  0.0000 0.0000
+naive                20   49   0.90       45     42      1      6  1.0000  1.0000  0.0000 0.0000
+naive                20   49   0.95       48     44      1      6  1.0000  1.0000  0.0000 0.0000
+naive                30   32   0.90       30     27      1     10  1.0000  1.0000  0.0000 0.0000
+naive                30   32   0.95       32     29      1     10  1.0000  1.0000  0.0000 0.0000
+naive                30   36   0.90       34     31      1      4  1.0000  1.0000  0.0000 0.0000
+naive                30   36   0.95       36     33      1      4  1.0000  1.0000  0.0000 0.0000
+naive                30   39   0.90       36     34      1      6  1.0000  1.0000  0.0000 0.0000
+naive                30   39   0.95       38     36      1      6  1.0000  1.0000  0.0000 0.0000
+gradient-boosted     20   42   0.90       39     35      1     10  0.9000  0.9000  0.0000 0.0000
+gradient-boosted     20   42   0.95       41     37      1     10  0.9000  1.0000  0.1000 0.1000
+gradient-boosted     20   46   0.90       43     39      1      4  1.0000  1.0000  0.0000 0.0000
+gradient-boosted     20   46   0.95       45     41      1      4  1.0000  1.0000  0.0000 0.0000
+gradient-boosted     20   49   0.90       45     42      1      6  1.0000  1.0000  0.0000 0.0000
+gradient-boosted     20   49   0.95       48     44      1      6  1.0000  1.0000  0.0000 0.0000
+gradient-boosted     30   32   0.90       30     27      1     10  0.9000  0.9000  0.0000 0.0000
+gradient-boosted     30   32   0.95       32     29      1     10  0.9000  1.0000  0.1000 0.1000
+gradient-boosted     30   36   0.90       34     31      1      4  0.7500  0.7500  0.0000 0.0000
+gradient-boosted     30   36   0.95       36     33      1      4  0.7500  0.7500  0.0000 0.0000
+gradient-boosted     30   39   0.90       36     34      1      6  1.0000  1.0000  0.0000 0.0000
+gradient-boosted     30   39   0.95       38     36      1      6  1.0000  1.0000  0.0000 0.0000
+
+----------------------------------------------------------------------------------------------------------
+m4_daily (daily): 120 series available, 20 used, 100 skipped for compute
+  length cap 140: 20 of 20 series truncated (longest was 1020). The cap is compute, not selection -- the head of each series is kept and the count is stated.
+
+model               win    n  level req rank lo idx  nests  cells   A cov   B cov   delta   s.e.
+naive                20  118   0.90      108    105      1     20  1.0000  1.0000  0.0000 0.0000
+naive                20  118   0.95      114    111      1     20  1.0000  1.0000  0.0000 0.0000
+naive                30  108   0.90       99     95      1     20  1.0000  1.0000  0.0000 0.0000
+naive                30  108   0.95      104    101      1     20  1.0000  1.0000  0.0000 0.0000
+gradient-boosted     20  118   0.90      108    105      1     20  1.0000  1.0000  0.0000 0.0000
+gradient-boosted     20  118   0.95      114    111      1     20  1.0000  1.0000  0.0000 0.0000
+gradient-boosted     30  108   0.90       99     95      1     20  1.0000  1.0000  0.0000 0.0000
+gradient-boosted     30  108   0.95      104    101      1     20  1.0000  1.0000  0.0000 0.0000
+
+==========================================================================================================
+THE PREDICTION, TESTED
+==========================================================================================================
+16 distinct (residual count, level) groups, of which
+16 are reached by more than one model-frequency pair and so
+can test the agreement at all. A group only one arm reaches proves
+nothing about agreement and is not counted as though it did.
+
+    n  level    required rank(s)  arms reaching it
+------------------------------------------------------------
+   32   0.90                [30]                 2
+   32   0.95                [32]                 2
+   36   0.90                [34]                 2
+   36   0.95                [36]                 2
+   39   0.90                [36]                 2
+   39   0.95                [38]                 2
+   42   0.90                [39]                 2
+   42   0.95                [41]                 2
+   46   0.90                [43]                 2
+   46   0.95                [45]                 2
+   49   0.90                [45]                 2
+   49   0.95                [48]                 2
+  108   0.90                [99]                 2
+  108   0.95               [104]                 2
+  118   0.90               [108]                 2
+  118   0.95               [114]                 2
+
+Across 48 model-by-frequency-by-group combinations the required
+index takes ONE value in every one of the 16 groups two or more
+arms reach. The map did not move with the frequency and did not move with
+the base model.
+
+Every paired difference is non-negative, as containment requires; the largest is 0.3333.
+
+group                         cells  mean delta  max delta
+------------------------------------------------------------
+deficit zero                      6      0.0000     0.0000
+deficit one or more              42      0.0293     0.3333
+
+The coincidence cells sit near zero and the deficit cells above them,
+which is the monthly result reproduced at two further frequencies and
+under a predictor with an entirely different residual distribution.
+
+THE MODELS ARE GENUINELY DIFFERENT, which is what makes the agreement
+above worth anything. Arm A coverage by model, averaged over cells:
+
+model                 cells  mean A cov  mean B cov
+------------------------------------------------------------
+gradient-boosted         24      0.9183      0.9405
+naive                    24      0.9634      0.9924
+
+The two models' mean arm-A coverage differs by 0.0451, so they
+are not the same predictor wearing two labels. The indices still
+agree exactly.
+
+==========================================================================================================
+WHAT THIS DOES NOT SETTLE
+==========================================================================================================
+Two frequencies and two base models, not all of either. The series cap is
+compute and the skipped series are counted, but a cap is a cap. And a
+gradient-boosted reduction is a different predictor, not a state-of-the-art
+one; the claim tested here is that the index arithmetic is indifferent to the
+predictor, which a stronger model can support but not extend.
