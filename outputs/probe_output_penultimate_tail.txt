@@ -75,8 +75,8 @@ worst departure from 1 at i >= 200: 0.0104
   -0.30   2.67  -0.300000   1.68e-13
 
 (3) the shape the sample sees, and the sign the sweep reports
-A depth-i gap sits at tail probability about i/n, so the threshold is the
-(1 - i/n) quantile. xi_loc there is what the penultimate substitution uses.
+Depth i puts a gap around tail probability i/n, making the threshold the
+(1 - i/n) quantile. xi_loc evaluated there is what gets substituted in.
 
 distribution    asymptotic xi       n    i   threshold     xi_loc   sign
 ----------------------------------------------------------------------------------------------------
@@ -118,10 +118,10 @@ distributions and every size, by a quantity computed from F alone. What was
 an observation with no account behind it is now a prediction.
 
 (5) THE REMAINDER, WITH A CONSTANT
-An earlier draft left it as an unbounded O(1/i^2) and argued a bound in
-unmeasurable quantities would be decoration. That is the wrong instinct for
-this audience: an asymptotic-safety bound is worth having even when it
-cannot be computed from data. So the term is derived.
+An early draft stopped at an unbounded O(1/i^2), on the view that a bound
+nobody can evaluate is ornament. Wrong instinct here: establishing safety
+in the limit earns its place whether or not data can compute the constant.
+So it is derived.
 
     pi = gamma + c1/i + c2/i^2 + O(1/i^3)
     c1 = gamma(1-gamma)(1+xi)
@@ -206,7 +206,7 @@ and needs two lines rather than a grid:
     0 < exp(-phi) <= 1,  E[t^2] = 2/i^2  =>  0 <= d(pi)/d(xi) <= (i+1)/(4i^2)
 
 uniform in xi over ALL of R and in gamma over (0,1), with no asymptotics.
-The mean value step is then an inequality and not an expansion:
+Which turns the mean value step into an inequality, not an expansion:
     |pi - pi_GPD(xi)| <= |xi_n - xi| * (i+1)/(4i^2)
 with xi_n - xi = A(n/i)/rho + o(A) the domain-of-attraction hypothesis, so
 every remaining error term sits there and none in this step.
@@ -310,10 +310,10 @@ Frechet (Pareto 3)       0.333  0.710647  0.630568  0.560332  0.516255  0.503317
 Frechet (heavy)          1.000  0.772589  0.682234  0.588831  0.524347  0.504975          +0.088831
 
 At gamma = 1/2 the departure at depth 5 runs from exactly zero in the
-bounded-tail case to the Frechet figure above -- the same interpolation, the
-same depth, and an error the tail alone decides. That is the answer to
-'interpolation is an O(1/n) detail': the constant is not universal, it is
-the shape index, and nothing about the sample size changes it.
+bounded-tail case up to the Frechet figure above. Same fraction, same
+depth, and the tail settles the error by itself. Which answers the reading
+of interpolation as a mere O(1/n) effect: the constant IS the shape index
+no amount of data moves it.
 
 Shrinkage toward the asymptotic shape, which is what Gumbel-domain
 membership requires and what the fitted-shape sweep observes:
@@ -326,10 +326,9 @@ membership requires and what the fitted-shape sweep observes:
 What this buys, and what it does not. The exactly-GPD hypothesis is no
 longer the boundary of the result: the rate holds off it with xi read as the
 shape at the sample's own depth, to first order in the second-order
-auxiliary. The signs the fitted-shape sweep reports -- negative for the
-normal, positive for the lognormal, both shrinking -- stop being an
-observation and become a prediction that xi_loc makes without reference to
-any sample. What is NOT claimed is a bound on the o(1/i) remainder in terms
-of quantities a practitioner can evaluate; a bound in unmeasurable terms
-would be decoration, and the honest substitute is the measured departure
+auxiliary. Those fitted signs -- below zero for the normal, above it for
+the lognormal, both heading in -- stop being something noticed and turn
+into something xi_loc predicts with no sample involved. Not claimed: any
+statement bounding what is left at o(1/i) in evaluable terms. That would
+be ornament, and what stands in for it is the departure measured
 above.

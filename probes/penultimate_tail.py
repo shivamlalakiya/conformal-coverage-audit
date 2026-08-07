@@ -23,8 +23,8 @@ spacing law gives
     d(pi)/d(xi) = gamma(1-gamma) / i + O(1/i^2),
 
 which is exactly the xi-derivative of the rate above -- and, to leading order, does
-NOT depend on xi. So a first-order perturbation of the shape enters pi only through
-that one coefficient, and the whole second-order correction is absorbed by replacing
+NOT depend on xi. Nudge the shape a little and pi moves through that one coefficient
+alone, so the entire second-order correction disappears once you replace
 xi with the PENULTIMATE shape the sample sees at its own depth:
 
     pi = gamma + gamma(1-gamma)(1 + xi_n) / i + o(1/i),   xi_n = xi + A(n/i)/rho.
@@ -35,7 +35,7 @@ standard penultimate substitution carries it off the exact-GPD hypothesis for fr
 
 What "the shape the sample sees" means, exactly
 -----------------------------------------------
-The local shape of F above u is
+Above a threshold u, the shape F looks to have locally is
 
     xi_loc(u) = d/du [ (1 - F(u)) / f(u) ].
 
@@ -120,10 +120,10 @@ def c1(xi, gamma):
 def c2(xi, gamma):
     """Second-order coefficient, derived by expanding the integrand to t^3.
 
-    An earlier draft left the remainder as an unbounded O(1/i^2) and argued that a
-    bound in quantities a practitioner cannot evaluate would be decoration. That is
-    the wrong instinct for a statistics audience: an asymptotic-safety bound is
-    worth stating even when it is not computable from data. So the term is derived
+    An early draft stopped at an unbounded O(1/i^2), reasoning that nobody can
+    evaluate the quantities such a bound needs, so why print one. Wrong instinct
+    for statisticians: a bound establishing safety in the limit earns its place
+    whether or not data can compute it. Hence the term is derived
     rather than absorbed.
 
     Two checks it must pass. At xi = 0 the exact form is (i+1)gamma/(i+gamma),
@@ -146,9 +146,9 @@ def penultimate_bound(gamma, i, A_over_rho):
     """|pi - pi_GPD(xi)| <= |xi_n - xi| * sup|d pi/d xi|, by the mean value theorem.
 
     The supremum is gamma(1-gamma)/i to leading order and free of xi there, so the
-    whole cost of leaving the exactly-GPD family is first order in the second-order
-    auxiliary. Unmeasurable, and that is the point: it bounds the deviation for any
-    F in the domain of attraction rather than for the four measured here.
+    whole price of stepping outside exact GPD is first order in the second-order
+    auxiliary. Nobody can evaluate it, which is the whole point: it covers every F in
+    the domain rather than the four that were simulated.
     """
     return abs(A_over_rho) * gamma * (1 - gamma) / i
 
@@ -208,8 +208,8 @@ def local_shape(dist, u, h=None):
 def depth_threshold(dist, n, i):
     """The value at the top of a depth-i gap: the (1 - i/n) quantile.
 
-    A gap at depth i sits at tail probability about i/n, so the threshold whose
-    penultimate shape the sample sees at that depth is the (1 - i/n) quantile.
+    Depth i puts a gap out around tail probability i/n, so the threshold carrying
+    the shape seen at that depth is the (1 - i/n) quantile.
     """
     return float(dist.isf(i / n))
 
@@ -271,9 +271,9 @@ def self_check():
 
     # ---- (4) the local shape predicts the FITTED effective shape ----------
     # The decisive check. If the penultimate substitution is the right account of
-    # the departure from exact GPD, then the local shape at the sweep's own (n, i)
-    # must agree with the shape that sweep FITTED to its measured pi -- and it must
-    # do so without any sample, because xi_loc is a property of F alone.
+    # the departure from exact GPD, then that local shape, taken where the sweep ran,
+    # has to line up with whatever shape that sweep FITTED to its measured pi --
+    # and do so with no sample at all, since xi_loc belongs to F by itself.
     dd = {"normal": stats.norm(), "lognormal": stats.lognorm(s=1.0)}
     worst = 0.0
     for (name, n, i), fit in fitted_shapes().items():
@@ -393,8 +393,8 @@ def main():
     say("")
 
     say("(3) the shape the sample sees, and the sign the sweep reports")
-    say("A depth-i gap sits at tail probability about i/n, so the threshold is the")
-    say("(1 - i/n) quantile. xi_loc there is what the penultimate substitution uses.")
+    say("Depth i puts a gap around tail probability i/n, making the threshold the")
+    say("(1 - i/n) quantile. xi_loc evaluated there is what gets substituted in.")
     say("")
     say(f"{'distribution':<14} {'asymptotic xi':>14} {'n':>7} {'i':>4} "
         f"{'threshold':>11} {'xi_loc':>10} {'sign':>6}")
@@ -438,10 +438,10 @@ def main():
     say("an observation with no account behind it is now a prediction.")
     say("")
     say("(5) THE REMAINDER, WITH A CONSTANT")
-    say("An earlier draft left it as an unbounded O(1/i^2) and argued a bound in")
-    say("unmeasurable quantities would be decoration. That is the wrong instinct for")
-    say("this audience: an asymptotic-safety bound is worth having even when it")
-    say("cannot be computed from data. So the term is derived.")
+    say("An early draft stopped at an unbounded O(1/i^2), on the view that a bound")
+    say("nobody can evaluate is ornament. Wrong instinct here: establishing safety")
+    say("in the limit earns its place whether or not data can compute the constant.")
+    say("So it is derived.")
     say("")
     say("    pi = gamma + c1/i + c2/i^2 + O(1/i^3)")
     say("    c1 = gamma(1-gamma)(1+xi)")
@@ -489,7 +489,7 @@ def main():
     say("    0 < exp(-phi) <= 1,  E[t^2] = 2/i^2  =>  0 <= d(pi)/d(xi) <= (i+1)/(4i^2)")
     say("")
     say("uniform in xi over ALL of R and in gamma over (0,1), with no asymptotics.")
-    say("The mean value step is then an inequality and not an expansion:")
+    say("Which turns the mean value step into an inequality, not an expansion:")
     say("    |pi - pi_GPD(xi)| <= |xi_n - xi| * (i+1)/(4i^2)")
     say("with xi_n - xi = A(n/i)/rho + o(A) the domain-of-attraction hypothesis, so")
     say("every remaining error term sits there and none in this step.")
@@ -550,10 +550,10 @@ def main():
             + f" {vals[2] - 0.5:>+18.6f}")
     say("")
     say("At gamma = 1/2 the departure at depth 5 runs from exactly zero in the")
-    say("bounded-tail case to the Frechet figure above -- the same interpolation, the")
-    say("same depth, and an error the tail alone decides. That is the answer to")
-    say("'interpolation is an O(1/n) detail': the constant is not universal, it is")
-    say("the shape index, and nothing about the sample size changes it.")
+    say("bounded-tail case up to the Frechet figure above. Same fraction, same")
+    say("depth, and the tail settles the error by itself. Which answers the reading")
+    say("of interpolation as a mere O(1/n) effect: the constant IS the shape index")
+    say("no amount of data moves it.")
     say("")
     say("Shrinkage toward the asymptotic shape, which is what Gumbel-domain")
     say("membership requires and what the fitted-shape sweep observes:")
@@ -571,12 +571,11 @@ def main():
     say("What this buys, and what it does not. The exactly-GPD hypothesis is no")
     say("longer the boundary of the result: the rate holds off it with xi read as the")
     say("shape at the sample's own depth, to first order in the second-order")
-    say("auxiliary. The signs the fitted-shape sweep reports -- negative for the")
-    say("normal, positive for the lognormal, both shrinking -- stop being an")
-    say("observation and become a prediction that xi_loc makes without reference to")
-    say("any sample. What is NOT claimed is a bound on the o(1/i) remainder in terms")
-    say("of quantities a practitioner can evaluate; a bound in unmeasurable terms")
-    say("would be decoration, and the honest substitute is the measured departure")
+    say("auxiliary. Those fitted signs -- below zero for the normal, above it for")
+    say("the lognormal, both heading in -- stop being something noticed and turn")
+    say("into something xi_loc predicts with no sample involved. Not claimed: any")
+    say("statement bounding what is left at o(1/i) in evaluable terms. That would")
+    say("be ornament, and what stands in for it is the departure measured")
     say("above.")
 
     path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
