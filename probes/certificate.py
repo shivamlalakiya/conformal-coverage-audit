@@ -5,13 +5,13 @@ Why this probe exists
 ---------------------
 Two results in this programme point at the same missing piece.
 
-The audit argues that a unit test pinned to a coincidence cell passes forever while
-the helper is wrong everywhere else, and cites one library whose own test values sit
-at such an n. W9 then shows the coincidence set is not incidental: it is a residue
-class in n, of measurable density, for every quantile definition. Put together,
-those say that FIXTURE CHOICE IS NOT A MATTER OF TASTE. A suite either probes
-calibration sizes that separate the candidate rules or it does not, and which is
-which is decidable.
+One result says a unit test nailed to a coincidence cell keeps passing while the
+helper it guards is wrong at every other size, and names a library whose own fixture
+values sit at exactly such a size. W9 then shows those cells are not scattered luck:
+for every quantile definition they form a residue class with a density you can
+compute. Together they make fixture choice a decidable question rather than a
+preference. Either the sizes a suite probes tell the candidate rules apart, or they
+do not, and which of those holds can be settled.
 
 So decide it. This probe computes the smallest set S of calibration sizes such that
 observing a helper's delivered rank at every n in S identifies which rule it
@@ -20,27 +20,26 @@ on S.
 
 The candidate set, and why the certificate is relative to it
 ------------------------------------------------------------
-The classifier's candidates are the cross product the audit already states: the rail
-convention (one-sided at 1-alpha, or two-sided at 1-alpha/2), the correction (raw
-level, or corrected level clipped at 1), and the family (linear, higher,
-inverted_cdf, or a direct order statistic that never forms a level). Sixteen rules.
+Candidates come from three choices multiplied out. Which rails: one at 1-alpha, or a
+pair at 1-alpha/2. Whether the level is corrected and clipped at 1, or left raw. And
+which family resolves it: linear, higher, inverted_cdf, or an index read straight off
+the sorted scores with no level in between. Sixteen in total.
 
-A helper matching no candidate is reporting that the candidate set is incomplete,
-which is a fact about the instrument and not about the library -- the audit says so
-already, and this probe inherits that scope. The certificate therefore reads "these
+Where a helper matches none of them, what that reports is a gap in the candidate list
+-- a fact about this instrument, not about that library. Scope inherited, and stated
+here so it is not mistaken for a verdict. The certificate therefore reads "these
 sizes separate the sixteen candidates", not "these sizes identify any conceivable
 implementation". Stating it the weaker way is the honest form and it is still the
 useful one, because the sixteen are what the audited libraries actually do.
 
 Why the extension to all n is provable rather than hoped, and where it starts
 ----------------------------------------------------------------------------
-A RAW-level rule's delivered rank is a ceiling or floor of an affine function of n
-whose slope is the requested level. For a rational level p/d it is therefore
-periodic in n modulo d up to a constant trend: rank(n+d) - rank(n) is the same for
-every n.
+Feed a rule the RAW level and the rank it lands on is a floor or ceiling of something
+linear in n, sloped at the level itself. Rational level p/d, and the result repeats
+modulo d beneath a constant trend: rank(n+d) - rank(n) does not move with n.
 
-A CORRECTED-level rule is not, near the floor, and the first version of this probe
-asserted that it was. self_check rejected it at n = 20 for alpha = 1/20. The reason
+Correct the level first and that fails near the floor. An early version of this probe
+claimed otherwise and self_check threw it out at n = 20, alpha = 1/20. The reason
 is worth stating because it sets the threshold. The corrected level is L(n+1)/n =
 L + L/n, so for `linear` the virtual index is
 
@@ -53,9 +52,9 @@ smallest non-zero one being 1/d, so once
 
     L/n < 1/d,   i.e.   n > L*d,
 
-the perturbation can only matter where the fractional part is exactly zero -- which
-is itself periodic. So every rule, corrected or not, is periodic above a computable
-threshold of order d, and is merely irregular below it.
+the nudge can only bite where that fractional part sits at zero, and those sizes are
+themselves periodic. Every rule then repeats above a threshold of order d that can be
+computed, corrected level or not, and is simply ragged underneath.
 
 That gives a complete finite check rather than a sample: exhaustively cover the
 irregular prefix from the feasibility floor up to the threshold, plus two full
@@ -65,9 +64,9 @@ argument says it holds.
 
 What falls out beyond the certificate
 -------------------------------------
-Some of the sixteen rules are OBSERVATIONALLY IDENTICAL -- a direct order statistic
-does not form a level, so correcting a level it never forms cannot change what it
-returns. Collapsing those is part of the result: it says the audit's taxonomy has
+Some of the sixteen cannot be told apart at all. Reading an index off the sorted
+scores forms no level, so there is nothing for a correction to act on and both
+settings return the same thing. Collapsing those is part of the result: it says the audit's taxonomy has
 fewer distinguishable behaviours than branches, which is worth knowing before
 claiming to have classified a helper. Block (i) reports the classes.
 
@@ -135,9 +134,9 @@ def rules():
                         return r if 1 <= r <= n else OUT_OF_RANGE
                     return f
                 out.append((f"{rail}/{corr}/{fam}", make()))
-        # the direct order statistic never forms a level, so the correction
-        # cannot reach it -- included at BOTH settings deliberately, so the
-        # collapse is reported rather than assumed away
+        # reading the index directly forms no level, so a correction has nothing
+        # to act on -- both settings are listed anyway, so the collapse gets
+        # reported instead of quietly assumed
         for corr in CORRECTIONS:
             def make(Lf=Lf):
                 def f(n, alpha):
@@ -331,8 +330,8 @@ def main():
             say(f"      identical partitions, not merely equal counts: "
                 f"{'YES' if same else 'NO'}")
             assert ok_wide and same, "certificate does not reproduce the partition"
-            say(f"      The checked range covers the irregular prefix and two full")
-            say(f"      periods, and rank(n+{d}) - rank(n) is constant per rule above")
+            say(f"      The range checked runs over the ragged prefix plus two whole")
+            say(f"      periods, and rank(n+{d}) - rank(n) holds steady per rule above")
             say(f"      n = {n0} (asserted in self_check), so agreement there is")
             say("      agreement at every larger n. This is a proof, not a sample.")
         say("")
@@ -385,15 +384,14 @@ def main():
             f"{(len(r['cert']) if r['cert'] else 0):>5}"
             f"{r['worst_power']:>9}{r['best_power']:>8}   {r['cert']}")
     say("")
-    say("  Read the `worst n power` column against the audit's claim that a fixture")
-    say("  at a coincidence cell cannot discriminate: at those sizes the sixteen")
-    say("  candidate rules produce that many distinct observations between them, so")
-    say("  a suite pinned there is blind to the difference by construction and not")
-    say("  by bad luck.")
+    say("  Read `worst n power` against the claim that pinning a test to one of")
+    say("  these sizes tells you nothing: there the sixteen candidates yield only")
+    say("  that many distinct observations between them, so a suite fixed at such a")
+    say("  size misses the difference by construction rather than by luck.")
     say("")
-    say("  Scope: the certificate separates the sixteen candidates. A helper matching")
-    say("  none of them is reporting that the candidate set is incomplete, which is a")
-    say("  fact about the instrument -- the same scope the audit's classifier states.")
+    say("  Scope: sixteen candidates, told apart. Where a helper matches none, the")
+    say("  finding is a gap in this list -- a fact about the instrument and not a")
+    say("  verdict on the library, which is the scope the classifier carries too.")
     with open(OUT, "w", encoding="utf-8") as fh:
         fh.write("\n".join(LINES) + "\n")
     print(f"\nwrote {OUT}", file=sys.stderr)

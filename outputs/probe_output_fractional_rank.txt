@@ -2,14 +2,14 @@
 W9  FRACTIONAL RANK -- what an interpolated threshold delivers
 ========================================================================================================
 
-CLAIM  delivered coverage = h/(n+1) with h the virtual index the quantile
-       definition computes, exactly when the density is flat across the
-       landed-in gap, and to O(1/n^2) in the interior.
+CLAIM  coverage arrives at h/(n+1), where h is whatever index the
+       computes -- exactly where the density holds level across the gap
+       landed in, and to O(1/n^2) inside.
 GUARANTEE (unchanged, distribution-free)  floor(h)/(n+1).
 reps per cell 400000   seed 20260805   numpy 2.4.6
 
 --------------------------------------------------------------------------------------------------------
-(i) VIRTUAL INDEX h, measured off numpy on the tie-free score set 1..n
+(i) VIRTUAL INDEX h, read back from numpy on scores 1..n with no repeats
     h is the value numpy returns, so no algebra is trusted here.
 --------------------------------------------------------------------------------------------------------
 method                             A         B   h at n=50,q=0.90   h/(n+1)  integer h
@@ -134,8 +134,8 @@ pareto1.5       50   0.50   0.500   0.464     0.928    0.081
 pareto1.5       50   0.95   0.550   0.646     1.174    0.036
 pareto1.5       50   0.99   0.510   0.782     1.533    0.024
 
-    uniform is the control: its density IS flat across every gap, so
-    pi/gamma = 1 there is a property of the distribution, not of the fit.
+    uniform is the control. Its density holds level over every gap, so
+    pi/gamma = 1 belongs to the distribution and not to the fitting.
 
 --------------------------------------------------------------------------------------------------------
 (v) ALL THIRTEEN DEFINITIONS at n=50, requested 0.90 -- delivered coverage
@@ -158,9 +158,9 @@ higher                         46.000     0.9020     0.9020    0.9017    0.8980 
 midpoint                       45.500     0.8824     0.8922    0.8939    0.9184      no
 nearest                        45.000     0.8824     0.8824    0.8820    0.9082     yes
 
-    'exact? yes' means the corrected level lands on an integer rank, so the
-    delivered coverage is a finite-sample GUARANTEE and not an asymptotic
-    one. That column is the practical recommendation of this probe.
+    'exact? yes' marks a corrected level arriving at a whole rank, which
+    makes what comes out a finite-sample PROMISE rather than a limit. That
+    column carries this probe's practical advice.
 
 --------------------------------------------------------------------------------------------------------
 (vi) THE DELIVERING SET IS PERIODIC -- n_min is its smallest member, not a

@@ -40,15 +40,15 @@ all thirteen definitions, including the nine the rank map marks "---".
 
 What is measured, and what is assumed
 -------------------------------------
-NOTHING here is derived by hand. h is read off numpy itself: quantile a tie-free
-score set 1..n and the returned value IS the 1-indexed virtual index, because the
-values are the ranks and the interpolation is linear in them. That is the same
+NOTHING here is worked out on paper. h comes back from numpy: hand it scores running
+1..n with no repeats and the number returned IS the 1-indexed virtual index, since
+each value equals its own rank and interpolation between them is linear. That is the same
 instrument the audit's classifier already uses, applied to the definition rather
 than to the library. The affine form h = A + B q is then FITTED at two interior
 levels rather than assumed, and cross-checked against exact rational arithmetic.
-It is fitted in the interior because numpy clips the virtual index into [1, n]:
-h(0) = 1 and h(1) = n for every definition, so an endpoint fit silently returns
-`linear`'s coefficients for all six continuous definitions. The first version of
+Interior, because the virtual index arrives clipped to [1, n]: whatever the
+definition, h(0) comes back 1 and h(1) comes back n, so fitting at the ends hands
+back `linear`'s pair for every continuous definition there is. The first version of
 this probe did exactly that and self_check() rejected it -- recorded here because
 the same clip is what makes several of the audited libraries hard to classify by
 reading.
@@ -62,12 +62,12 @@ NOT the folklore (1-alpha)(n+1)/n. The folklore correction is the right one for 
 rounding definition, which lands on an integer rank; applied to an interpolating
 definition it overshoots. Both are reported side by side.
 
-Honest scope. q_dagger buys ASYMPTOTIC exactness, not a finite-sample guarantee:
-the distribution-free floor of a threshold at virtual index h is still
-floor(h)/(n+1), and that floor is reported in its own column so the trade is
-visible rather than argued. A reader who needs the guarantee should use a rounding
-definition at the required rank; a reader who wants the level to mean what it says
-should use q_dagger and accept an O(1/n^2) interior error and a tail regime.
+Scope, stated plainly. What q_dagger delivers is exactness in the limit and no
+finite-sample promise: whatever the interpolation, the floor that survives every law
+sits at floor(h)/(n+1), and it gets a column of its own so the trade shows rather
+than being asserted. Anyone who needs the promise should ask a rounding definition
+for the required rank outright. Anyone who wants a level that means its own number
+can take q_dagger, paying an O(1/n^2) error inside and a tail regime at the edge.
 
 The tail regime is the failure mode and it is reported, not hidden. As q -> 1 the
 gap (V_(j), V_(j+1)) stops being narrow, the density across it stops being flat,
@@ -130,12 +130,11 @@ def virtual_index(n, q, method):
 def affine(n, method):
     """(A, B) with h = A + B q, fitted at two INTERIOR levels.
 
-    Not at the endpoints. numpy clips the virtual index into [1, n], so h(0) is
-    1 for every definition regardless of its A, and h(1) is n regardless of its
-    B. Fitting at the endpoints silently returns (1, n-1) -- `linear`'s
-    coefficients -- for all six continuous definitions. self_check() caught
-    exactly that, which is why the fit is interior and why a third point is
-    checked rather than assumed.
+    Not at the endpoints. The virtual index comes back clipped to [1, n], which
+    pins h(0) at 1 whatever A says and h(1) at n whatever B says. Fit there and
+    every continuous definition returns (1, n-1), which is `linear`'s pair.
+    self_check() caught precisely that, hence an interior fit and a third point
+    checked instead of assumed.
     """
     assert n >= 10, f"affine fit needs interior room; n={n}"
     q1, q2 = 3.0 / (n + 1), 1.0 - 3.0 / (n + 1)
@@ -151,8 +150,8 @@ def affine(n, method):
 def q_needed(n, alpha, method):
     """Smallest level at which `method` delivers 1-alpha, or None if it cannot.
 
-    One rule for all thirteen definitions: the target is the virtual index
-    h* = (1-alpha)(n+1), because delivered coverage is h/(n+1). For a rounding
+    One rule covering all thirteen: aim the virtual index at
+    h* = (1-alpha)(n+1), since h/(n+1) is what comes out. For a rounding
     definition h is an integer, so h >= h* means h = ceil(h*) = k^star and this
     reduces to the required rank. For a continuous definition it inverts the
     affine map. Found by bisection on h, which is non-decreasing in q for every
@@ -190,9 +189,9 @@ def _hf_exact(n, q, al, be):
 
 def self_check():
     # (1) h read off numpy agrees with exact Hyndman-Fan rational arithmetic,
-    #     with the clip applied, on a grid chosen by the boundary rather than by
-    #     round numbers, and at NON-unit-fraction levels: the residue structure
-    #     of the deficit collapses to a clean pattern only at unit fractions.
+    #     with the clip applied, over sizes the boundary picks rather than tidy
+    #     ones, and away from unit fractions: the deficit only falls into a neat
+    #     pattern where alpha is 1/d.
     for method, (al, be) in HF.items():
         for n in (2, 3, 4, 5, 7, 8, 9, 10, 19, 20, 47, 100, 999):
             for q in (Fraction(0), Fraction(9, 10), Fraction(19, 20),
@@ -291,16 +290,16 @@ def main():
     say("W9  FRACTIONAL RANK -- what an interpolated threshold delivers")
     say("=" * 104)
     say("")
-    say("CLAIM  delivered coverage = h/(n+1) with h the virtual index the quantile")
-    say("       definition computes, exactly when the density is flat across the")
-    say("       landed-in gap, and to O(1/n^2) in the interior.")
+    say("CLAIM  coverage arrives at h/(n+1), where h is whatever index the")
+    say("       computes -- exactly where the density holds level across the gap")
+    say("       landed in, and to O(1/n^2) inside.")
     say("GUARANTEE (unchanged, distribution-free)  floor(h)/(n+1).")
     say(f"reps per cell {REPS}   seed {SEED}   numpy {np.__version__}")
     say("")
 
     # ---------------- (i) the virtual index, measured -----------------------
     say("-" * 104)
-    say("(i) VIRTUAL INDEX h, measured off numpy on the tie-free score set 1..n")
+    say("(i) VIRTUAL INDEX h, read back from numpy on scores 1..n with no repeats")
     say("    h is the value numpy returns, so no algebra is trusted here.")
     say("-" * 104)
     say(f"{'method':<28}{'A':>8}{'B':>10}{'h at n=50,q=0.90':>19}"
@@ -401,8 +400,8 @@ def main():
             say(f"{dist:<13}{n:>5}{q:>7.2f}{gam:>8.3f}{pi:>8.3f}"
                 f"{pi / gam:>10.3f}{se * (n + 1) / gam:>9.3f}")
     say("")
-    say("    uniform is the control: its density IS flat across every gap, so")
-    say("    pi/gamma = 1 there is a property of the distribution, not of the fit.")
+    say("    uniform is the control. Its density holds level over every gap, so")
+    say("    pi/gamma = 1 belongs to the distribution and not to the fitting.")
     say("")
 
     # ---------------- (v) every definition, one table --------------------
@@ -430,9 +429,9 @@ def main():
             f"{h / (n + 1):>11.4f}{got:>10.4f}{qs:>10}"
             f"{'yes' if integer_at_q else 'no':>8}")
     say("")
-    say("    'exact? yes' means the corrected level lands on an integer rank, so the")
-    say("    delivered coverage is a finite-sample GUARANTEE and not an asymptotic")
-    say("    one. That column is the practical recommendation of this probe.")
+    say("    'exact? yes' marks a corrected level arriving at a whole rank, which")
+    say("    makes what comes out a finite-sample PROMISE rather than a limit. That")
+    say("    column carries this probe's practical advice.")
     say("")
 
     # ---------------- (vi) n_min is not a threshold ------------------------

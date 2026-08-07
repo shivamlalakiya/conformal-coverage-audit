@@ -31,10 +31,10 @@ reps per cell 400000   seed 20260805
 ----------------------------------------------------------------------------------------------------
 (iii) MEASURED -- deterministic (up and down) vs exact randomised
       'det up'   = required rank, or +inf where it does not exist
-      'det down' = the neighbouring rank BELOW, which is what a library
-                   that resolves an uncorrected level tends to land on
+      'det down' = the rank one below, where a library handing over an
+                   uncorrected level usually ends up
       'rand'     = the exact mixture; 'finite' = fraction of finite bounds;
-      'cond'     = coverage CONDITIONAL on the bound being finite
+      'cond'     = coverage over the draws that came back finite
 ----------------------------------------------------------------------------------------------------
    m  nominal    k*     lam   det up  det down     rand    s.e.  |rand-nom|  finite    cond
    2     0.90     0  0.3000   1.0000    0.6672   0.9004 0.00047     0.00041  0.2997  0.6677
@@ -60,9 +60,9 @@ reps per cell 400000   seed 20260805
 ----------------------------------------------------------------------------------------------------
 (iv) THE COST, stated rather than argued
 ----------------------------------------------------------------------------------------------------
-    Below the feasibility floor the mixture must place weight on the
-    vacuous bound, so the interval is infinite a known fraction of the time
-    and, conditional on being finite, undercovers by construction:
+    Under the floor some weight has to go on the vacuous bound. The
+    interval is then infinite a known share of the draws, and short on
+    whichever ones come back finite:
       m=2   nominal 0.90: finite 0.2997 of the time; conditional coverage 0.6677; marginal 0.9004
       m=5   nominal 0.90: finite 0.5998 of the time; conditional coverage 0.8336; marginal 0.9002
       m=2   nominal 0.95: finite 0.1498 of the time; conditional coverage 0.6707; marginal 0.9507
@@ -70,13 +70,13 @@ reps per cell 400000   seed 20260805
       m=9   nominal 0.95: finite 0.4991 of the time; conditional coverage 0.9002; marginal 0.9502
       m=10  nominal 0.95: finite 0.5493 of the time; conditional coverage 0.9084; marginal 0.9497
 
-    That is the real content of the constraint. Two residuals do not contain
-    a 0.90 statement. A randomised bound makes the shortfall visible as an
-    infinite interval 70% of the time; the audited default hides it behind a
-    finite number and delivers 0.58.
+    Which is what the constraint actually says. There is no 0.90 statement
+    inside two residuals. Randomising puts the shortfall on display as an
+    infinite interval 70% of the time; the shipped default buries it under a
+    finite number and hands back 0.58.
 
-    Above the floor the mixture is a pure width saving with no infinite
-    branch, because both mixed ranks exist:
+    Over the floor both mixed ranks exist, no infinite branch is needed,
+    and the coin buys width and nothing else:
       m=9   nominal 0.90: finite 1.0000; det up 0.8997 (conservative) vs rand 0.8997
       m=10  nominal 0.90: finite 1.0000; det up 0.9091 (conservative) vs rand 0.8999
       m=19  nominal 0.90: finite 1.0000; det up 0.9007 (conservative) vs rand 0.9007
@@ -90,8 +90,8 @@ reps per cell 400000   seed 20260805
 SUMMARY
 ====================================================================================================
   'No valid finite bound exists' must read 'no valid finite DETERMINISTIC
-  bound exists'. The deterministic attainable set is m+1 points spaced
-  1/(m+1) apart, so a requested level off that grid is unattainable at every
-  m and not only below the floor; randomising between neighbours attains it
-  exactly. The manuscript's claim survives with one word added, and the
-  constructive alternative belongs next to it.
+  bound exists'. Without a coin the reachable coverages are m+1 points
+  1/(m+1) apart, so any level off that grid is out of reach at every m, not
+  merely under the floor -- and mixing two neighbours lands on it exactly.
+  One added word rescues the claim, and what to do instead belongs beside
+  it.

@@ -24,8 +24,8 @@ alpha = 1/10   floor 9   period 20   periodic from n = 20
 (iii) COMPLETENESS
       classes separated by S: 11; by the full checked range: 11   -> YES
       identical partitions, not merely equal counts: YES
-      The checked range covers the irregular prefix and two full
-      periods, and rank(n+20) - rank(n) is constant per rule above
+      The range checked runs over the ragged prefix plus two whole
+      periods, and rank(n+20) - rank(n) holds steady per rule above
       n = 20 (asserted in self_check), so agreement there is
       agreement at every larger n. This is a proof, not a sample.
 
@@ -59,8 +59,8 @@ alpha = 1/20   floor 19   period 40   periodic from n = 40
 (iii) COMPLETENESS
       classes separated by S: 11; by the full checked range: 11   -> YES
       identical partitions, not merely equal counts: YES
-      The checked range covers the irregular prefix and two full
-      periods, and rank(n+40) - rank(n) is constant per rule above
+      The range checked runs over the ragged prefix plus two whole
+      periods, and rank(n+40) - rank(n) holds steady per rule above
       n = 40 (asserted in self_check), so agreement there is
       agreement at every larger n. This is a proof, not a sample.
 
@@ -94,8 +94,8 @@ alpha = 2/7   floor 3   period 7   periodic from n = 7
 (iii) COMPLETENESS
       classes separated by S: 11; by the full checked range: 11   -> YES
       identical partitions, not merely equal counts: YES
-      The checked range covers the irregular prefix and two full
-      periods, and rank(n+7) - rank(n) is constant per rule above
+      The range checked runs over the ragged prefix plus two whole
+      periods, and rank(n+7) - rank(n) holds steady per rule above
       n = 7 (asserted in self_check), so agreement there is
       agreement at every larger n. This is a proof, not a sample.
 
@@ -118,12 +118,11 @@ SUMMARY
     1/20     19      40            40        100     16       11    4        3       6   [20, 40, 41, 79]
      2/7      3       7             7         17     16       11    4        3       6   [4, 7, 8, 13]
 
-  Read the `worst n power` column against the audit's claim that a fixture
-  at a coincidence cell cannot discriminate: at those sizes the sixteen
-  candidate rules produce that many distinct observations between them, so
-  a suite pinned there is blind to the difference by construction and not
-  by bad luck.
+  Read `worst n power` against the claim that pinning a test to one of
+  these sizes tells you nothing: there the sixteen candidates yield only
+  that many distinct observations between them, so a suite fixed at such a
+  size misses the difference by construction rather than by luck.
 
-  Scope: the certificate separates the sixteen candidates. A helper matching
-  none of them is reporting that the candidate set is incomplete, which is a
-  fact about the instrument -- the same scope the audit's classifier states.
+  Scope: sixteen candidates, told apart. Where a helper matches none, the
+  finding is a gap in this list -- a fact about the instrument and not a
+  verdict on the library, which is the scope the classifier carries too.

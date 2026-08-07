@@ -5,11 +5,11 @@ Why this probe exists
 ---------------------
 The audit's headline cell is a shipped default that calibrates on m = 2 windows and
 returns a finite 0.90 interval, where the required rank is ceil(3 x 0.90) = 3 > 2.
-The manuscript states that no valid finite bound exists at any conventional level.
-Read as written that claim is too strong, and a conformal-prediction reviewer will
-say so: it holds for bounds that are a deterministic function of the scores, and it
-fails for randomised ones. A randomised bound at m = 2 achieving EXACTLY 0.90
-marginal coverage exists, and this probe constructs and measures it.
+The write-up says nothing finite is valid there at any level anyone asks for. Taken
+literally that overreaches, and a referee in this field will notice: it is true of
+bounds computed from the scores alone and untrue once a coin is allowed. Two scores do
+admit a randomised bound sitting at 0.90 marginally, exactly. This probe builds one
+and measures it.
 
 The construction is not new -- it is the smoothed conformal p-value, which is exactly
 uniform for every m and therefore yields exactly-1-alpha sets at every calibration
@@ -34,10 +34,10 @@ makes it about one.
 
 The honest cost, reported rather than argued
 --------------------------------------------
-Randomisation buys exact MARGINAL coverage and nothing else. Below the feasibility
-floor the mixture puts weight on the vacuous bound, so the interval is infinite a
-known fraction of the time, and CONDITIONAL on being finite it undercovers by
-construction. Both numbers are in the output. A practitioner who cannot ship an
+What a coin buys is exact coverage on average over its own randomness, and nothing
+past that. Under the floor some of the mixture's weight has to sit on the vacuous
+bound, which makes the interval infinite a known share of the time and leaves it short
+whenever it does come back finite. The output carries both figures. A practitioner who cannot ship an
 infinite interval learns the real content of the constraint: the information for a
 0.90 statement is not in two residuals, and a randomised bound makes that visible
 instead of hiding it behind a finite number.
@@ -231,10 +231,10 @@ def main():
     say("-" * 100)
     say("(iii) MEASURED -- deterministic (up and down) vs exact randomised")
     say("      'det up'   = required rank, or +inf where it does not exist")
-    say("      'det down' = the neighbouring rank BELOW, which is what a library")
-    say("                   that resolves an uncorrected level tends to land on")
+    say("      'det down' = the rank one below, where a library handing over an")
+    say("                   uncorrected level usually ends up")
     say("      'rand'     = the exact mixture; 'finite' = fraction of finite bounds;")
-    say("      'cond'     = coverage CONDITIONAL on the bound being finite")
+    say("      'cond'     = coverage over the draws that came back finite")
     say("-" * 100)
     say(f"{'m':>4}{'nominal':>9}{'k*':>6}{'lam':>8}{'det up':>9}{'det down':>10}"
         f"{'rand':>9}{'s.e.':>8}{'|rand-nom|':>12}{'finite':>8}{'cond':>8}")
@@ -260,21 +260,21 @@ def main():
     say("(iv) THE COST, stated rather than argued")
     say("-" * 100)
     inf_cells = [r for r in rows if r["k"] is None]
-    say("    Below the feasibility floor the mixture must place weight on the")
-    say("    vacuous bound, so the interval is infinite a known fraction of the time")
-    say("    and, conditional on being finite, undercovers by construction:")
+    say("    Under the floor some weight has to go on the vacuous bound. The")
+    say("    interval is then infinite a known share of the draws, and short on")
+    say("    whichever ones come back finite:")
     for r in inf_cells:
         say(f"      m={r['m']:<3} nominal {r['coverage']:.2f}: finite "
             f"{r['finite']:.4f} of the time; conditional coverage "
             f"{r['cond']:.4f}; marginal {r['rnd']:.4f}")
     say("")
-    say("    That is the real content of the constraint. Two residuals do not contain")
-    say("    a 0.90 statement. A randomised bound makes the shortfall visible as an")
-    say("    infinite interval 70% of the time; the audited default hides it behind a")
-    say("    finite number and delivers 0.58.")
+    say("    Which is what the constraint actually says. There is no 0.90 statement")
+    say("    inside two residuals. Randomising puts the shortfall on display as an")
+    say("    infinite interval 70% of the time; the shipped default buries it under a")
+    say("    finite number and hands back 0.58.")
     say("")
-    say("    Above the floor the mixture is a pure width saving with no infinite")
-    say("    branch, because both mixed ranks exist:")
+    say("    Over the floor both mixed ranks exist, no infinite branch is needed,")
+    say("    and the coin buys width and nothing else:")
     for r in rows:
         if r["k"] is not None and r["finite"] > 0.999:
             say(f"      m={r['m']:<3} nominal {r['coverage']:.2f}: finite "
@@ -285,11 +285,11 @@ def main():
     say("SUMMARY")
     say("=" * 100)
     say("  'No valid finite bound exists' must read 'no valid finite DETERMINISTIC")
-    say("  bound exists'. The deterministic attainable set is m+1 points spaced")
-    say("  1/(m+1) apart, so a requested level off that grid is unattainable at every")
-    say("  m and not only below the floor; randomising between neighbours attains it")
-    say("  exactly. The manuscript's claim survives with one word added, and the")
-    say("  constructive alternative belongs next to it.")
+    say("  bound exists'. Without a coin the reachable coverages are m+1 points")
+    say("  1/(m+1) apart, so any level off that grid is out of reach at every m, not")
+    say("  merely under the floor -- and mixing two neighbours lands on it exactly.")
+    say("  One added word rescues the claim, and what to do instead belongs beside")
+    say("  it.")
     with open(OUT, "w", encoding="utf-8") as fh:
         fh.write("\n".join(LINES) + "\n")
     print(f"\nwrote {OUT}", file=sys.stderr)
