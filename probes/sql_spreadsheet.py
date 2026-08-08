@@ -21,7 +21,7 @@ conventions can express a coverage guarantee at all, and the answer differs
 between the two SQL functions in a way that matters.
 
 The instrument is the same as everywhere else here: quantile the tie-free set
-1..n, whose values ARE their own ranks, so a returned number IS the virtual index
+1..n; each value equals its rank, so a returned number IS the virtual index
 and nothing has to be inferred.
 
 Executed, not transferred
@@ -52,8 +52,8 @@ OUT = "outputs/probe_output_sql_spreadsheet.txt"
 # delivers exactly when n = 9 mod 10 -- so a grid of 10, 20, 50, 100 contains no
 # delivering size and reports "never delivers" for a convention that delivers one
 # time in ten. A first version of this probe did exactly that. Each level therefore
-# gets sizes ON its class and OFF it, and 2/3 is here because the tidy decade
-# pattern is an artefact of the levels people happen to request.
+# gets sizes ON its class and OFF it, and 2/3 is here because the neat decade
+# pattern comes from the chosen levels people happen to request.
 NS = (9, 10, 19, 20, 29, 50, 99, 100)
 LEVELS = (0.90, 0.95, 2.0 / 3.0)
 
@@ -88,7 +88,7 @@ def identify(fn, n=50):
     """Name the convention a callable implements, or report it as unmatched.
 
     Fits (A, B) at interior levels, then matches against the Hyndman-Fan pairs.
-    Interior because every implementation clips the virtual index into [1, n], so
+    Interior because every implementation clamps h to [1, n], so
     an endpoint fit returns linear's coefficients whatever the convention -- the
     same trap the cross-language probe records.
     """
@@ -357,7 +357,7 @@ def main():
     if xl:
         say("(2b) PERCENTILE.EXC at the feasibility boundary")
         say("The weibull convention resolves h = q(n+1), so it can only return a")
-        say("value for q <= n/(n+1) -- which is exactly the one-sided feasibility")
+        say("value at q <= n/(n+1) -- exactly the one-sided feasibility")
         say("floor. Does the shipped function refuse there, or clamp?")
         say("")
         say(f"{'n':>5} {'q':>12} {'n/(n+1)':>10} {'in range?':>10} {'returned':>28}")
@@ -384,10 +384,10 @@ def main():
         if refusals and not clamps:
             say("So this function REFUSES rather than clamping. It is the only")
             say("implementation measured anywhere in this deposit that guards the")
-            say("one-sided feasibility boundary by construction -- and it does so")
-            say("because its convention makes the boundary a domain error rather")
+            say("one-sided feasibility boundary by construction -- the reason is")
+            say("that its convention treats the boundary as outside the domain rather")
             say("than because anybody added a check. Against it, 9 of 14 shipped")
-            say("conformal helpers hand back a finite number below their floor and")
+            say("conformal helpers return a finite number below their floor and")
             say("say nothing.")
         say("")
 
@@ -413,9 +413,9 @@ def main():
         say("The two SQL-standard functions are not interchangeable for this")
         say(f"purpose. percentile_disc delivers the requested guarantee in {d} of")
         say(f"{dn} cells; percentile_cont in {c} of {cn}. So the standard DOES")
-        say("contain a convention that can carry a distribution-free bound, which is")
-        say("more than numpy's default manages -- and the two function names differ")
-        say("by four characters with no hint that one is usable and the other is not.")
+        say("contain a convention with enough mass for a finite-sample guarantee, which is")
+        say("unlike numpy's default -- and the two function names differ")
+        say("by four characters with no hint one remains usable and the other fails.")
         say("")
         say("Where percentile_disc delivers is a residue class and not a threshold,")
         say("which is the periodicity result showing up in a SQL engine: it is right")

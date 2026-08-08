@@ -6,7 +6,7 @@ and cells without one, and the deficit is a function of (n, level) alone --
 checked as arithmetic before any forecaster exists.
 
 THE PREDICTION, FIXED BEFORE THE RUN. The landed and required indices read a
-residual COUNT and never a residual VALUE, so the deficit at a given
+residual COUNT, not any residual VALUE, so the deficit at a given
 calibration size must be identical across frequencies and across base
 models, and the paired difference must be non-negative and near zero where
 the deficit is zero. A base model that moved a landed index would falsify
@@ -113,7 +113,7 @@ nothing about agreement and is not counted as though it did.
   118   0.95               [114]                 2
 
 Across 48 model-by-frequency-by-group combinations the required
-index takes ONE value in every one of the 16 groups two or more
+index has a single value in all 16 groups two or more
 arms reach. The map did not move with the frequency and did not move with
 the base model.
 
@@ -137,7 +137,7 @@ gradient-boosted         24      0.9183      0.9405
 naive                    24      0.9634      0.9924
 
 The two models' mean arm-A coverage differs by 0.0451, so they
-are not the same predictor wearing two labels. The indices still
+are genuinely different predictors. The indices still
 agree exactly.
 
 ==========================================================================================================

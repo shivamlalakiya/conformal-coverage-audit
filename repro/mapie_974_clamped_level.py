@@ -12,8 +12,8 @@ alpha_cor = (n+1)(1-alpha)/n and then clips it into [0, 1]
 
 Where the correction pushes the level above 1 there is no order statistic that delivers
 the requested coverage -- the required rank exceeds n. The clip does not report that. It
-returns the level 1.0, so the helper returns max(scores), and the coverage delivered is
-n/(n+1) whatever level was asked for. No exception, no warning, and a returned number
+returns the level 1.0, so the helper returns max(scores), and the achieved coverage is
+n/(n+1), independent of the requested level. No exception, no warning, and a returned number
 that looks like any other threshold.
 
 Direction of harm: **anti-conservative**. The interval is narrower than the request.
@@ -21,8 +21,8 @@ Direction of harm: **anti-conservative**. The interval is narrower than the requ
 WHAT WOULD MAKE THIS PRINT "does not reproduce"
 -----------------------------------------------
 A warning or an exception at the clipped sizes, or a returned value that is not the
-sample maximum. The script uses tie-free scores 1..n, so the returned threshold IS the
-rank it landed on and no interpolation can hide behind equal values.
+sample maximum. The script uses tie-free scores 1..n, so the returned threshold names
+the helper's selected rank, and no interpolation can hide behind tied values.
 """
 
 import math
@@ -44,7 +44,7 @@ def main():
 
     print(f"mapie {mapie.__version__}, numpy {np.__version__}")
     print()
-    print("Scores are 1..n, so a returned threshold equals the rank it landed on.")
+    print("Scores are 1..n, so a returned threshold equals the rank the helper selected.")
     print()
     print(f"{'n':>5}{'level':>7}{'corrected':>11}{'>1?':>6}{'req rank':>9}"
           f"{'warns':>7}{'returned':>10}{'delivered':>11}{'shortfall':>11}")
@@ -107,7 +107,7 @@ def main():
         print()
         print("REPRODUCES. Where the correction leaves the unit interval the clip "
               "returns level 1.0, the helper returns max(scores), and the delivered "
-              "coverage is n/(n+1) regardless of what was asked. Nothing in the return "
+              "coverage is n/(n+1), independent of the input level. Nothing in the return "
               "value or the warning stream distinguishes it from a normal call, and the "
               "error is anti-conservative.")
         return 0

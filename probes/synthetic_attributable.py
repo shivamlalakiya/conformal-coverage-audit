@@ -3,9 +3,8 @@
 
 The gap this closes
 -------------------
-Every real-data number in the audit is a PAIRED difference, because real series are
-not exchangeable and an absolute coverage miss on them cannot be pinned on the
-level-to-rank map. The limitation section says so. A referee reads that as: the one
+Every real-data number in the audit is a PAIRED difference, because raw series do not supply the
+exchangeability needed to assign an absolute miss to the index convention. The limitation section says so. A referee reads that as: the one
 setting where absolute coverage is attributable is the tabular arm, and the tabular
 arm is a null -- so the headline quantity was never measured where it could be
 believed.
@@ -17,11 +16,11 @@ that matter and replacing the part that breaks attribution:
       standardised residuals i.i.d. to generate a synthetic series. The synthetic
       series carries the fitted dynamics, the real scale and the real residual
       SHAPE -- and its innovations are i.i.d. BY CONSTRUCTION, so a correctly
-      specified one-step forecaster produces residuals exchangeable with the test
-      residual and absolute coverage is attributable.
+      specified one-step forecaster puts calibration and test residuals under
+      the same law and absolute coverage is attributable.
 
   (b) IID-INNOVATION RANDOM WALK, as the control that needs no model at all: a
-      last-value forecaster's one-step residuals ARE the innovations. Where (a) and
+      last-value forecast leaves one-step errors equal to the innovations. Where (a) and
       (b) agree, the attribution does not rest on the fitted specification.
 
 What makes (a) attributable, precisely
@@ -29,14 +28,14 @@ What makes (a) attributable, precisely
 Exchangeability of the calibration residuals with the test residual is what
 Proposition 1 needs. Under (a) the innovations are i.i.d. draws from a fixed
 empirical law, and a one-step-ahead last-value forecast on a random walk built from
-them has residual_t = innovation_t exactly. So the residual set is an i.i.d. sample
-and the test residual is another draw from the same law. Nothing about the ORDER of
+them has residual_t = innovation_t exactly. So the residual set is an independent sample;
+the held-out residual is drawn from that same law. Nothing about the ORDER of
 the real series survives into that argument, which is the point: order is what
 breaks exchangeability and order is what the resampling destroys.
 
 What this does NOT claim
 ------------------------
-It does not claim real series are exchangeable -- they are not, and the paired arms
+It makes no symmetry claim for raw series -- they do not have it, and the paired arms
 stay for that reason. It claims that on series carrying a real fitted dynamic and a
 real innovation distribution, with the one property that breaks attribution removed,
 the shipped helpers deliver the coverage reported here. A referee who wants the
@@ -66,7 +65,7 @@ OUT = "outputs/probe_output_synthetic_attributable.txt"
 LEVELS = (0.90, 0.95)
 WINDOWS = (20, 40)
 # statsforecast calibration-window counts. This is the arm the attributable claim
-# runs on: its scores are captured from the library's OWN conformal call by a spy,
+# runs on: its scores are captured from the library's internal conformal call by a spy,
 # with no residuals_matrix_ diagonal anywhere in the path, so nothing between the
 # generator and the helper can break exchangeability.
 SF_WINDOWS = (10, 20, 50)
@@ -180,8 +179,8 @@ def synth_parametric(y, rng, length):
 
 def synth_walk(y, rng, length):
     """A random walk whose innovations are `y`'s own standardised residuals,
-    resampled i.i.d. A last-value forecaster's one-step residuals are then the
-    innovations exactly, so no specification enters the attribution at all."""
+    resampled i.i.d.; under the last-value forecast, one-step errors equal the
+innovations exactly, so no specification enters the attribution at all."""
     got = fit_ar1(y)
     if got is None:
         return None, None
@@ -205,12 +204,12 @@ def main():
     say("ABSOLUTE COVERAGE, ATTRIBUTABLE, ON SERIES WITH REAL STRUCTURE")
     say("=" * 104)
     say("self_check() passed at import: the serial-correlation screen rejects an")
-    say("AR(1) at rho=0.8 and passes i.i.d. noise, and a last-value forecaster's")
-    say("one-step residuals on a random walk ARE its innovations.")
+    say("AR(1) at rho=0.8 and passes i.i.d. noise, and a last-value forecast")
+    say("on a random walk returns one-step errors equal to the innovations.")
     say("")
     say("Every other real-data arm in this deposit reports a PAIRED difference,")
-    say("because a real series is not exchangeable and an absolute miss on one is not")
-    say("attributable to the index convention. Here the dynamics, the scale and the")
+    say("because raw archive series do not support assigning an absolute miss to")
+    say("the index convention. Here the dynamics, the scale and the")
     say("residual shape come from real series and the innovations are resampled")
     say("i.i.d., so exchangeability holds by construction and the absolute number")
     say("means something. Two generators, because agreement between them removes the")
@@ -316,15 +315,15 @@ def main():
                     # different draws -- which is most of them, and which threw away
                     # exactly the rows where the generator is correctly specified.
                     idxs = [c["a_rank"] for c in good]
-                    # `rank_at` returns the SMALLEST rank at or above the returned
-                    # threshold, so r/(n+1) is Proposition 2's UPPER bound and
+                    # `rank_at` returns the first score rank not below the returned
+                    # threshold; r/(n+1) is Proposition 2's UPPER bound and
                     # (r-1)/(n+1) its lower one -- the threshold sits between two
                     # order statistics and the bracket is what holds without
                     # knowing the interpolation fraction. An earlier version of this
                     # probe used the upper bound as a POINT prediction and reported
                     # the n=20 cells as 3.5 s.e. below "the prediction". They were
-                    # not: they were inside the bracket, and the bracket is 1/21
-                    # wide there against 1/51 at n=50, which is why the mistake was
+                    # not: they were inside the bracket, and the interval has width 1/21
+                    # at n=20 and there against 1/51 at n=50, which is why the mistake was
                     # invisible at the larger size. The defect was in the
                     # prediction, not in the helper.
                     hi_pred = float(np.mean([float(F(i, n + 1)) for i in idxs]))
@@ -380,7 +379,7 @@ def main():
         say("standard errors ABOVE the prediction. The cause is in this deposit")
         say("already: that path reads the offset-1 diagonal of residuals_matrix_,")
         say("which holds TWO-step residuals, so its calibration scores are not")
-        req = "exchangeable with a one-step test residual whatever the data is."
+        req = "misaligned with the one-step test residual for any dataset."
         say(f"{req}")
         say("Rebuilding arm B on the aligned diagonal does not repair the comparison")
         say("either -- it makes the two arms different constructions, and the")
@@ -393,9 +392,9 @@ def main():
         say(f"Worst ATTRIBUTABLE shortfall: {got:.4f} against nominal {cov:.2f}, a")
         say(f"miss of {gap:+.4f} at {method}, w={iw}, n={n}, generator={kind}, on")
         say(f"{pts} independent series. The landed index is {idx} of {n}, which buys")
-        say(f"exactly {pred:.4f} -- so the shortfall is the index and not the data,")
-        say(f"and on this generator that sentence is a measurement rather than an")
-        say(f"inference from a paired difference.")
+        say(f"exactly {pred:.4f} -- so the shortfall is the index, not the archive,")
+        say(f"and on this generator that statement is measured directly rather")
+        say(f"than inferred from a paired difference.")
     else:
         say("")
         say("No cell undercovers. Report it that way: on exchangeable-by-construction")
@@ -408,9 +407,9 @@ def main():
     say("The bracket above is the test, and it passes everywhere the threshold is an")
     say("order statistic. An earlier run of this probe used r/(n+1) as a POINT")
     say("prediction and reported the n=20 cells as three and a half standard errors")
-    say("below it. They were not below anything: r is the smallest rank at or above")
-    say("the returned threshold, so r/(n+1) is Proposition 2's UPPER bound and")
-    say("(r-1)/(n+1) its lower one. The bracket is 1/21 wide at n=20 and 1/51 at")
+    say("below it. They were not below anything: r is the least admissible order")
+    say("statistic for the returned cutoff, so r/(n+1) is Proposition 2's UPPER bound and")
+    say("(r-1)/(n+1) its lower one. The interval has width 1/21 at n=20 and 1/51 at")
     say("n=50, which is exactly why the mistake looked like a small-n anomaly: the")
     say("error was in the prediction and it scaled with the gap width.")
     say("")

@@ -5,7 +5,7 @@ Why this probe exists
 ---------------------
 The audit's paired design compares a library's shipped interval against the same
 construction at the required order statistic. For a one-rail helper that is a
-RANK. For a helper that resolves two levels on signed scores it is a SPAN, and
+RANK. For a helper that maps two signed-score levels it is a SPAN, and
 the arithmetic of spans is not the arithmetic of ranks:
 
   * the attainable coverages are the same grid, {j/(n+1)}, but a two-sided
@@ -67,7 +67,7 @@ DIVISIONS = (("one-sided", (F(1),)),
 def grid_coverage(n, a, b):
     """Pr(V_(a) < V_(n+1) <= V_(b)) from the rank of V_(n+1) being uniform.
 
-    Exchangeability and continuity make the rank of the test score among the n+1
+    Exchangeability and continuity make the test score's rank among the n+1
     values uniform on {1..n+1}. Rank r means the test score falls in the gap above
     V_(r-1), so it lies in (V_(a), V_(b)] exactly for r in {a+1, .., b}. Counting
     those ranks IS the probability, so this is enumeration and not simulation.
@@ -80,8 +80,8 @@ def feasible_division(n, alpha, shares):
     """Is every one of the divided levels expressible by a finite order statistic?
 
     Each share s_j takes alpha_j = s_j * alpha and needs a rank
-    ceil((n+1)(1-alpha_j)) <= n, i.e. (n+1) alpha_j >= 1. The binding constraint
-    is the SMALLEST alpha_j, which is why an asymmetric split is worse than an
+    ceil((n+1)(1-alpha_j)) <= n, i.e. (n+1) alpha_j >= 1. Feasibility is set
+    by the SMALLEST alpha_j, which is why an asymmetric split is worse than an
     equal one at the same L.
     """
     return all(F(n + 1) * (s * alpha) >= 1 for s in shares)

@@ -70,9 +70,8 @@ mapie 1.4.1     n (guard test)           10        yes      3  11   BLIND: worst
     LIMIT, stated plainly. The two counts above differ, and the difference is
     the point: a wheel that ships tests does not necessarily ship a fixture
     that names a calibration size. pytest is deliberately not installed in
-    the pinned environments -- adding it would perturb the versions the
-    deposit exists to fix -- so the suites are not executed and the fixture
-    VALUES are read. This is a census over one library's scorable fixtures,
+    the pinned environments. Installing it would change the audited dependency
+    set, so tests are not run; fixture VALUES are read. This is a census over one library's scorable fixtures,
     which is more than the manuscript's earlier anecdote and much less than
     the ten packages audited elsewhere.
 
@@ -80,7 +79,7 @@ mapie 1.4.1     n (guard test)           10        yes      3  11   BLIND: worst
 SUMMARY
 ========================================================================================================
   The certificate is usable: 4 sizes, a classifier that
-  round-trips every candidate rule and reports non-matches as non-matches,
+  classifies every candidate rule and leaves non-matches as non-matches,
   and a regime reporter that needs no data. Of the fixtures we could extract
   from shipped test sources, 2 of 2 sit at a size that
   cannot separate all the classes -- so the manuscript's claim about fixture

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""mapie #973: the classification quantile lands one order statistic above the required
-rank on a residue class of calibration sizes.
+"""mapie #973: the classification threshold resolves one order statistic too high
+on one calibration-size congruence class.
 
 One filing, one script, no dependency on the rest of this repository.
 

@@ -3,10 +3,10 @@
 
 Why this probe exists
 ---------------------
-The audit's largest measured shortfall is a shipped default that calibrates on two
-windows, where no valid finite bound exists at any conventional level. The obvious
-rebuttal is that this is a corner: nobody calibrates on two points, and n >= 9 is
-cheap, so the finding is a curiosity about one bad default.
+The biggest shortfall measured anywhere in this artifact comes from a shipped default
+calibrating on two windows, a size at which no finite bound is valid for any level
+anyone requests. The easy dismissal: an edge case. Two points is nobody's calibration
+set, nine is cheap, so one careless default and nothing more.
 
 That rebuttal is wrong, and this probe is the reason. The feasibility floor is
 
@@ -21,16 +21,16 @@ Bonferroni split across a forecast horizon of length H resolves alpha/H, so
 which at H = 12 and alpha = 0.05 is 239 calibration windows. Multi-step forecasting
 is the normal case, not a corner, and no library default comes close to 239.
 
-The site is not hypothetical. sktime's `ConformalIntervals(method="conformal_bonferroni")`
-computes, in `_predict_interval_series`,
+There is a real site behind it. Inside `_predict_interval_series`, sktime's
+`ConformalIntervals` under `method="conformal_bonferroni"` computes
 
     alphas    = 1 - coverage
     quantiles = 1 - alphas / len(fh)
     pred_int_row = np.quantile(abs_resids, quantiles)
 
--- an uncorrected level, Bonferroni-divided by the horizon length, through numpy's
-default `linear` interpolation. The census records it at conformal.py:326. This probe
-measures what it delivers.
+-- so: no correction, the miscoverage cut by however many steps are forecast, and
+numpy's default interpolation to resolve the result. conformal.py:326 in the census.
+What that combination hands back is what this probe measures.
 
 What is measured, and what is assumed
 -------------------------------------
@@ -62,43 +62,42 @@ step-1 residuals ARE the innovations, so they are i.i.d.
 
 A SECOND defect, found by the structural check that was written to verify the first
 --------------------------------------------------------------------------------
-The check compared the score set sktime resolves the level from against the input's
-absolute first differences, and it failed. Solving each entry for the index pair
-that produces it shows why. `residuals_matrix_` has
+The check pitted the score set sktime resolves against first differences of the
+input, taken absolutely, and it failed. Reading entries back to the index pairs
+behind them explains that. `residuals_matrix_` holds
 
     A[i, j] = y[j] - y[origin_i - 1],
 
-so its offset-0 diagonal is already the ONE-step residual set. sktime slices it with
+whose main diagonal therefore holds ONE-step residuals already. The slice taken is
 
     resids = np.diagonal(residuals_matrix, offset=offset)      # offset = relative fh
 
-so for a step-h forecast it calibrates on the offset-h diagonal, which holds
-(h+1)-STEP residuals. Block (0) establishes this twice: structurally, by solving
-each entry for its index pair, and statistically, by the variance ratio on a random
-walk where Var[diag(offset=k)] must be (k+1) sigma^2 if the off-by-one is real and
-k sigma^2 if it is not.
+so a forecast h steps out calibrates against diagonal h, and the entries there span
+h+1 steps. Block (0) pins this down twice over: once by reading entries back to their
+index pairs, once by variance. On a random walk diagonal k must carry (k+1) sigma^2
+where the misalignment is genuine, and k sigma^2 where it is not.
 
-This is a horizon off-by-one, distinct from the level-to-rank map and pointing the
-other way: for an integrated series a longer-horizon residual is larger, so the
-interval is too WIDE. That is presumably why it has survived -- it is conservative,
-and a conservative interval fails no coverage test. It also means the shipped
-helper's scores are NOT exchangeable with the test residual at any horizon, whatever
-the data, so absolute coverage through the public API is not attributable to any one
-cause. The probe therefore runs four arms and attributes separately.
+That is an off-by-one in the horizon, a different fault from the index arithmetic and
+pointing the opposite way: residuals reaching further ahead are bigger on an
+integrated series, so the band comes out too WIDE. Which is likely why it has lasted.
+Nothing that errs wide will fail a coverage test. It also puts the shipped scores out
+of exchange with the test residual at every horizon, for any input, so no single cause
+owns the absolute coverage seen through the public API. Four arms, attributed
+separately, is the response.
 
 Four arms, one fit
 ------------------
   A  sktime shipped: its own scores, its own Bonferroni level, its own quantile call
   B  sktime's OWN scores at the required rank      -> isolates the level-to-rank map
-  C  correctly ALIGNED scores at the required rank -> isolates the alignment defect
+  C  scores on the RIGHT diagonal, at the required rank -> isolates the misalignment
   D  correctly aligned scores at sktime's level    -> tests the h/(n+1) prediction
 
-Arm C's step-1 scores are the innovations, so they are i.i.d. and exchangeable with
-the test residual exactly; the absolute-coverage claims are made there and nowhere
-else. At step h > 1 even the aligned residuals are overlapping sums and therefore
-h-dependent, so those cells are labelled approximate. The FEASIBILITY claim needs
-none of this: whether an index into a score set of size n can support level
-1 - alpha/H is arithmetic.
+At step 1 arm C is looking at the innovations themselves, so they are i.i.d. and
+exchange with the test residual exactly; absolute coverage is claimed there only.
+Beyond step 1 even a correctly aligned residual is a sum of overlaps and depends on
+the step, and those cells are marked approximate. None of that bears on feasibility,
+which is arithmetic: either some index into n scores reaches 1 - alpha/H or none
+does.
 """
 
 import math
@@ -108,6 +107,9 @@ import warnings
 from fractions import Fraction
 
 import numpy as np
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+from conformal_coverage import required_rank  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "..", "outputs", "probe_output_horizon_feasibility.txt")
@@ -144,11 +146,6 @@ def floor_n(alpha_eff):
 def alpha_eff_exact(coverage, H):
     """(1 - coverage)/H as a rational, so no caller has to subtract in floating point."""
     return (Fraction(1) - Fraction(str(coverage))) / H
-
-
-def required_rank(n, coverage):
-    k = math.ceil((n + 1) * coverage)
-    return None if k > n else k
 
 
 def virtual_index(n, q, method="linear"):
@@ -351,13 +348,13 @@ def alignment_block(rng, say, reps=300, L=80):
     from sktime.forecasting.naive import NaiveForecaster
 
     say("-" * 100)
-    say("(0) RESIDUAL ALIGNMENT -- a horizon off-by-one, separate from the level map")
-    say("    residuals_matrix_ has A[i,j] = y[j] - y[origin_i - 1], so diag(offset=0)")
-    say("    is ALREADY the one-step residual set. sktime slices diag(offset=h) for")
-    say("    step h, which holds (h+1)-step residuals.")
+    say("(0) RESIDUAL ALIGNMENT -- an off-by-one in the horizon, not in the level")
+    say("    residuals_matrix_ has A[i,j] = y[j] - y[origin_i - 1], which puts")
+    say("    one-step residuals on the main diagonal already. The slice taken for")
+    say("    step h is diag(offset=h), whose entries span h+1 steps.")
     say("-" * 100)
 
-    # structural: solve each diagonal entry for the index pair that produces it
+    # structural: read each diagonal entry back to the indices behind it
     vals = np.cumsum(rng.standard_normal(L))
     y = pd.Series(vals, index=pd.RangeIndex(L))
     fh = ForecastingHorizon([1, 2], is_relative=True)
@@ -406,10 +403,10 @@ def alignment_block(rng, say, reps=300, L=80):
             f"{off + 1:>15}{(off if off else 0):>12}")
         assert abs(mv - (off + 1)) < 0.25, (off, mv)
     say("")
-    say("    The (k+1)-step column is matched and the k-step column is not, at every")
-    say("    offset. The off-by-one is real. Direction: for an integrated series a")
-    say("    longer-horizon residual is larger, so the shipped interval is too WIDE.")
-    say("    A conservative defect fails no coverage test, which is why it survives.")
+    say("    Every offset matches the (k+1)-step column and misses the k-step one.")
+    say("    The misalignment is real. Which way it errs: on an integrated series a")
+    say("    residual reaching further ahead is bigger, so the shipped band is too")
+    say("    WIDE -- and nothing erring wide will fail a coverage test.")
     say("")
     return {"var": {k: float(np.mean(v)) for k, v in var.items()}}
 
@@ -426,7 +423,7 @@ def main():
 
     # ---------------- (i) exact arithmetic --------------------------------
     say("-" * 100)
-    say("(i) THE FLOOR under a Bonferroni split across a horizon of length H")
+    say("(i) THE FLOOR once alpha is cut H ways, one per forecast step")
     say("    n >= 1/alpha_eff - 1 with alpha_eff = alpha/H. Exact arithmetic.")
     say("-" * 100)
     say(f"{'nominal':>8}{'H':>5}{'alpha_eff':>11}{'floor n':>9}"
@@ -443,10 +440,9 @@ def main():
             say(f"{1 - alpha:>8.2f}{H:>5}{alpha / H:>11.5f}{fl:>9}"
                 f"{fl / base:>10.1f}   {note}")
         say("")
-    say("    A monthly forecast one year ahead at 95% needs 239 calibration windows")
-    say("    for the Bonferroni band to be feasible at all. This is the SAME")
-    say("    infeasibility the audit reports for a two-window default, reached from a")
-    say("    configuration nobody would call a corner case.")
+    say("    Twelve months ahead at 95% wants 239 calibration windows before the")
+    say("    band is feasible at all. Same wall the two-window default runs into,")
+    say("    arrived at from a setting nobody would file under edge case.")
     say("")
 
     # ---------------- (ii) four arms ------------------------------------
@@ -511,7 +507,7 @@ def main():
         say(f"  The h/(n+1) prediction of the fractional-rank result tracks arm D to"
             f" within {max(abs(r['step1_D'] - r['pred']) for r in feas):.4f} on the"
             f" feasible cells,")
-        say("  measured against a SHIPPED helper's own level on exchangeable scores.")
+        say("  measured on scores that do exchange, at a level the library chose.")
     say("")
     say("=" * 100)
     say("SUMMARY")

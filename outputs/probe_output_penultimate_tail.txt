@@ -208,7 +208,7 @@ and needs two lines rather than a grid:
 uniform in xi over ALL of R and in gamma over (0,1), with no asymptotics.
 Which turns the mean value step into an inequality, not an expansion:
     |pi - pi_GPD(xi)| <= |xi_n - xi| * (i+1)/(4i^2)
-with xi_n - xi = A(n/i)/rho + o(A) the domain-of-attraction hypothesis, so
+with xi_n - xi = A(n/i)/rho + o(A) the tail-class assumption, so
 every remaining error term sits there and none in this step.
 
   gamma   h(0)=g(1-g)/2    sup_u h    ratio

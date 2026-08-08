@@ -232,7 +232,7 @@ def main():
                  if isinstance(r["counts"], tuple) and r["pkg"] in cf_una)
         if a2 + u2:
             say("THE NARROWER QUESTION, asked separately rather than instead. Restricted")
-            say("to packages whose primary purpose IS conformal prediction:")
+            say("to packages centred on conformal prediction:")
             say(f"  audited   {a2:>12,}    unaudited {u2:>12,}    "
                 f"share {100.0 * a2 / (a2 + u2):>5.1f}%")
             say("")
@@ -248,7 +248,7 @@ def main():
     say("=" * 100)
     say("WHAT THIS DOES NOT SETTLE")
     say("=" * 100)
-    say("A share of PyPI downloads says nothing about R, Julia, SQL or spreadsheet")
+    say("A share of PyPI downloads says excludes R, Julia, SQL, and spreadsheet-style workflows")
     say("users, and the interface census covers those separately without a")
     say("denominator of any kind. It says nothing about which code paths inside a")
     say("downloaded package are executed. And a package absent from PyPI entirely --")

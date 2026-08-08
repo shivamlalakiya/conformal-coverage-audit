@@ -4,8 +4,8 @@
 Why this probe exists
 ---------------------
 The census recorded `lac.py:158`, `quantiles_ = (n + 1) * (1 - alpha_np)`, as a
-resolution site on the crossval path. The census criterion requires a site's
-value to determine a returned threshold, interval, set or p-value. This one does
+resolution site on the crossval path. The census criterion requires that a site's
+value decide an output threshold, interval, set or p-value. This one does
 not: the branch of `get_prediction_sets` reached on that same path never reads
 `quantiles_`. It compares an inclusion count against `_alpha * (n - 1)` instead,
 which is a different rule carrying no (n+1) correction at all.
@@ -20,7 +20,7 @@ path -- and APS's `get_prediction_sets` DOES read it, so APS's sets move. Same
 line, same value, opposite answer. Without the control this probe would only show
 that one perturbation did nothing.
 
-What follows for the census: the anchor moves to the expression that resolves the
+What follows for the census: the anchor moves to the expression that maps the
 level, and the count is unchanged at one site on this path. The criterion was not
 weakened to keep the site; the site was re-anchored to satisfy it.
 

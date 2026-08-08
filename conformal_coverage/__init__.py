@@ -1,4 +1,4 @@
-"""The rank arithmetic of a finite-sample distribution-free bound.
+"""The rank arithmetic of a finite-sample finite-sample guarantee.
 
 For ``n`` scores exchangeable with a fresh one, the bound at rank ``r`` covers with
 probability exactly ``r / (n + 1)``. Nothing in a numerical library is indexed that way. A quantile
@@ -109,7 +109,7 @@ def _self_check():
     assert conformal_threshold(scores, 0.5) == 6.0             # ceil(11*0.5) = 6
 
     # a threshold equal to max(scores) is NOT evidence of a clamp: where the
-    # required rank is n, the maximum is the correct answer. This cost a retraction.
+    # required rank is n, the sample maximum is the proper answer. This cost a retraction.
     assert conformal_threshold(scores, 0.10) == max(scores)
 
     print("conformal_coverage self-check passed")

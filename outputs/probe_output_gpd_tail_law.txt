@@ -23,8 +23,7 @@ W14  ONE LAW FOR pi -- the two cases of W12 are a single family
    0.667  Frechet                 0.7452    0.6580    0.6156    0.5748    0.5395    0.5082
    1.250  Frechet (heavy)         0.7896    0.6985    0.6494    0.5990    0.5531    0.5111
 
-    Every column decreases toward gamma = 0.5 with depth, and every row
-    increases with xi. So xi orders the family and depth flattens it.
+    Every column decreases toward gamma = 0.5 with depth while rows increase with xi. So xi orders the family while depth flattens it.
 
 --------------------------------------------------------------------------------------------------------
 (ii) MEASURED against the law, on distributions with KNOWN xi. The last
@@ -109,19 +108,18 @@ lognormal       5000  50   0.010    0.0102     0.0102     0.2439   above xi=0: h
     0.667    0.25     -0.2060     -0.1651     -0.1185     -0.0268     +0.0471
     0.667    0.50     -0.1618     -0.1184     -0.0785     -0.0162     +0.0274
 
-    The sensitivity is mild: mis-stating xi by 0.25 moves pi by a few
-    hundredths of a rank, which is an order of magnitude less than the
-    gamma-vs-pi gap it corrects. So a rough shape estimate -- or a
+    The sensitivity is mild: mis-stating xi by 0.25 moves pi by only tiny rank fractions, which is roughly ten times smaller than the
+    gamma-vs-pi correction gap so a rough tail estimate -- or a
     conservative bound on it -- recovers most of the benefit, and the
     distribution-free floor floor(h)/(n+1) is unaffected either way.
 
 ========================================================================================================
 SUMMARY
 ========================================================================================================
-  pi depends on the distribution only through the extreme-value shape xi.
+  pi depends through the tail-shape parameter only xi.
   One formula covers all three domains; W12's two forms are its xi = 0 and
   xi > 0 sections, and the Weibull domain xi < 0 was previously unreached.
   pi = gamma holds exactly at xi = -1 and nowhere else, so the flat-density
-  condition of the earlier results IS a statement about the shape index.
+  condition of the earlier results states a fact about the shape index.
   Measured to 0.00054 over 28 cells and seven distributions,
   against 0.16550 for the xi = 0 form.

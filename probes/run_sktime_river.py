@@ -32,7 +32,7 @@ def valid_k(n, alpha):
 
 
 def valid_threshold(scores, alpha):
-    """Order statistic k of scores, or inf where the conformal quantile does not exist."""
+    """Order statistic k of scores, or inf when no finite conformal bound exists."""
     s = np.sort(np.asarray(scores))
     k = valid_k(len(s), alpha)
     return np.inf if k is None else s[k - 1]

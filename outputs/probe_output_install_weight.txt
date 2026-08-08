@@ -67,7 +67,7 @@ denominator restricted to conformal-first packages would be higher
 and would also be chosen to flatter.
 
 THE NARROWER QUESTION, asked separately rather than instead. Restricted
-to packages whose primary purpose IS conformal prediction:
+to packages centred on conformal prediction:
   audited        245,601    unaudited       55,535    share  81.6%
 
 Both figures are reported because each answers a different objection.
@@ -77,7 +77,7 @@ answers 'did you audit the conformal ecosystem or a sample of it'.
 ====================================================================================================
 WHAT THIS DOES NOT SETTLE
 ====================================================================================================
-A share of PyPI downloads says nothing about R, Julia, SQL or spreadsheet
+A share of PyPI downloads says excludes r julia sql and spreadsheet workflows
 users, and the interface census covers those separately without a
 denominator of any kind. It says nothing about which code paths inside a
 downloaded package are executed. And a package absent from PyPI entirely --

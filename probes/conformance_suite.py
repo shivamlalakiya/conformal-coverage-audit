@@ -15,7 +15,7 @@ Given a callable that maps (scores, level) to a threshold, it reports:
 The classification is by THRESHOLD EXTRACTION, which the taxonomy notes is the
 only general test: branches (b) and (d) are indistinguishable from returned sets
 alone, and fingerprinting at a single interior cell cannot separate them either,
-because at some cells a clamped level and a correct one coincide.
+because at certain cells a saturated level and the properly corrected one coincide.
 
 Why it is trustworthy without any library installed
 ---------------------------------------------------
@@ -64,8 +64,8 @@ def call(fn, n, level, want_warnings=False):
     """Invoke a helper and return its threshold, or RAISED.
 
     Optionally also return whatever warnings it emitted. Whether a boundary
-    behaviour is SILENT is a per-helper attribute and not part of any branch's
-    definition, so it is measured separately and reported separately.
+    behaviour is SILENT is a per-helper characteristic independent of the branch
+    taxonomy, so it is measured separately and reported separately.
     """
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
@@ -100,7 +100,7 @@ def predictions(level):
     Naming them ALL and fitting is what keeps the classifier honest. A single
     threshold at a single n cannot distinguish these: at some n the uncorrected
     rule and the corrected one coincide, and a threshold equal to max(scores)
-    can be either a clamped level or the genuine k=n order statistic.
+    can be either level clamping or the actual k=n order statistic.
 
     The candidate set is a cross product of three independent choices, because
     each was seen to matter in a real library:
@@ -109,13 +109,12 @@ def predictions(level):
                    crepes' ConformalPredictiveSystem uses the latter, and with a
                    one-sided-only candidate set it was misclassified as (g).
       CORRECTION   raw level, or the (n+1)/n corrected level clipped at 1.
-      FAMILY       how the level becomes a position: numpy's linear, higher and
-                   inverted_cdf, or a direct order statistic.
+      FAMILY       the mechanism mapping level to position: numpy's linear, higher,
+                   inverted_cdf, or explicit order-statistic lookup.
 
-    A helper that fits NONE of these is reporting that this set is incomplete,
-    which is a fact about the suite. It is only evidence of an approximate
-    estimator when the returned rank is also far off and not monotone -- see
-    classify().
+    A helper matching NONE of these candidates is signalling that the catalogue
+    has a gap. It constitutes evidence of an approximate estimator only when the
+    returned rank is also far off and not monotone -- see classify().
     """
     out = {}
     for rail_name, rail in (("1-sided", lambda q: q),
@@ -175,7 +174,7 @@ def classify(fn, level=LEVEL):
     notes = []
     # A returned value STRICTLY GREATER than max(scores) is not an order
     # statistic of the calibration set at all, so no branch letter applies. The
-    # real case is mapie's LAC crossval branch, which returns the raw count
+    # real case is mapie's LAC crossval branch, which returns the unnormalised count
     # (n+1)(1-alpha) for a caller to compare against cumulative sums. On a score
     # set of 1..n a count is numerically indistinguishable from a rank, so
     # without this check it reads as a clamped threshold.
@@ -202,17 +201,17 @@ def classify(fn, level=LEVEL):
     notes.append(f"rule fitted over {len(interior)} interior n: {rule} "
                  f"(max deviation {dev:.3f} ranks)")
 
-    # A helper "applies the correction" if it reaches the required rank, and
-    # there are TWO ways to do that: correct the LEVEL to ceil(L(n+1))/n before
-    # calling a quantile function (mapie, statsforecast), or take the exact rank
-    # ceil(L(n+1)) directly (torchcp, crepes). The candidate names call only the
-    # first "corrected", so the order-stat family has to be included here or an
-    # exact implementation is misread as having no correction at all.
+    #     A helper "applies the correction" if its threshold reaches the requisite rank,
+    # and TWO routes exist: adjust the LEVEL to ceil(L(n+1))/n before invoking a
+    # quantile function (mapie, statsforecast), or select the exact rank
+    # ceil(L(n+1)) directly (torchcp, crepes). The candidate labels call only the
+    # first "corrected", so the order-stat family must appear here or an exact
+    # implementation is misread as carrying no correction at all.
     corrected = rule.startswith("corrected") or "order-stat" in rule
     if not corrected:
         branch = "d"
-        notes.append("no (n+1)/n correction, so the boundary is never reached "
-                     "and no choice is ever made there")
+        notes.append("no (n+1)/n correction applied, so the feasibility boundary "
+                     "is never encountered and no branch decision occurs")
         if at_bad == float(n_bad):
             notes.append(f"NOTE it does return max(scores) at n={n_bad}, but "
                          f"that is the uncorrected level landing on rank n by "
@@ -383,7 +382,7 @@ def adapters():
 
             `regression.py:1714` makes the calibration-size guard conditional on
             `allow_infinite_bounds`, a documented public keyword, and the flag
-            arrives here as `unbounded`. A caller sets it to be given +inf where
+            arrives here as `unbounded`. A caller opts into +inf where
             no finite bound is valid, so branch (c) is what it asks for. This row
             is what it gets.
             """
@@ -447,7 +446,7 @@ def adapters():
         out.append(("mapie LAC quantiles [prefit/mean -> delegates]", mapie_lac))
         # `if cv == "prefit" or agg_scores in ["mean"]` -- BOTH must be off the
         # first branch to reach the second, so cv must not be "prefit" either
-        out.append(("mapie LAC quantiles [cv=5/crossval -> raw count]",
+        out.append(("mapie LAC quantiles [cv=5/crossval -> count scale]",
                     lambda s, lv: mapie_lac(s, lv, cv=5, agg="crossval")))
     except Exception as exc:
         skipped.append(("mapie LAC get_conformity_score_quantiles",
@@ -516,9 +515,9 @@ def adapters():
 
 
 # One row per CALL PATH. Two of these paths reach the same resolution site under
-# the census's criterion -- one expression turning a level into an index -- and the
-# table shows both deliberately, because what the flag changes is which branch that
-# one expression reaches and the answer is that it changes nothing. A count over
+# the census's criterion -- a single formula converting level to rank -- and the
+# table shows both deliberately, because the flag's effect is to select which branch
+# the shared expression enters, and the outcome is that it alters nothing. A count over
 # rows is therefore a count over paths and not over sites, and a manuscript quoting
 # "N of M helpers" has to say which. Left as data rather than as a docstring so the
 # probe prints the number instead of a reader deriving it.
@@ -528,12 +527,12 @@ SHARED_SITE = {
 
 
 CHECKLIST = (
-    "1. The DELIVERED coverage, not the requested one: the rank the "
+    "1. The DELIVERED coverage, not the nominal coverage: the rank the "
     "implementation lands on, divided by n+1.",
-    "2. The RANK itself, as k of n, so a reader can check the arithmetic without "
-    "rerunning anything.",
-    "3. The CALIBRATION SET SIZE n, and whether any valid finite bound exists at "
-    "that n for the requested level.",
+    "2. The RANK itself, reported as k of n, letting a reader verify the arithmetic "
+    "without re-executing anything.",
+    "3. The CALIBRATION SET SIZE n, together with whether a valid finite bound can "
+    "exist at that n for the nominated level.",
 )
 
 
@@ -563,8 +562,8 @@ def main():
     say(f"probe at n={feasibility_floor(level) - 1} (infeasible) and "
         f"n={max(feasibility_floor(level) + 20, 40)} (interior)")
     say("")
-    say("Scores are 1..n with no ties, so a returned threshold IS the rank it")
-    say("landed on -- a non-integer value means the helper interpolated between")
+    say("Scores are 1..n with no ties; threshold values therefore identify")
+    say("their selected rank -- a non-integer value means the helper interpolated between")
     say("two order statistics.")
     say("")
 
@@ -631,9 +630,9 @@ def main():
     for item in CHECKLIST:
         say(f"  {item}")
     say("")
-    say("The point of the third item is that it is the only one that can say 'no valid")
-    say("bound exists here'. Items 1 and 2 are always answerable; item 3 is the one")
-    say("that catches a finite interval returned where none is possible.")
+    say("The third item matters because it alone can declare 'no valid bound exists")
+    say("here'. Items 1 and 2 are always answerable; item 3 is what flags a finite")
+    say("interval handed back where no valid one can be constructed.")
 
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
     with open(args.out, "w") as fh:

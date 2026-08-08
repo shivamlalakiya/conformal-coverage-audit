@@ -85,6 +85,9 @@ from fractions import Fraction
 
 import numpy as np
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+from conformal_coverage import required_rank  # noqa: E402
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "..", "outputs", "probe_output_fractional_rank.txt")
 
@@ -172,11 +175,6 @@ def q_needed(n, alpha, method):
 
 def q_folklore(n, alpha):
     return min((1.0 - alpha) * (n + 1) / n, 1.0)
-
-
-def required_rank(n, coverage):
-    k = math.ceil((n + 1) * coverage)
-    return None if k > n else k
 
 
 # ---------------------------------------------------------------------------

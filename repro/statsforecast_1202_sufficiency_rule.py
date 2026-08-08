@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""statsforecast #1202: CSP's documented sufficiency rule names one rail, and its
-worked example is off by one.
+"""statsforecast #1202: CSP's documented sufficiency rule names one rail, and the
+example is one high.
 
 One filing, one script, no dependency on the rest of this repository.
 

@@ -2,7 +2,7 @@
 W16  THE LEVEL-TO-RANK MAP ACROSS QUANTILE APIs
 ==============================================================================================================
 
-  Instrument: quantile the tie-free score set 1..n, so the returned value
+  Instrument: quantile the scores 1..n with no ties, so the returned value
   IS the virtual index. (A, B) with h = A + Bq are FITTED at interior
   levels. n = 50, requested coverage 0.90.
 
@@ -27,7 +27,7 @@ scipy mstats.mquantiles alphap=betap=1/3 (= median_unbiased)  0.3333  50.333   4
 scipy mstats.mquantiles alphap=betap=0.5 (= hazen)    0.5000  50.000   45.500     0.8922     0.8824    0.9080
 
 --------------------------------------------------------------------------------------------------------------
-(ii) A CONVENTION THE TAXONOMY DOES NOT CONTAIN
+(ii) A SHIPPED CONVENTION OUTSIDE THE TAXONOMY
 --------------------------------------------------------------------------------------------------------------
     scipy.stats.mstats.mquantiles defaults to alphap = betap = 0.4, the
     Cunnane plotting position. That pair is not among Hyndman and Fan's
@@ -38,19 +38,19 @@ scipy mstats.mquantiles alphap=betap=0.5 (= hazen)    0.5000  50.000   45.500   
       corrected level it needs       : 0.9064
 
     Its delivered coverage differs from every numpy method (asserted in
-    self_check), so a caller who reaches for scipy rather than numpy gets a
+    self_check), so a scipy caller gets a
     fourteenth convention with its own corrected level. The rank map is a
     map of the nine definitions; the space of SHIPPED conventions is larger.
-    The fractional-rank result covers it anyway, because it is stated in
-    terms of the virtual index rather than of a named definition -- which is
+    The fractional-rank result covers it anyway, because it is stated with
+    virtual-index coordinates instead of a named definition -- which is
     the argument for stating it that way.
 
 --------------------------------------------------------------------------------------------------------------
 (iii) EXTERNAL INTERPRETERS, EXECUTED. Every value below was returned by
-      the interpreter named, on the same tie-free score set. The `predicted`
-      column is our own instrument's value for that (alpha, beta) pair;
-      self_check asserts the two agree to 1e-9 at two sample sizes and two
-      levels, so a disagreement would fail the build rather than be reported.
+      the interpreter named, on the same ordered score grid. The `predicted`
+      column is this probe's predicted value for that (alpha, beta) pair;
+      self_check asserts the two agree to 1e-9 on two n values crossed with two
+      disagreement would fail the build rather than be reported.
 --------------------------------------------------------------------------------------------------------------
       R: 4.6.1
       Julia: 1.12.6
@@ -82,8 +82,8 @@ convention                                       h  predicted  delivered  defaul
       default h = 45.500, delivering 0.8922  -- matches method(s) [2, 5]
 
     OUT OF SCOPE, not unmeasured: pyspark's approxQuantile needs a JVM,
-    which is absent here. It is also not a convention in this sense -- it is
-    an APPROXIMATE streaming estimator with a configurable error bound,
+    which is absent here. It is outside this convention audit: it
+    is a streaming sketch with a tolerance parameter,
     which is branch (g) of the taxonomy and is already represented there by
     river's P-squared estimator. So it is a different question, not a gap.
 
@@ -99,8 +99,7 @@ convention                                       h  predicted  delivered  defaul
       h = 45.9000  (2): numpy.quantile method='weibull' | scipy mstats.mquantiles alphap=betap=0 (= weibull)
       h = 46.0000  (2): numpy.quantile method='higher' | pandas.Series.quantile interpolation='higher'
 
-    THE DEFAULTS DISAGREE ACROSS THE ECOSYSTEM. This is what a caller who
-    reaches for `the` quantile function actually gets:
+    THE DEFAULTS DISAGREE ACROSS THE ECOSYSTEM. This is what a user calling `the` quantile function gets:
       numpy.quantile method='linear'                         delivers 0.8843
       pandas.Series.quantile interpolation='linear'          delivers 0.8843
       scipy mstats.mquantiles DEFAULT (alphap=betap=0.4)     delivers 0.8937
@@ -118,13 +117,13 @@ SUMMARY
   15 shipped API configurations across three packages, 7 distinct
   virtual indices, and one default convention -- scipy's -- that is not in
   the Hyndman-Fan taxonomy at all. numpy and pandas agree with each other by
-  construction; scipy does not agree with either at its own default. The
+  construction; scipy's default lands elsewhere. The
   interface claim is therefore stronger than the manuscript states, and the
   right way to state it is in terms of the virtual index.
   R, Julia and Octave are now EXECUTED, not transferred: 3 of 3
   present (R, Julia, Octave). Every documented (alpha, beta) pair agrees
-  with our instrument to 1e-9, asserted at two sample sizes and two levels.
-  Octave's nine methods are identical to R's and its DEFAULT is method 5
+  with this probe across the checked cells.
+  Octave mirrors R across its nine methods and its DEFAULT is method 5
   (hazen), where R's, Julia's, numpy's and pandas's default is linear -- so
   the ecosystem defaults genuinely disagree with one another, and none of
   them delivers the requested level.

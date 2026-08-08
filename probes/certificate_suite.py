@@ -16,9 +16,8 @@ Three things, all downstream of W13
 
 How the census is obtained, and its honest limit
 ------------------------------------------------
-pytest is deliberately NOT installed in the pinned environments -- adding it would
-perturb the versions the deposit exists to fix -- so the libraries' test suites are
-not executed. Instead the fixture VALUES are read from the shipped test sources, each
+pytest is deliberately NOT installed in the pinned environments. Installing it would
+change the audited dependency set, so the library tests are not run. Instead the fixture VALUES are read from the shipped test sources, each
 recorded with its file and line so a reader can check it, and everything downstream of
 that value is then MEASURED by running the library at it. So the read is confined to
 a single integer per fixture and the classification of that integer is computed, not
@@ -82,7 +81,7 @@ def regime(n, coverage, method="linear"):
 def classify(helper, alpha, cert=None):
     """Which candidate CLASS does `helper` implement? Uses W13's certificate.
 
-    helper(scores, level) -> threshold. Probed on the tie-free score set 1..n so
+    helper(scores, level) -> threshold. Probed on the scores 1..n with no ties so
     the returned value IS the delivered rank.
     """
     if cert is None:
@@ -335,9 +334,8 @@ def main():
     say("    LIMIT, stated plainly. The two counts above differ, and the difference is")
     say("    the point: a wheel that ships tests does not necessarily ship a fixture")
     say("    that names a calibration size. pytest is deliberately not installed in")
-    say("    the pinned environments -- adding it would perturb the versions the")
-    say("    deposit exists to fix -- so the suites are not executed and the fixture")
-    say("    VALUES are read. This is a census over one library's scorable fixtures,")
+    say("    the pinned environments. Installing it would change the audited dependency")
+    say("    set, so tests are not run; fixture VALUES are read. This is a census over one library's scorable fixtures,")
     say("    which is more than the manuscript's earlier anecdote and much less than")
     say("    the ten packages audited elsewhere.")
     say("")
@@ -345,7 +343,7 @@ def main():
     say("SUMMARY")
     say("=" * 104)
     say(f"  The certificate is usable: {len(cert)} sizes, a classifier that")
-    say(f"  round-trips every candidate rule and reports non-matches as non-matches,")
+    say(f"  classifies every candidate rule and leaves non-matches as non-matches,")
     say("  and a regime reporter that needs no data. Of the fixtures we could extract")
     say(f"  from shipped test sources, {len(nb)} of {len(scored)} sit at a size that")
     say("  cannot separate all the classes -- so the manuscript's claim about fixture")

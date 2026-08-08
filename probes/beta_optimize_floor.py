@@ -29,7 +29,7 @@ being the corrected-level clip already reported elsewhere and the fact that n=20
 sits one point above the two-rail floor of 19. Do not put it in a manuscript
 until a probe says which.
 
-The original reading, kept so the refutation has something to point at
+The original reading, retained so the refutation has something to point at
 ---------------------------------------------------------------------
 `BaseRegressionScore._beta_optimize` (regression.py:178-230) searches
 
@@ -40,7 +40,7 @@ the width. The two rails then resolve at levels `beta` and `1-alpha+beta`, so th
 miscoverage is split asymmetrically as (beta, alpha-beta).
 
 By the attainable-grid arithmetic (probes/attainable_grid.py), a two-rail interval
-excludes `a` gaps below and `n+1-b` above, and validity needs a/(n+1) <= beta. So
+excludes `a` gaps below and `n+1-b` above, and validity needs a/(n+1) <= beta. Thus
 a finite LOWER rail requires
 
     beta * (n + 1) >= 1.
@@ -201,8 +201,8 @@ def tie_free_rank(n, alpha):
     """Which order statistic does the selected lower rail land on?
 
     The audit's own instrument, and it should have been the first one used here:
-    feed a tie-free score set whose values ARE their own ranks, so a returned
-    threshold needs no feasibility predicate of ours to interpret -- it is the
+    feed a tie-free ordered score set, so a returned threshold can be read as the
+    landed rank without any feasibility predicate of ours -- it is the
     index, read off. If the lower rail comes back as order statistic `a`, then the
     mass it excludes is exactly a/(n+1), and the question "is that at most beta?"
     is arithmetic on two integers.
@@ -426,8 +426,8 @@ def main():
         if tf_bad:
             say("")
             say("The rail is not a valid lower bound for the level that was chosen.")
-            say("This is read off an index, not inferred from a predicate: the score")
-            say("set's values are its ranks.")
+            say("This is read off an index, not inferred from a predicate: the")
+            say("tie-free score set exposes the ranks directly.")
     except ImportError as exc:
         say(f"mapie not importable in this venv ({exc}); run in .venv-tabular")
 

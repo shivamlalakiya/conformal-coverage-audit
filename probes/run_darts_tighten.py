@@ -19,8 +19,8 @@ The prediction column was WRONG in the first version of this file, and is fixed
 It modelled the interval as two independent uncorrected rails, one at level 0.05
 and one at 0.95, spanning ranks [r_lo, r_hi]. The measurement falsified that by
 up to 27 standard errors. `darts_scoring_path.py` read the source and
-instrumented it: with `symmetric=True` (the default) darts scores ABSOLUTE
-errors, takes ONE uncorrected level `interval_range_sym` = 0.90, and returns
+instrumented it: with `symmetric=True` (the default) darts uses ABSOLUTE-error
+scores, applies ONE uncorrected level `interval_range_sym` = 0.90, and returns
 centre +/- that single threshold. The corrected column below uses that model,
 and every link in it is asserted per fit in the other probe.
 """
@@ -44,8 +44,14 @@ def darts_rank(c, n):
 
 
 def required_rank(c, n):
-    """1-based rank a valid finite-sample bound needs."""
-    return math.ceil(F(n + 1) * F(c))
+    """1-based rank a valid finite-sample bound needs.
+
+    Argument order is (level, n). Returns the raw ceil even past n, matching
+    historical call sites in this probe.
+    """
+    from conformal_coverage import required_rank as _rr
+    k = _rr(n, c)
+    return k if k is not None else math.ceil(F(n + 1) * F(c))
 
 
 def predicted_two_rail_FALSIFIED(n):
@@ -63,8 +69,8 @@ def predicted_two_rail_FALSIFIED(n):
 
 
 def predicted_symmetric(n):
-    """The verified model. conformal_models.py:1681 with symmetric=True scores
-    |residual| (metrics.ae, :1717) and takes ONE uncorrected level,
+    """The verified model. conformal_models.py:1681 with symmetric=True uses
+    |residual| (metrics.ae, :1717) and applies ONE uncorrected level,
     interval_range_sym = 0.90 (:165-167), with method='higher'. So the rank is
     ceil(0.90*(n-1)) + 1 and a symmetric bound there covers exactly k/(n+1).
 

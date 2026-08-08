@@ -164,7 +164,8 @@ pairs that index with linear interpolation and calls it `weibull`; it pairs
 rule, by an identity worth stating: `inverted_cdf` computes ceil(q n), so at
 the corrected level q = L(n+1)/n it computes ceil(L(n+1)) -- the required rank,
 exactly, at every size and every level. The correction and the convention
-compose into the answer. That is not the idiom either paper recommends.
+compose into the answer -- distinct from the folklore `higher` pairing,
+which is valid and wider by one rank on a density-alpha class of sizes.
 
 Distance from each shipped convention to exactness, in ranks:
 
@@ -267,7 +268,7 @@ read out of the sorted scores directly. A derived recommendation about shipped
 software is not evidence about shipped software -- and running it changed the
 recommendation a second time.
 
-numpy 2.4.6. Scores run 1..n, so whatever comes back IS the rank
+numpy 2.4.2. Scores run 1..n, so whatever comes back IS the rank
 it selected, and no interpolation can hide behind equal values.
 
   level  sizes |   inverted_cdf @ corrected |       higher @ corrected |   sort()[k-1]
@@ -317,8 +318,8 @@ MACHINE exec_cells=1941 exec_misses=21
     2/3     390             130        5            5/130
     1/2     390             195       15           15/195
 
-Every miss lands where L(n+1) comes out whole: the requirement is met with
-nothing to spare, L(n+1)/n has no exact double, and the product returns
+Every miss lands where L(n+1) comes out whole: the requirement has
+zero slack, L(n+1)/n has no exact double, and the product returns
 28.000000000000004 in place of 28, so ceil hands back 29. Floating-point
 representation does this, not the convention, and only where nothing is to
 spare -- so how often it can bite is capped by how often the level is tight.
@@ -354,3 +355,5 @@ construction; randomized_bound.py is where those live, and the floor itself
 moves there. The optimisation solved here is the worst case across sizes.
 Averaging over some distribution on n asks a different question and this
 probe does not answer it.
+
+written -> /Users/lalakiya/Desktop/Opensource/Research/conformal-coverage-audit/outputs/probe_output_rule_class.txt

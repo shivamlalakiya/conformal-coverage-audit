@@ -281,6 +281,6 @@ EVERY release fetched, so those are not transients: whatever the
 conformance suite measures at the pin, the expression producing it has
 been in place across the whole window examined here.
 
-The converse is also worth stating plainly: an expression that changed
-across releases is NOT thereby shown to have behaved differently, and
-this probe does not say it did. Dating an expression is all it does.
+The converse is also worth stating plainly: a changed expression does
+not prove changed behaviour, and this probe does not say it did.
+Dating an expression is all it does.

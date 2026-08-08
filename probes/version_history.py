@@ -16,8 +16,8 @@ whole reason it is safe to publish.
   * It downloads each release's distribution from PyPI, reads the file the census
     anchors, and records whether the anchor expression is PRESENT verbatim.
   * It therefore dates the EXPRESSION. It does not execute anything, so it does not
-    establish that the behaviour was the same -- surrounding code can change what
-    an unchanged expression does.
+    establish identical behaviour -- surrounding code can change what an
+    unchanged expression does.
   * The behavioural classification stays where it already is: executed, at the
     pinned version, by the conformance suite.
 
@@ -286,9 +286,9 @@ def main():
         say(f"conformance suite measures at the pin, the expression producing it has")
         say(f"been in place across the whole window examined here.")
         say("")
-        say("The converse is also worth stating plainly: an expression that changed")
-        say("across releases is NOT thereby shown to have behaved differently, and")
-        say("this probe does not say it did. Dating an expression is all it does.")
+        say("The converse is also worth stating plainly: a changed expression does")
+        say("not prove changed behaviour, and this probe does not say it did.")
+        say("Dating an expression is all it does.")
 
     path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                         OUT)

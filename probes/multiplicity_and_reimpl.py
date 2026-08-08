@@ -21,8 +21,8 @@ The standing failure mode here is a parser or a closed form agreeing with itself
 two of the ten gates re-derive through the layer they check, and the fixture audit
 is done by the same person who wrote the builder. R and Julia are already driven by
 the cross-language probe, so the index arithmetic -- required rank, required span,
-the virtual index, the delivering set -- is re-implemented in R and cross-checked
-against the Python. A disagreement is a finding; agreement is the independence the
+the virtual index, the delivering set -- is rebuilt in R and compared
+with the Python implementation. A disagreement is a finding; agreement is the independence the
 fixture audit cannot supply on its own.
 
 (C) WHY A SMALL COVERAGE ERROR IS NOT A SMALL ERROR
@@ -38,6 +38,7 @@ factor, because 1/(n+1) is a fixed slice of an alpha that is shrinking.
 
 import math
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -78,6 +79,103 @@ def clustered_permutation(per_series, reps=PERMS, seed=SEED):
     # reported
     p = (1.0 + float(np.sum(null >= obs - 1e-15))) / (reps + 1.0)
     return p, x.size
+
+
+def exact_signflip_p(gains, losses, units):
+    """The two-sided sign-flip p in closed form, for a 0/1 paired arm.
+
+    An arm giving each unit ONE test point has a per-unit paired difference of +1,
+    -1 or 0, so the arm's printed counts determine the whole vector.
+    Under sign flipping only the m = gains + losses nonzero entries move,
+    S = sum of m Rademachers, and the observed statistic is |gains - losses|. There
+    is nothing left to simulate, and simulating it caps the resolvable p at
+    1/(reps+1) -- which is above several of these.
+    """
+    m, k = gains + losses, abs(gains - losses)
+    if m == 0:
+        return 1.0
+    if k == 0:
+        return 1.0
+    # P(|S| >= k) with S = 2B - m, B ~ Bin(m, 1/2); symmetric, so twice one tail
+    lo = -(-(m + k) // 2)                       # ceil((m+k)/2)
+    tail = sum(math.comb(m, b) for b in range(lo, m + 1))
+    return min(1.0, 2.0 * tail / 2.0 ** m)
+
+
+def cell_differences(gains, losses, units):
+    """The arm's actual per-series differences: +1 gains, -1 losses, 0 elsewhere."""
+    assert gains + losses <= units, (gains, losses, units)
+    return np.array([1.0] * gains + [-1.0] * losses
+                    + [0.0] * (units - gains - losses))
+
+
+CELL_RE = re.compile(
+    r"status changed in \d+ of (\d+) units: gains=(\d+)\s+losses=(\d+)")
+DELTA_RE = re.compile(r"paired delta \(B - A\)\s+([-+][\d.]+)\s+\(s\.e\. ([\d.]+)\)")
+NOMINAL_RE = re.compile(r"nominal (\d\.\d+)")
+
+
+def read_cell(path, nominal, key):
+    """Parse one arm's units, gains, losses, delta and s.e. out of its own output.
+
+    The family used to be eight tuples typed into this file from the tables, and
+    the permutation then ran on Gaussian draws matched to each tuple's mean and
+    standard error. That is a test on reconstructed data, and it is the single most
+    attackable choice in either paper. The counts are in the committed outputs; the
+    differences follow from them exactly.
+    """
+    seen, cur = None, None
+    with open(os.path.join(os.path.dirname(os.path.dirname(
+            os.path.abspath(__file__))), path)) as fh:
+        lines = fh.read().splitlines()
+    for idx, ln in enumerate(lines):
+        n = NOMINAL_RE.search(ln)
+        if n:
+            cur = n.group(1)
+        if cur != nominal or key not in ln:
+            continue
+        delta = se = counts = None
+        for nxt in lines[idx:idx + 12]:
+            d = DELTA_RE.search(nxt)
+            if d and delta is None:
+                delta, se = float(d.group(1)), float(d.group(2))
+            c = CELL_RE.search(nxt)
+            if c and counts is None:
+                counts = tuple(int(x) for x in c.groups())
+        assert counts is not None and delta is not None, (path, key, nominal)
+        units, gains, losses = counts
+        # One observation per unit, or the counts do not determine the difference
+        # vector. A rolling-origin arm stops here rather than being permuted wrongly.
+        assert abs(delta - (gains - losses) / units) < 5e-5, (
+            f"{path} {key}: printed delta {delta} is not (gains-losses)/units "
+            f"= {(gains - losses) / units}; this arm is not one point per unit")
+        seen = {"units": units, "gains": gains, "losses": losses,
+                "delta": delta, "se": se}
+        break
+    assert seen is not None, f"no {nominal} cell matching {key!r} in {path}"
+    return seen
+
+
+# The eight forecasting arms, named by the file that measured each. Nothing here is
+# a measurement -- every number comes back from read_cell.
+FAMILY = [
+    ("sktime empirical w=20 (m1)", "outputs/probe_output_real_data.txt",
+     "0.90", "empirical  nominal 0.90  initial_window=20"),
+    ("sktime empirical w=40 (m1)", "outputs/probe_output_real_data.txt",
+     "0.90", "empirical  nominal 0.90  initial_window=40"),
+    ("statsforecast m=10 (m1)",
+     "outputs/probe_output_real_data_statsforecast.txt", "0.90", "n_windows=10"),
+    ("statsforecast m=20 (m1)",
+     "outputs/probe_output_real_data_statsforecast.txt", "0.90", "n_windows=20"),
+    ("statsforecast m=50 (m1)",
+     "outputs/probe_output_real_data_statsforecast.txt", "0.90", "n_windows=50"),
+    ("darts cal=15 (m1)", "outputs/probe_output_real_data_darts.txt",
+     "0.90", "cal_length=15"),
+    ("darts cal=35 (m1)", "outputs/probe_output_real_data_darts.txt",
+     "0.90", "cal_length=35"),
+    ("darts cal=55 (m1)", "outputs/probe_output_real_data_darts.txt",
+     "0.90", "cal_length=55"),
+]
 
 
 def holm(pvals):
@@ -190,8 +288,8 @@ def exceedance_factor(n, level):
     """What a one-rank miss costs, absolutely and as a rate.
 
     A helper landing one rank short of k* delivers (k*-1)/(n+1) instead of
-    k*/(n+1). The absolute coverage miss is 1/(n+1) whatever the level. The
-    exceedance rate a risk report states is 1 - coverage, so the RATIO of the
+    k*/(n+1). One lost rank changes coverage by 1/(n+1). The
+    exceedance rate printed in a risk report is 1 - coverage, so the RATIO of the
     delivered rate to the requested one is what a reader of that report sees.
     """
     c = F(level).limit_denominator(10 ** 6)
@@ -215,13 +313,26 @@ def self_check():
     assert p_eff < 0.01, p_eff
     # a p of exactly zero must be unreachable
     assert clustered_permutation(np.ones(40), reps=999, seed=1)[0] > 0
+    # (A) the closed-form sign-flip p must agree with the simulation it replaces,
+    # and must be the thing that is right where the simulation runs out of
+    # resolution: 2^(1-g) for an all-positive arm.
+    for g in (3, 5, 9):
+        mc, _ = clustered_permutation(cell_differences(g, 0, 250), reps=40000,
+                                      seed=7)
+        ex = exact_signflip_p(g, 0, 250)
+        assert abs(ex - 2.0 ** (1 - g)) < 1e-12, (g, ex)
+        assert abs(mc - ex) < 4 * math.sqrt(ex * (1 - ex) / 40000) + 1e-4, (g, mc, ex)
+    # a two-sided p must not depend on the sign, and losses must count against gains
+    assert exact_signflip_p(0, 6, 250) == exact_signflip_p(6, 0, 250)
+    assert exact_signflip_p(5, 5, 250) == 1.0
+    assert exact_signflip_p(9, 2, 250) > exact_signflip_p(9, 0, 250)
     # (A) Holm must be monotone, bounded by 1, and no smaller than the raw p
     raw = [0.001, 0.02, 0.2, 0.9]
     adj = holm(raw)
     assert all(a >= r - 1e-12 for a, r in zip(adj, raw)), (raw, adj)
     assert all(a <= 1 for a in adj)
     assert adj == sorted(adj), adj
-    # (C) the absolute miss is 1/(n+1) whatever the level, and the rate factor
+    # (C) one lost rank changes coverage by 1/(n+1), and the rate factor
     # grows as the level tightens -- which is the whole point of section (C)
     a90 = exceedance_factor(200, 0.90)
     a99 = exceedance_factor(200, 0.99)
@@ -252,47 +363,52 @@ def main():
     say("-" * 104)
     say("(A) CLUSTERED PERMUTATION TESTS, WITH A FAMILY-WISE CORRECTION")
     say("-" * 104)
-    say("Signs are flipped per SERIES, never per test point, so dependent rolling")
-    say("origins are not treated as independent draws. Holm-Bonferroni across the")
+    say("Signs are sign-changed by SERIES cluster, not by test point, so rolling")
+    say("origins do not masquerade as separate units. Holm-Bonferroni across the")
     say("arms in the family. The paired arms are one-sided by construction where")
     say("arm B contains arm A, so a two-sided p is conservative here and that is the")
     say("direction to err in.")
     say("")
+    say("THE DIFFERENCES ARE THE ARMS' OWN, NOT A RECONSTRUCTION. An earlier version")
+    say("of this section sign-flipped synthetic draws calibrated to each cell's reported mean")
+    say("and standard error, because the per-series differences looked absent from the")
+    say("committed outputs. They are not absent. Each arm contributes one")
+    say("point per series; its per-series entry falls in {-1, 0, +1}, and the")
+    say("printed gains and losses determine that vector. Every cell below is")
+    say("parsed out of the file named beside it, and the parse asserts that the")
+    say("printed delta equals (gains - losses)/units -- a rolling-origin arm")
+    say("fails there instead of being permuted as though it had one point per series.")
+    say("")
+    say("The p is then exact rather than simulated. Sign flipping moves only the")
+    say("nonzero entries, so P(|S| >= |gains - losses|) for S a sum of Rademachers is")
+    say("a binomial tail with nothing left to estimate. The simulation is kept beside")
+    say("it as a check and not as the answer, because it cannot resolve below")
+    say(f"1/{PERMS + 1} = {1.0 / (PERMS + 1):.3e} and the smallest of these is well under that.")
+    say("")
     arms, pvals = [], []
-    try:
-        import extract_stub  # noqa: F401
-    except ImportError:
-        pass
-    # per-series deltas are not in the committed outputs, so the family is built
-    # from the reported cell means and their standard errors, which IS what a
-    # reader has; the permutation runs on synthetic per-series values matched to
-    # that mean and s.e. and the p is therefore an upper bound on the achievable
-    # one. Stated rather than hidden.
-    cells = [
-        ("sktime empirical w=20 (m1)", 0.0360, 0.0118, 250),
-        ("sktime empirical w=40 (m1)", 0.0640, 0.0155, 250),
-        ("statsforecast m=10 (m1)", 0.1080, 0.0197, 250),
-        ("statsforecast m=20 (m1)", 0.0400, 0.0124, 250),
-        ("statsforecast m=50 (m1)", 0.0120, 0.0069, 250),
-        ("darts cal=15 (m1)", 0.0560, 0.0146, 250),
-        ("darts cal=35 (m1)", 0.0360, 0.0118, 250),
-        ("darts cal=55 (m1)", 0.0280, 0.0105, 250),
-    ]
-    rng = np.random.default_rng(SEED)
-    say(f"{'arm':<32} {'delta':>9} {'s.e.':>8} {'units':>6} {'raw p':>10} "
-        f"{'Holm p':>10}")
+    say(f"{'arm':<30} {'source'.ljust(14)} {'delta':>9} {'units':>6} "
+        f"{'g':>4} {'l':>3} {'exact p':>11} {'MC p':>9} {'Holm p':>10}")
     say("-" * 104)
-    for name, delta, se, units in cells:
-        x = rng.normal(delta, se * math.sqrt(units), units)
-        x = x - x.mean() + delta                   # match the reported mean exactly
-        p, k = clustered_permutation(x)
-        arms.append((name, delta, se, units, p))
+    for name, path, nominal, key in FAMILY:
+        c = read_cell(path, nominal, key)
+        x = cell_differences(c["gains"], c["losses"], c["units"])
+        p = exact_signflip_p(c["gains"], c["losses"], c["units"])
+        mc, _ = clustered_permutation(x)
+        arms.append((name, c, p, mc,
+                     os.path.basename(path).replace("probe_output_", "")
+                     .replace(".txt", "")))
         pvals.append(p)
     adj = holm(pvals)
-    for (name, delta, se, units, p), a in zip(arms, adj):
-        say(f"{name:<32} {delta:>+9.4f} {se:>8.4f} {units:>6} {p:>10.5f} "
-            f"{a:>10.5f}")
+    for (name, c, p, mc, src), a in zip(arms, adj):
+        say(f"{name:<30} {src[:14]:<14} {c['delta']:>+9.4f} {c['units']:>6} "
+            f"{c['gains']:>4} {c['losses']:>3} {p:>11.3e} {mc:>9.5f} {a:>10.5f}")
     say("")
+    say("The MC column is the simulation, kept as a check on the closed form and not")
+    say("as the result: it agrees wherever it has the resolution to, and floors at")
+    say(f"{1.0 / (PERMS + 1):.5f} where it does not.")
+    say("")
+    arms = [(name, c["delta"], c["se"], c["units"], p)
+            for name, c, p, _, _ in arms]
     surv = sum(1 for a in adj if a < 0.05)
     dropped = [(n, d, p, a) for (n, d, _, _, p), a in zip(arms, adj) if a >= 0.05]
     say(f"{surv} of {len(adj)} arms remain significant at 0.05 after "
@@ -311,17 +427,16 @@ def main():
         say("the multiplicity disclosure can say 'we corrected and nothing moved'")
         say("instead of 'we did not correct'.")
     say("")
-    say("Two limits, stated. The committed outputs carry cell means and standard")
-    say("errors rather than per-series differences, so the permutation runs on")
-    say("values matched to that mean and s.e.; the resulting p is an upper bound on")
-    say("what the raw differences would give. And the exactly-zero cells are omitted")
-    say("from the family because a test of a difference that is identically zero by")
-    say("construction has no null to reject.")
+    say("One limit, stated. The exactly-zero cells are omitted from the family,")
+    say("because a difference that is identically zero by construction has no null")
+    say("to reject and carrying it would inflate the family to weaken the correction")
+    say("applied to the rest. The coincidence cells of the audit's severity section")
+    say("are that case, and they are evidence by being zero rather than by a p.")
     say("")
 
     # ---------------- (B) --------------------------------------------------
     say("-" * 104)
-    say("(B) THE INDEX ARITHMETIC, RE-IMPLEMENTED IN R AND CROSS-CHECKED")
+    say("(B) THE INDEX ARITHMETIC, rebuilt in R and compared")
     say("-" * 104)
     rrows, rerr = run_r()
     if rrows is None:
@@ -347,11 +462,11 @@ def main():
         if not disagree:
             say("")
             say("Two implementations written against the same definitions in two")
-            say("languages agree on the required rank, the required span, both")
+            say("languages agree on the needed rank, the interval span, both")
             say("virtual indices and all four delivery decisions, at every cell.")
             say("That is the independence the fixture audit cannot supply: checks 2")
             say("and 4 re-derive through the layer they check, and check 5's oracle")
-            say("is hand-audited by whoever wrote the builder.")
+            say("is reviewed by the builder author.")
     say("")
 
     # ---------------- (C) --------------------------------------------------
@@ -359,9 +474,9 @@ def main():
     say("(C) THE SAME ONE-RANK MISS, ABSOLUTELY AND AS AN EXCEEDANCE RATE")
     say("-" * 104)
     say("A helper one rank short delivers (k*-1)/(n+1) rather than k*/(n+1). The")
-    say("absolute coverage miss is 1/(n+1) at every level. The exceedance rate a")
-    say("risk or alerting report states is 1 - coverage, and THERE the same miss is")
-    say("a multiplicative factor that grows as the level tightens.")
+    say("one-rank coverage change is 1/(n+1) at every level. In a")
+    say("risk report or alerting summary, the stated rate is 1 - coverage; the same miss becomes")
+    say("a larger rate multiplier at tighter requested levels.")
     say("")
     say(f"{'n':>6} {'level':>7} {'abs miss':>10} {'rate asked':>11} "
         f"{'rate got':>10} {'factor':>8}")

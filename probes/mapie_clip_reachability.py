@@ -26,7 +26,7 @@ The mechanism, read off the pinned source
 correction. The infeasible regime is `ceil(alpha_ref*(n+1)) > n_calib`, which
 occurs at `alpha_ref` well below 1. So in exactly that regime the infinity branch
 does not fire, `alpha_cor` is clipped from >1 down to 1, and `nanquantile(...,
-1.0, method="lower")` returns the sample MAXIMUM.
+1.0, method="lower")` yields the sample maximum.
 
 The user asked, via the flag, to be given an infinite bound where none is finite.
 They are given a finite one instead, with no warning.
@@ -95,7 +95,12 @@ def say(s=""):
 
 
 def required_rank(n, level):
-    """Smallest rank whose one-sided coverage reaches `level`, exactly."""
+    """Smallest rank whose one-sided coverage reaches `level`, exactly.
+
+    Intentionally local: returns the ceil even when it exceeds n, because this
+    probe enumerates the infeasible window. The package helper returns None
+    there and would hide the cells under study.
+    """
     return int(-(-(Fraction(level) * (n + 1)).numerator
                  // (Fraction(level) * (n + 1)).denominator))
 
@@ -105,8 +110,8 @@ def windows(level):
 
     The grid is the bug's, not ours: the whole window is enumerated, so there is
     no size we could have chosen to make the shortfall look larger or smaller.
-    The trailing feasible size is the control -- there the maximum is the correct
-    answer and the shortfall must read exactly zero.
+    The trailing feasible size is the control -- there the sample maximum is the proper
+    answer and the gap must read exactly zero.
     """
     n, out = 2, []
     while required_rank(n, level) > n:
@@ -199,9 +204,9 @@ def main():
     # ---------------- (iii) what the flagged path DELIVERS ------------------
     say("-" * 92)
     say("(iii) DELIVERED COVERAGE on the flagged path, over the whole infeasible window.")
-    say("      Scores are tie-free 1..n, so the returned threshold IS the rank it landed")
+    say("      Scores are tie-free 1..n, so the returned threshold identifies its landed rank")
     say("      on. Where the required rank exceeds n the flagged path lands on rank n, so")
-    say("      the delivered coverage is n/(n+1) -- and it does not depend on the level")
+    say("      the delivered coverage is n/(n+1), independent of the requested level")
     say("      that was asked for. Exact arithmetic; the last row is the feasible control.")
     say("-" * 92)
     say(f"{'level':>7}{'n':>5}{'req rank':>10}{'feasible':>10}{'rank got':>10}"
@@ -226,7 +231,7 @@ def main():
     say(f"    worst infeasible cell: n = {worst[1]} at nominal {worst[0]:.2f} "
         f"delivers {float(worst[2]):.4f}, shortfall {float(worst[3]):.4f}")
     say("    the deficit here is a whole missing rank, not the O(1/n) one-rank deficit:")
-    say("    no rank in the sample reaches the requested level at these sizes.")
+    say("    no rank inside the sample attains the requested level at these sizes.")
     say("")
 
     # -- and the same number, measured end to end rather than derived --------
@@ -344,7 +349,7 @@ def main():
                 f"{'   REACHES THE CLIP' if got else ''}")
     say("")
     say(f"    {len(reached)} of {len(tried)} public regressor classes exercised here "
-        f"raise on the default path and return a finite interval on the flagged one.")
+        f"fail on the default route and produce a finite interval on the flagged route.")
     say("    So the path is not a single entry point. It is the shared bound-construction")
     say("    layer, and every public class routing through it inherits the behaviour.")
     say("")
@@ -356,7 +361,7 @@ def main():
     say("  is skipped by the same flag the caller sets to opt into infinite bounds")
     say("  (regression/regression.py:1714, 'if not allow_infinite_bounds:'), and")
     say("  TimeSeriesRegressor passes allow_infinite_bounds=True internally")
-    say("  (regression/time_series_regression.py:319), so a caller who never sets the flag")
+    say("  (regression/time_series_regression.py:319), so callers leaving the flag unset")
     say("  can still reach it.")
     say("")
     say("  Direction: ANTI-CONSERVATIVE. A finite interval is returned where no valid finite")

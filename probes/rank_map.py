@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """The rank map: which order statistic does a quantile definition deliver?
 
-A finite-sample distribution-free bound is a statement about a RANK. For n
-exchangeable scores, the interval built on rank r covers a fresh observation
-with probability exactly r/(n+1). Quantile APIs do not accept a rank; they
+A finite-sample guarantee requiring no distributional assumptions rests on an order statistic. With n
+exchangeable scores, selecting rank r yields fresh-draw coverage r/(n+1) exactly.
+Quantile APIs do not accept a rank; they
 accept a LEVEL, and each of the classical sample-quantile definitions maps that
 level to a position differently.
 
@@ -19,8 +19,8 @@ aliases. This probe asks, for each of them:
   3. What is the smallest n at which each definition delivers a valid,
      non-degenerate bound -- the DELIVERED n_min, next to the theoretical one?
 
-The measurement trick: run the quantile on the scores [1, 2, ..., n]. The value
-returned IS the rank it landed on. An integral result means the definition
+The measurement trick: run the quantile on the scores [1, 2, ..., n]. The output
+is the delivered position. An integral result means the definition
 selected an order statistic; a fractional result means it interpolated between
 two, and then the only distribution-free guarantee it carries is the one from
 the FLOOR -- the lower of the two order statistics it sits between.
@@ -30,6 +30,11 @@ import math
 from fractions import Fraction
 
 import numpy as np
+
+import os
+import sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+from conformal_coverage import required_rank  # noqa: E402
 
 # the nine Hyndman & Fan definitions, in NumPy's naming, plus the four aliases
 HF_NINE = [
@@ -54,12 +59,6 @@ OUT = "outputs/probe_output_rank_map.txt"
 # --------------------------------------------------------------------------
 # exact arithmetic
 # --------------------------------------------------------------------------
-def required_rank(n, coverage):
-    """k = ceil((n+1) * coverage), exact. None when k > n (no rank suffices)."""
-    k = math.ceil(Fraction(n + 1) * Fraction(coverage))
-    return k if k <= n else None
-
-
 def theoretical_n_min(coverage):
     """Smallest n for which some rank attains `coverage`: n >= 1/alpha - 1."""
     alpha = 1 - Fraction(coverage)

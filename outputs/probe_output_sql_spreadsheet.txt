@@ -235,7 +235,7 @@ excel PERCENTILE (legacy)                    0.67   100   -- skipped: array of 1
 
 (2b) PERCENTILE.EXC at the feasibility boundary
 The weibull convention resolves h = q(n+1), so it can only return a
-value for q <= n/(n+1) -- which is exactly the one-sided feasibility
+value at q <= n/(n+1) -- exactly the one-sided feasibility
 floor. Does the shipped function refuse there, or clamp?
 
     n            q    n/(n+1)  in range?                     returned
@@ -260,10 +260,10 @@ floor. Does the shipped function refuse there, or clamp?
 above the boundary: 8 refusals, 0 values returned
 So this function REFUSES rather than clamping. It is the only
 implementation measured anywhere in this deposit that guards the
-one-sided feasibility boundary by construction -- and it does so
-because its convention makes the boundary a domain error rather
+one-sided feasibility boundary by construction -- the reason is
+that its convention treats the boundary as outside the domain rather
 than because anybody added a check. Against it, 9 of 14 shipped
-conformal helpers hand back a finite number below their floor and
+conformal helpers return a finite number below their floor and
 say nothing.
 
 (3) SQLite: what a query gets when the function does not exist
@@ -287,9 +287,9 @@ SUMMARY
 The two SQL-standard functions are not interchangeable for this
 purpose. percentile_disc delivers the requested guarantee in 9 of
 24 cells; percentile_cont in 0 of 24. So the standard DOES
-contain a convention that can carry a distribution-free bound, which is
-more than numpy's default manages -- and the two function names differ
-by four characters with no hint that one is usable and the other is not.
+contain a convention with enough mass for a finite-sample guarantee, which is
+unlike numpy's default -- and the two function names differ
+by four characters with no hint one remains usable and the other fails.
 
 Where percentile_disc delivers is a residue class and not a threshold,
 which is the periodicity result showing up in a SQL engine: it is right
@@ -300,3 +300,5 @@ SQLite has no percentile function at all, so the most widely deployed
 engine in the world offers no convention to get wrong and every caller
 hand-rolls one. That is a different failure mode from a wrong default and
 it is not covered by anything else in this deposit.
+
+written -> /Users/lalakiya/Desktop/Opensource/Research/conformal-coverage-audit/outputs/probe_output_sql_spreadsheet.txt

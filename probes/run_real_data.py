@@ -24,8 +24,8 @@ residuals, same centre.
 
 Honest scope
 ------------
-Real series are not exchangeable, so an absolute coverage miss is not
-attributable to the convention on its own. The paired delta is the claim.
+raw series do not support assigning an absolute coverage miss to the
+convention on its own. The paired delta is the claim.
 """
 
 import math
@@ -37,12 +37,14 @@ from fractions import Fraction
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+from conformal_coverage import required_rank  # noqa: E402
 from paired_report import format_cell, summarize  # noqa: E402
 
 LEVELS = (0.90, 0.95)
 OUT_TEMPLATE = "outputs/probe_output_real_data{suffix}.txt"
 
-# Methods whose interval is two rails on the SIGNED residuals rather than a
+# Methods whose interval is two rails on the signed residual array rather than a
 # symmetric band on the absolute ones. `empirical` is absent from sktime's own
 # ABS_RESIDUAL_BASED list (conformal.py:298) and takes np.quantile of `resids`
 # at (1-c)/2 and (1+c)/2 with no sign flip (conformal.py:318-320), so its
@@ -65,12 +67,6 @@ def out_path(template, dataset):
     return template.format(suffix="_" + dataset.replace("_dataset", ""))
 
 
-def required_rank(n, coverage):
-    """1-based rank k = ceil((n+1) * coverage), exact. None when k > n."""
-    k = math.ceil(Fraction(n + 1) * Fraction(coverage).limit_denominator(10**6))
-    return k if k <= n else None
-
-
 def delivered_coverage(k, n):
     return Fraction(k, n + 1)
 
@@ -82,8 +78,8 @@ def required_span(n, coverage):
     scores R_(1) <= ... <= R_(n) and the conventions R_(0) = -inf and
     R_(n+1) = +inf, Pr(R_(a) <= R_(n+1) <= R_(b)) = (b - a)/(n + 1) exactly, so
     the requirement is b - a >= k = ceil((n+1)*coverage) and the smallest such
-    span is k itself. The m = n + 1 - k excluded gaps are split as evenly as the
-    arithmetic allows, which is what a correct implementation of the two-rail
+    span is k itself. The m = n + 1 - k omitted gaps are divided as evenly as
+    integer arithmetic permits, which is what a correct implementation of the two-rail
     construction would do and does not depend on the interval being compared
     against.
 
@@ -158,7 +154,7 @@ def self_check():
     # virtual index is h = 1 + q(n-1) clipped into [1, n]. Arm B nests arm A when
     # its lower index is at or below floor(h_lo) and its upper index at or above
     # ceil(h_hi). That is what makes the paired difference non-negative, and it is
-    # a property of the two index rules rather than of the data -- so it is
+    # a consequence of the two index rules, not the data -- so it is
     # checked here, exhaustively, rather than asserted on a sample. A symmetric
     # arm B built from |resid| has NO such property against a two-rail arm A, and
     # asserting it there is what this check exists to have prevented.
@@ -239,7 +235,7 @@ def fit_series(series, initial_window, method, coverages, offset=1,
             # `offset` selects which diagonal of residuals_matrix_ is read. 1 is
             # what the shipped helper uses at a one-step horizon, and by the
             # alignment finding that diagonal holds TWO-step residuals -- so it is
-            # not exchangeable with a one-step test residual whatever the data.
+            # misaligned with the one-step test residual for any dataset.
             # offset=0 is the correctly aligned set. Both are needed: the first is
             # what ships, the second is what makes an ABSOLUTE coverage number
             # attributable to the index convention rather than to the misalignment.
@@ -282,11 +278,11 @@ def _score(interval, point, resid, y_test, coverage, method):
     a_covered = bool(lo_a <= y_test <= hi_a)
 
     if method in TWO_RAIL:
-        # Arm A is two rails on the signed residuals. An arm B built symmetrically
+# Arm A is two rails on the signed residual array. An arm B built symmetrically
         # from |resid| would differ from it in the SCORE SET and in the GEOMETRY as
         # well as in the rank -- three changes, not one -- and would not contain it,
-        # so a paired difference across the two would carry the geometry rather than
-        # the level-to-rank map. Arm B is therefore the same two-rail construction
+        # so a paired difference across the two would carry the geometry not
+        # the rank map. Arm B is therefore the same two-rail construction
         # with the required span substituted for the two levels.
         signed = np.sort(resid)
         a_idx, b_idx, k = required_span(n, coverage)
@@ -357,10 +353,10 @@ def main():
     say(f"dataset: {name}   series cap: {limit}")
     say("arm A: sktime ConformalIntervals via predict_interval, its own defaults")
     say("arm B: sktime's OWN residuals (residuals_matrix_, offset-1 diagonal) and")
-    say("       its OWN point forecast, at the required order statistic -- matched to")
-    say("       arm A's GEOMETRY as well as to its scores and its centre:")
-    say("         method=empirical  two rails on the signed residuals, so arm B is the")
-    say("                           index pair spanning ceil((n+1)*coverage) gaps")
+    say("       its OWN point forecast, at the required order statistic -- aligned with")
+    say("       arm A's interval geometry, score set and centre:")
+    say("         method=empirical  two rails on the signed residual array, so arm B")
+    say("                           uses the pair enclosing ceil((n+1)*coverage) gaps")
     say("         method=conformal  symmetric band on the absolute residuals, so arm B")
     say("                           is the rank ceil((n+1)*coverage) threshold")
     say("")
@@ -399,12 +395,12 @@ def main():
                 say("")
 
     say("A positive delta means the required rank covers more than the shipped call.")
-    say("`empirical` is two rails on the SIGNED residuals, so its arm B is the same")
-    say("two-rail construction at the required SPAN and its landed figure is a span in")
+    say("`empirical` is two rails on the signed residual array; its arm B is the same")
+    say("two-rail construction at the required SPAN and its landed figure counts")
     say("gaps. `conformal` is a symmetric band on the absolute ones and its arm B is a")
     say("rank. Arm B contains arm A in both, asserted per fit rather than argued.")
-    say("Real series are not exchangeable, so an absolute miss is not attributable to")
-    say("the convention on its own -- the paired delta is what carries the claim.")
+    say("Raw archive series do not support assigning an absolute miss to the")
+    say("convention on its own -- the paired delta is what carries the claim.")
 
     out = out_path(OUT_TEMPLATE, name)
     with open(out, "w") as fh:

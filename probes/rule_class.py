@@ -134,7 +134,11 @@ PARITY_POLICIES = {"half_even"}
 
 
 def required_rank(n, L):
-    """The smallest rank delivering L, from Pr(V_{n+1} <= V_(r)) = r/(n+1)."""
+    """The smallest rank delivering L, from Pr(V_{n+1} <= V_(r)) = r/(n+1).
+
+    Intentionally local: always returns the ceil (no None), because the rule
+    class enumerates past the feasibility floor. Package helper returns None.
+    """
     return math.ceil((n + 1) * L)
 
 
@@ -548,7 +552,8 @@ def main():
     say("rule, by an identity worth stating: `inverted_cdf` computes ceil(q n), so at")
     say("the corrected level q = L(n+1)/n it computes ceil(L(n+1)) -- the required rank,")
     say("exactly, at every size and every level. The correction and the convention")
-    say("compose into the answer. That is not the idiom either paper recommends.")
+    say("compose into the answer -- distinct from the folklore `higher` pairing,")
+    say("which is valid and wider by one rank on a density-alpha class of sizes.")
     say("")
     say("Distance from each shipped convention to exactness, in ranks:")
     say("")

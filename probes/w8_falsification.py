@@ -18,18 +18,18 @@ The wide claim, stated so it can fail
     (numpy's default method='linear') under-delivers.
 
 Three non-conformal settings, each with a nominal level and each able to refute
-the claim. Only ONE of the three drives a shipped implementation of the bound in
-question -- setting 3, through `scipy.stats.bootstrap`. Settings 1 and 2 are
+the claim. Only ONE of the three is tied to shipped bound code:
+setting 3, through `scipy.stats.bootstrap`. Settings 1 and 2 are
 constructions written here: the numpy call is real, but the decision to read its
-output as a VaR or as a p-content tolerance bound is ours, and no audited package
+output as a VaR or as a tolerance bound with content p is ours, and no audited package
 makes it. That distinction is load-bearing and was previously blurred by this
 docstring, so the write-up now states it too.
 
   1. Empirical value-at-risk. `np.quantile(losses, 0.99)` reported as a 99% VaR.
      Exceedance probability is measurable and has an exact expectation.
   2. Nonparametric (Wilks) tolerance bound. An order statistic is claimed to
-     cover a proportion p of the population with confidence gamma. The required
-     rank comes from a binomial tail, not from a level.
+     cover a proportion p of the population with confidence gamma. A binomial tail
+     sets the rank; the level itself does not.
   3. Bootstrap percentile confidence interval, via scipy.stats.bootstrap. Here
      the claim SHOULD weaken: bootstrap approximation error is a second, larger
      source of miscoverage, so if the index map is undetectable next to it, the
@@ -335,7 +335,7 @@ def main():
                 f"{higher_rank(q, n):>12} {('inf' if k is None else k):>14} "
                 f"{('-' if k is None else k - higher_rank(q, n)):>8}")
     say("  The virtual index is not an integer, so method='linear' returns a value")
-    say("  BETWEEN two order statistics and no exchangeability bound applies to it.")
+    say("  inside an order-statistic gap; exchangeability supplies no direct rank bound for it.")
 
     var_block(say)
     tolerance_block(say)
@@ -352,16 +352,15 @@ def main():
     say("                 exceedance matches the exact 1 - k/(n+1) for the rank the")
     say("                 level lands on.")
     say("  2. Tolerance   the mechanism reproduces, and here it is WORSE than in")
-    say("                 conformal prediction, because the required rank comes from a")
-    say("                 binomial tail rather than from a level at all -- so no choice")
-    say("                 of level recovers it.")
+    say("                 conformal prediction, because a binomial tail sets the")
+    say("                 required rank. Tuning a level cannot recover it.")
     say("  3. Bootstrap   the mechanism is present but NOT the dominant term. Read the")
     say("                 'index-map share' column before writing anything general.")
     say("")
     say("So the frame that survives is the mechanism, not the severity:")
-    say("  SAY      the level-to-rank map governs any distribution-free bound built")
-    say("           from a sample quantile, and conformal prediction is where the")
-    say("           consequence is sharpest because the guarantee is exact there.")
+    say("  SAY      sample-quantile bounds get their guarantee from rank resolution,")
+    say("           and conformal prediction shows the sharpest consequence because")
+    say("           its guarantee is exact there.")
     say("  DO NOT   generalise the effect SIZES measured on conformal libraries to")
     say("           other settings. Setting 3 refutes that directly.")
 

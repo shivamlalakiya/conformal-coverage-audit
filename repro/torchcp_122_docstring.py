@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""torchcp #122: the docstring names a threshold the code no longer computes.
+"""torchcp #122: the docstring describes a quantity the implementation no longer produces.
 
 One filing, one script, no dependency on the rest of this repository.
 
@@ -50,7 +50,7 @@ def main():
         print(f"  {ln}")
     print()
 
-    print("Executed: scores 1..n, so a returned threshold IS the rank it landed on.")
+    print("Executed on scores 1..n; the returned value identifies the delivered rank.")
     print(f"{'n':>5}{'alpha':>7}{'corrected level':>17}{'>1?':>6}"
           f"{'warns':>7}{'returned':>12}")
     print("-" * 56)

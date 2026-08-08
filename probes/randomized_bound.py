@@ -54,6 +54,9 @@ from fractions import Fraction
 
 import numpy as np
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+from conformal_coverage import required_rank  # noqa: E402
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "..", "outputs", "probe_output_randomized_bound.txt")
 
@@ -70,11 +73,6 @@ def say(s=""):
 def attainable(m):
     """Coverages a DETERMINISTIC index into m exchangeable scores can attain."""
     return [Fraction(k, m + 1) for k in range(1, m + 1)] + [Fraction(1)]
-
-
-def required_rank(m, coverage):
-    k = math.ceil((m + 1) * coverage)
-    return None if k > m else k
 
 
 def mixture(m, coverage):

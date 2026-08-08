@@ -15,7 +15,7 @@ shows but cannot explain.
 
 The result
 ----------
-Write the requested level as L = p/d in lowest terms, so alpha = 1 - L = (d-p)/d. A
+Reduce the target level to L = p/d, so alpha = 1 - L = (d-p)/d. A
 definition delivers at n exactly when floor(h(n)) >= ceil((n+1)L). Then:
 
     inverted_cdf, averaged_inverted_cdf     density = alpha

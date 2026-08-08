@@ -12,16 +12,16 @@ site under it, and verifies each site still exists where it is recorded.
 
 THE UNIT
 --------
-A **resolution site**: one expression that turns a requested coverage or
-miscoverage level into either
+A **resolution site**: a single expression converting a nominated coverage or
+miscoverage rate into either
 
-  (i)  an index or rank into a set of calibration nonconformity scores, or
-  (ii) a p-value denominator over that set,
+  (i)  a position or rank within a calibration nonconformity score array, or
+  (ii) a p-value denominator over that array,
 
-and whose value determines a returned threshold, interval, set or p-value.
+and whose output controls a delivered bound, region, prediction set or p-value.
 
-Two public methods sharing one expression count once. One method containing two
-expressions with different rules counts twice. An expression that only feeds a
+When two public methods share a single expression it is tallied once. A method housing two
+expressions under distinct rules is tallied twice. An expression that only feeds a
 diagnostic, a metric or an internal clustering step does not count -- those are
 listed separately as `determines_output=False` so the exclusion is auditable
 rather than silent.
@@ -98,7 +98,7 @@ MANIFEST = [
       "a", False, True, ["SplitConformalClassifier.predict_set"]),
     # RE-ANCHORED. This site used to point at lac.py:158, `quantiles_ =
     # (n + 1) * (1 - alpha_np)`, on the grounds that it is where a level becomes a
-    # number on the crossval path. It is -- but that number decides nothing. It is
+    # numeric value on the crossval path. It is -- but that value decides nothing. It is
     # stored on `quantiles_`, surfaced as a documented public fitted attribute
     # (classification.py:1141), and never read by the branch that builds the set:
     # perturbing it by a factor of 1000 leaves the returned sets bit-identical,
@@ -435,7 +435,7 @@ SUITE_DISPOSITION = {
     "LACConformityScore.get_conformity_score_quantiles [prefit/mean]":
         ("driven", "mapie LAC quantiles [prefit/mean -> delegates]"),
     "LACConformityScore.get_prediction_sets [cv/crossval]":
-        ("driven", "mapie LAC quantiles [cv=5/crossval -> raw count]"),
+        ("driven", "mapie LAC quantiles [cv=5/crossval -> count scale]"),
     "BaseRegressionScore._beta_optimize":
         ("driven", "mapie _beta_optimize + get_quantile (composed)"),
     "_MapieQuantileRegressor.predict": ("absent", ""),
@@ -613,9 +613,9 @@ def main():
     say("self_check() passed at import (manifest is internally consistent)")
     say(f"source root: {args.root or '<none: using installed packages>'}")
     say("")
-    say("UNIT -- a resolution site: one expression turning a requested level into an")
-    say("index into a calibration score set, or into a p-value denominator, whose value")
-    say("determines a returned threshold, interval, set or p-value.")
+    say("UNIT -- a resolution site: a single expression converting a nominated level")
+    say("into a position within the calibration score array, or into a p-value")
+    say("denominator, and whose output controls a delivered bound, region, set or p-value.")
     say("")
 
     states = {}
@@ -745,9 +745,9 @@ def main():
     say("")
     say("What replaces \"seven have a distinct quantile/p-value helper\"")
     say("-" * 108)
-    say(f"  \"Across the ten packages that resolve a coverage bound from a calibration")
-    say(f"  set, we count {len(p2)} distinct resolution sites -- expressions mapping a")
-    say(f"  requested level to an index into that set -- reachable through {len(p3)} public")
+    say(f"  \"Across the ten packages that derive a coverage guarantee from a calibration")
+    say(f"  array, we count {len(p2)} distinct resolution sites -- expressions mapping a")
+    say(f"  requested level to an index into the calibration set -- reachable through {len(p3)} public")
     say(f"  API entry points.\"")
     say("")
     say(f"  {len(p1_out)} of the {len(p2)} were already documented by this audit; the other")

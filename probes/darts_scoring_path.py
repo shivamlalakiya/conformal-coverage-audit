@@ -45,7 +45,7 @@ Block 1 fits the base model on the whole history, which is what a user does and
 what run_darts_tighten.py did; its calibration residuals are in-sample and
 therefore optimistically small.  Block 2 fits the base model on a prefix and
 calibrates on the held-out remainder, so the scores are genuinely
-out-of-sample and exchangeable with the test point.  The difference between the
+out-of-sample and aligned with the test point.  The difference between the
 two blocks is how much of the deficit is the level->rank map and how much is
 in-sample residual bias -- a decomposition the earlier probe could not make.
 """
@@ -75,9 +75,13 @@ def numpy_higher_rank(c, n):
 
 
 def required_rank(c, n):
-    """1-based rank a valid finite-sample symmetric bound needs. None if > n."""
-    k = math.ceil(F(n + 1) * F(c))
-    return k if k <= n else None
+    """1-based rank a valid finite-sample symmetric bound needs. None if > n.
+
+    Argument order is (level, n) for historical call sites; delegates to the
+    package's (n, coverage) form.
+    """
+    from conformal_coverage import required_rank as _rr
+    return _rr(n, c)
 
 
 def exact_coverage(k, n):

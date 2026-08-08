@@ -21,7 +21,7 @@ Mechanism, exact, no simulation -- where the level lands:
     1000   0.90            899.1000          901            901        0
     1000   0.99            989.0100          991            991        0
   The virtual index is not an integer, so method='linear' returns a value
-  BETWEEN two order statistics and no exchangeability bound applies to it.
+  inside an order-statistic gap; exchangeability supplies no direct rank bound for it.
 
 ====================================================================================================
 SETTING 1 -- empirical value-at-risk. `np.quantile(losses, q)` as a q VaR
@@ -120,15 +120,14 @@ Read the three settings together, not separately:
                  exceedance matches the exact 1 - k/(n+1) for the rank the
                  level lands on.
   2. Tolerance   the mechanism reproduces, and here it is WORSE than in
-                 conformal prediction, because the required rank comes from a
-                 binomial tail rather than from a level at all -- so no choice
-                 of level recovers it.
+                 conformal prediction, because a binomial tail sets the
+                 required rank. Tuning a level cannot recover it.
   3. Bootstrap   the mechanism is present but NOT the dominant term. Read the
                  'index-map share' column before writing anything general.
 
 So the frame that survives is the mechanism, not the severity:
-  SAY      the level-to-rank map governs any distribution-free bound built
-           from a sample quantile, and conformal prediction is where the
-           consequence is sharpest because the guarantee is exact there.
+  SAY      sample-quantile bounds get their guarantee from rank resolution,
+           and conformal prediction shows the sharpest consequence because
+           its guarantee is exact there.
   DO NOT   generalise the effect SIZES measured on conformal libraries to
            other settings. Setting 3 refutes that directly.

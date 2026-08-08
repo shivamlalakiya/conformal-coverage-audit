@@ -16,18 +16,17 @@ the level becomes a rank.
 
 Two things this arm shows that the sktime arm could not
 ------------------------------------------------------
-1. `ConformalIntervals(n_windows=2)` is the DEFAULT, and at m=2 the required
-   rank for a 0.90 interval is ceil(3*0.90) = 3 > 2. No valid finite bound
+1. `ConformalIntervals(n_windows=2)` is the DEFAULT, and with m=2, a 0.90 interval needs
+   rank ceil(3*0.90) = 3 > 2. No valid finite bound
    exists at the default setting, for any choice of index. statsforecast
    returns a finite interval anyway.
 2. The distribution method interpolates over a SYMMETRISED score set of size
-   2m, so its half-width is not an order statistic of |cs| at all. The probe
+   2m, so its half-width does not correspond to an order statistic of |cs| at all. The probe
    records the rank of |cs| that arm A's half-width lands on, which makes the
    interpolation visible in the table rather than argued.
 
-Honest scope, identical to the sktime arm: real series are not exchangeable, so
-the absolute coverage is not attributable to the convention. The paired delta
-is the claim.
+Honest scope, matching the sktime arm: raw series do not justify assigning
+absolute coverage to the convention. The paired delta is the claim.
 """
 
 import math
@@ -183,11 +182,11 @@ def main():
 
     say("")
     say("A positive delta means the required rank covers more than the shipped call.")
-    say("Real series are not exchangeable, so an absolute miss is not attributable to")
-    say("the convention on its own -- the paired delta is what carries the claim.")
+    say("Raw archive series do not support assigning an absolute miss to the")
+    say("convention on its own -- the paired delta is what carries the claim.")
     say("")
     say("The n_windows=2 rows are the default configuration. Where arm B reads")
-    say("+inf-infeasible there, no index into a two-element score set supports a")
+    say("+inf-infeasible there, a two-element score set has no index supporting")
     say("0.90 or 0.95 bound, and arm A still returns a finite interval.")
 
     out = out_path(OUT_TEMPLATE, name)

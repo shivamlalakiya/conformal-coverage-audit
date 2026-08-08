@@ -204,8 +204,8 @@ def main():
 
     say("")
     say("A positive delta means the required rank covers more than the shipped call.")
-    say("Real series are not exchangeable, so an absolute miss is not attributable to")
-    say("the convention on its own -- the paired delta is what carries the claim.")
+    say("Raw archive series do not support assigning an absolute miss to the")
+    say("convention on its own -- the paired delta is what carries the claim.")
     say("")
     say("Where the deficit above is 0 the two arms are the same interval and the delta")
     say("is exactly 0.0000 by construction, not by measurement. Those rows are the")

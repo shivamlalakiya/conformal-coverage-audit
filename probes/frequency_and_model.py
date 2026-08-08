@@ -4,7 +4,7 @@
 WHAT WAS MISSING
 ----------------
 Two monthly archives and one weak base model. The claim that the level-to-rank map is
-a property of the calibration size and not of the data or the forecaster is a claim we
+determined by the calibration size and not of the data or the forecaster is a claim we
 had argued rather than shown, and "the map cannot depend on the model" is exactly the
 kind of statement that is obviously true until somebody measures it.
 
@@ -25,8 +25,8 @@ path is byte-identical and this probe passes something else.
 
 THE PREDICTION, STATED BEFORE THE RUN
 -------------------------------------
-The landed index and the required index are functions of the residual COUNT. Neither
-reads a residual value. So:
+The landed index and the required index are functions of the residual COUNT. No
+residual value enters. So:
 
   * the deficit k* - k_hat at a given calibration size must be IDENTICAL across
     frequencies and across base models, because it is arithmetic on n;
@@ -78,8 +78,8 @@ METHOD = "empirical"
 # for the daily collection, whose series run past a thousand observations: the
 # gradient-boosted arm refits once per sliding window, so an uncapped daily series costs
 # minutes and the arm costs hours. What this probe tests is whether the index arithmetic
-# agrees across frequencies at a given RESIDUAL COUNT, and a hundred residuals settle
-# that as well as a thousand. The cap is printed per collection and the truncation is
+# agrees across frequencies for a fixed RESIDUAL COUNT; one hundred residuals test
+# the arithmetic as well as one thousand. The cap is printed per collection and the truncation is
 # reported, not silent.
 COLLECTIONS = [
     ("m1_quarterly", "/tmp/m1_quarterly.npz", "quarterly", None),
@@ -158,7 +158,7 @@ def main():
     say("checked as arithmetic before any forecaster exists.")
     say("")
     say("THE PREDICTION, FIXED BEFORE THE RUN. The landed and required indices read a")
-    say("residual COUNT and never a residual VALUE, so the deficit at a given")
+    say("residual COUNT, not any residual VALUE, so the deficit at a given")
     say("calibration size must be identical across frequencies and across base")
     say("models, and the paired difference must be non-negative and near zero where")
     say("the deficit is zero. A base model that moved a landed index would falsify")
@@ -286,7 +286,7 @@ def main():
                 f"that the map is arithmetic on the residual count, and it is a "
                 f"finding rather than a robustness row -- stop and investigate.")
         say(f"Across {len(rows)} model-by-frequency-by-group combinations the required")
-        say(f"index takes ONE value in every one of the {len(shared)} groups two or more")
+        say(f"index has a single value in all {len(shared)} groups two or more")
         say("arms reach. The map did not move with the frequency and did not move with")
         say("the base model.")
         say("")
@@ -349,7 +349,7 @@ def main():
         if len(cov_by_model) > 1:
             spread = max(cov_by_model.values()) - min(cov_by_model.values())
             say(f"The two models' mean arm-A coverage differs by {spread:.4f}, so they")
-            say("are not the same predictor wearing two labels. The indices still")
+            say("are genuinely different predictors. The indices still")
             say("agree exactly.")
 
     say("")

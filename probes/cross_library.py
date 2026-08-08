@@ -14,24 +14,23 @@ What it found that the taxonomy does not contain
 -----------------------------------------------
 `scipy.stats.mstats.mquantiles` exposes the Hyndman-Fan (alphap, betap)
 parameterisation directly and defaults to alphap = betap = 0.4 -- the Cunnane
-plotting position. That is NOT one of Hyndman and Fan's nine definitions, and it is
+plotting position. That is NOT one of the HF9 definitions, and it is
 therefore not a row in the manuscript's rank map. A caller who reaches for scipy's
 quantile function rather than numpy's gets a fourteenth convention, with its own
 virtual index, its own delivered coverage and its own corrected level, none of which
 the audit currently covers.
 
-That is the sharper form of the interface claim: the taxonomy is incomplete with
-respect to what is shipped, not merely under-used. The rank map is a map of the nine
+That is the sharper form of the interface claim: the shipped API surface includes conventions
+outside the taxonomy, not merely under-used. The rank map is a map of the nine
 definitions plus numpy's rounding variants; the space of shipped conventions is
-larger, and the fractional-rank result covers all of it because it is stated in terms
-of the virtual index rather than in terms of a named definition.
+larger, and the fractional-rank result covers all of it because it is stated with virtual-index
+coordinates instead of a named definition.
 
 Method
 ------
-The same instrument as everywhere else: quantile the tie-free score set 1..n, whose
-values ARE their own ranks, so whatever an API returns IS its virtual index. No
+The same instrument as everywhere else: quantile the scores 1..n with no ties, so each value is its rank; whatever an API returns IS its virtual index. No
 algebra is trusted, and each API's affine coefficients (A, B) are FITTED at interior
-levels rather than read from documentation -- the numpy clip at [1, n] makes an
+levels rather than read from documentation -- numpy's endpoint clipping makes an
 endpoint fit return the wrong coefficients, which is recorded in W9.
 
 Cross-LANGUAGE, and what replaced an arithmetic transfer with a measurement
@@ -41,20 +40,19 @@ named conventions NOT RUN, giving only the arithmetic transfer through our own
 instrument. Those interpreters are now installed and block (iii) EXECUTES them. This
 matters more than it sounds: the manuscript previously wrote that a widely used
 statistical language's default is "identical to numpy's linear" and cited rather than
-claimed it. It is now measured, in that language, on the same tie-free score set.
+claimed it. It is now measured, in that language, on the same ordered score grid.
 
 The cross-check is the point. For every external convention whose Hyndman-Fan
-(alpha, beta) pair is documented, self_check asserts that the interpreter's own
-returned value equals our instrument's prediction to 1e-9. If any disagreed, either
-our (alpha, beta) mapping or the language's documentation would be wrong, and the
+(alpha, beta) pair is documented, self_check asserts that the interpreter return
+matches this probe's prediction to 1e-9. If any disagreed, either
+this (alpha, beta) mapping or that API's documentation would be false, and the
 manuscript's interface claim would need weakening rather than strengthening. None
 disagree.
 
 Still out of reach, and why it is a different question
 -----------------------------------------------------
-pyspark's `approxQuantile` requires a JVM, which is not installed. It is also not a
-convention in the sense the rest of this probe measures: it is an APPROXIMATE
-streaming estimator with a configurable error bound, which is branch (g) of the
+pyspark's `approxQuantile` requires a JVM, which is not installed. It is also outside this convention audit: a sketching quantile
+with a caller-set tolerance, which is branch (g) of the
 audit's taxonomy and is already represented there by `river`'s P-squared estimator.
 So it is out of scope for the level-to-rank claim rather than a gap in it, and it is
 recorded as such rather than as an unmeasured row.
@@ -205,7 +203,7 @@ def octave_measure(n, q):
 def affine(fn, n):
     """(A, B) with h = A + Bq, fitted at INTERIOR levels.
 
-    Not at the endpoints: every API clips the virtual index into [1, n], so an
+    Not at the endpoints: every API clips h into [1, n], so an
     endpoint fit returns (1, n-1) regardless of the convention. W9 records the
     same trap.
     """
@@ -278,9 +276,9 @@ def self_check():
 
     # (3b) CROSS-VALIDATION against the external interpreters. For every
     #      convention whose Hyndman-Fan (alpha, beta) pair is documented, the
-    #      interpreter's own returned value must equal our instrument's
-    #      prediction. If any disagreed, either our mapping or the language's
-    #      documentation is wrong, and the interface claim would need weakening.
+    #      interpreter return must match this probe's prediction. A mismatch
+    #      would falsify either this mapping or that API's documentation, and
+    #      the interface claim would need weakening.
     for n in (50, 137):
         for q in (0.90, 0.95):
             r = r_measure(n, q)
@@ -338,7 +336,7 @@ def main():
     say("W16  THE LEVEL-TO-RANK MAP ACROSS QUANTILE APIs")
     say("=" * 110)
     say("")
-    say("  Instrument: quantile the tie-free score set 1..n, so the returned value")
+    say("  Instrument: quantile the scores 1..n with no ties, so the returned value")
     say("  IS the virtual index. (A, B) with h = A + Bq are FITTED at interior")
     say(f"  levels. n = {n}, requested coverage {1 - alpha:.2f}.")
     say("")
@@ -366,7 +364,7 @@ def main():
 
     # ---------------- (ii) the fourteenth convention ---------------------
     say("-" * 110)
-    say("(ii) A CONVENTION THE TAXONOMY DOES NOT CONTAIN")
+    say("(ii) A SHIPPED CONVENTION OUTSIDE THE TAXONOMY")
     say("-" * 110)
     d = [r for r in rows if "DEFAULT" in r["api"]][0]
     say(f"    scipy.stats.mstats.mquantiles defaults to alphap = betap = 0.4, the")
@@ -379,21 +377,21 @@ def main():
     say(f"      corrected level it needs       : {d['q_needed']:.4f}")
     say("")
     say("    Its delivered coverage differs from every numpy method (asserted in")
-    say("    self_check), so a caller who reaches for scipy rather than numpy gets a")
+    say("    self_check), so a scipy caller gets a")
     say("    fourteenth convention with its own corrected level. The rank map is a")
     say("    map of the nine definitions; the space of SHIPPED conventions is larger.")
     say("    The fractional-rank result covers it anyway, because it is stated in")
-    say("    terms of the virtual index rather than of a named definition -- which is")
+    say("    virtual-index coordinates instead of a named definition -- which is")
     say("    the argument for stating it that way.")
     say("")
 
     # ---------------- (iii) external interpreters, EXECUTED --------------
     say("-" * 110)
     say("(iii) EXTERNAL INTERPRETERS, EXECUTED. Every value below was returned by")
-    say("      the interpreter named, on the same tie-free score set. The `predicted`")
-    say("      column is our own instrument's value for that (alpha, beta) pair;")
-    say("      self_check asserts the two agree to 1e-9 at two sample sizes and two")
-    say("      levels, so a disagreement would fail the build rather than be reported.")
+    say("      the interpreter named, on the same ordered score grid. The `predicted`")
+    say("      column is this probe's predicted value for that (alpha, beta) pair;")
+    say("      self_check asserts agreement across four checked cells, so a")
+    say("      disagreement would fail the build rather than be reported.")
     say("-" * 110)
     versions = {
         "R": _version(["Rscript", "-e"], "cat(as.character(getRversion()))"),
@@ -449,7 +447,7 @@ def main():
         say("")
     say("    OUT OF SCOPE, not unmeasured: pyspark's approxQuantile needs a JVM,")
     say("    which is absent here. It is also not a convention in this sense -- it is")
-    say("    an APPROXIMATE streaming estimator with a configurable error bound,")
+    say("    a streaming sketch with a tolerance parameter,")
     say("    which is branch (g) of the taxonomy and is already represented there by")
     say("    river's P-squared estimator. So it is a different question, not a gap.")
     say("")
@@ -500,7 +498,7 @@ def main():
         f"{len(by_h)} distinct")
     say("  virtual indices, and one default convention -- scipy's -- that is not in")
     say("  the Hyndman-Fan taxonomy at all. numpy and pandas agree with each other by")
-    say("  construction; scipy does not agree with either at its own default. The")
+    say("  construction; scipy's default lands elsewhere. The")
     say("  interface claim is therefore stronger than the manuscript states, and the")
     say("  right way to state it is in terms of the virtual index.")
     rm = r_measure(n, 1 - alpha)
@@ -510,8 +508,8 @@ def main():
              if v is not None]
     say(f"  R, Julia and Octave are now EXECUTED, not transferred: {len(langs)} of 3")
     say(f"  present ({', '.join(langs)}). Every documented (alpha, beta) pair agrees")
-    say("  with our instrument to 1e-9, asserted at two sample sizes and two levels.")
-    say("  Octave's nine methods are identical to R's and its DEFAULT is method 5")
+    say("  with this probe across the checked cells.")
+    say("  Octave mirrors R across its nine methods and its DEFAULT is method 5")
     say("  (hazen), where R's, Julia's, numpy's and pandas's default is linear -- so")
     say("  the ecosystem defaults genuinely disagree with one another, and none of")
     say("  them delivers the requested level.")

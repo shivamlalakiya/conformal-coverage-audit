@@ -17,7 +17,7 @@ The subtleties, each learned from a failure of this harness:
      medians for that reason.
   3. `Delta x units` is an integer for ANY pair of 0/1 indicators, nested or
      not, so it cannot tell you the arms are paired as claimed and it is not the
-     number of units that changed status. The gains and the losses are counted
+     count of units with status changes. The gains and the losses are counted
      separately here and printed, because their SUM is the count the prose wants
      and their DIFFERENCE is the delta. Reading the count off the delta hid a
      reversal in three cells of the sktime arm through two adversarial reads.
@@ -57,6 +57,14 @@ def summarize(records):
     # two tails lands wider than the symmetric bound arm B builds".
     a_meets = all(r["a_rank"] >= r["required_rank"] for r in good
                   if r.get("required_rank")) if good else False
+    # Mean of per-unit (req - landed)/(n+1) over feasible units. Medians of the two
+    # index figures are not a substitute when n varies inside the cell -- that
+    # construction printed +0.0000 at statsforecast m=10 against a measured miss.
+    preds = [
+        (r["required_rank"] - r["a_rank"]) / (r["n"] + 1)
+        for r in feas
+        if r.get("required_rank") is not None
+    ]
     out = {
         "cells": len(good),
         "n_median": int(np.median([r["n"] for r in good])),
@@ -64,6 +72,7 @@ def summarize(records):
         "b_cov": float(b.mean()),
         "delta": float(d.mean()),
         "se": float(d.std(ddof=1) / math.sqrt(d.size)) if d.size > 1 else float("nan"),
+        "pred_delta": float(np.mean(preds)) if preds else float("nan"),
         "gains": gains,
         "losses": losses,
         "changed": gains + losses,
@@ -105,7 +114,7 @@ def format_cell(header, s):
     if s is None:
         return [f"  {header}  -- no usable cells"]
     # A two-rail helper resolves two levels and what it delivers is a SPAN in
-    # gaps, not a rank. Half of an asymmetric width is not an order statistic of
+    # gaps, not a rank. Half of an asymmetric width does not correspond to an order statistic of
     # anything, so the word changes with the construction.
     unit = "span" if s["two_rail"] else "rank"
     lines = [
@@ -121,6 +130,11 @@ def format_cell(header, s):
            if s["infeasible"] else ""),
         f"      paired delta (B - A)   {s['delta']:+.4f}  (s.e. {s['se']:.4f})"
         f"  {stars(s['delta'], s['se'])}",
+        (
+            f"      predicted delta        {s['pred_delta']:+.4f}"
+            if not math.isnan(s["pred_delta"])
+            else "      predicted delta        n/a (no feasible unit)"
+        ),
         # Printed for every cell, including the zero ones, so the count in the
         # prose is a parsed field rather than delta x units.
         f"      status changed in {s['changed']} of {s['cells']} units: "
@@ -169,7 +183,28 @@ def self_check():
     s = summarize(recs)
     assert s["a_cov"] == 0.8 and s["b_cov"] == 1.0
     assert abs(s["delta"] - 0.2) < 1e-12
+    # (10 - 9)/(10+1) = 1/11 on every feasible unit
+    assert abs(s["pred_delta"] - 1 / 11) < 1e-12, s["pred_delta"]
     assert s["infeasible"] == 0 and s["f_cells"] == 10
+    # Medians of the two ranks can agree while the per-unit mean does not: two
+    # units at n=10 (pred 1/11) and two at n=20 with equal ranks (pred 0) give
+    # medians that look like a zero prediction and a mean that is not.
+    split = [
+        dict(n=10, required_rank=10, feasible=True, a_covered=True,
+             a_width=1.0, a_rank=9, b_covered=True, b_width=1.5),
+        dict(n=10, required_rank=10, feasible=True, a_covered=True,
+             a_width=1.0, a_rank=9, b_covered=True, b_width=1.5),
+        dict(n=20, required_rank=19, feasible=True, a_covered=True,
+             a_width=1.0, a_rank=19, b_covered=True, b_width=1.5),
+        dict(n=20, required_rank=19, feasible=True, a_covered=True,
+             a_width=1.0, a_rank=19, b_covered=True, b_width=1.5),
+    ]
+    sp = summarize(split)
+    median_pred = (sp["req_rank_median"] - sp["a_rank_median"]) / (sp["n_median"] + 1)
+    assert abs(median_pred) < 1e-12, median_pred
+    assert abs(sp["pred_delta"] - ((1 / 11) + (1 / 11) + 0 + 0) / 4) < 1e-12, sp["pred_delta"]
+    assert abs(sp["pred_delta"] - median_pred) > 1e-6, (
+        "the median-of-indices construction that must not reach the table")
     # gains and losses are counted, and their sum is NOT delta x units when a
     # unit goes the other way. This is the case that shipped undetected.
     assert (s["gains"], s["losses"], s["changed"]) == (2, 0, 2)

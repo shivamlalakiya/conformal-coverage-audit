@@ -4,9 +4,9 @@ PER-HELPER CENSUS -- the unit stated first, every site verified on disk
 self_check() passed at import (manifest is internally consistent)
 source root: ../cp-src
 
-UNIT -- a resolution site: one expression turning a requested level into an
-index into a calibration score set, or into a p-value denominator, whose value
-determines a returned threshold, interval, set or p-value.
+UNIT -- a resolution site: a single expression converting a nominated level
+into a position within the calibration score array, or into a p-value
+denominator, and whose output controls a delivered bound, region, set or p-value.
 
 library               site                                                 br       map  out  verify
 ------------------------------------------------------------------------------------------------------------
@@ -210,7 +210,7 @@ COUNTS
       driven    mapie          BaseConformityScore.get_quantile             mapie get_quantile
       driven    mapie          _compute_quantiles                           mapie LAC quantiles [prefit/mean -> delegates]
       driven    mapie          LACConformityScore.get_conformity_score_quan mapie LAC quantiles [prefit/mean -> delegates]
-      driven    mapie          LACConformityScore.get_prediction_sets [cv/c mapie LAC quantiles [cv=5/crossval -> raw count]
+      driven    mapie          LACConformityScore.get_prediction_sets [cv/c mapie LAC quantiles [cv=5/crossval -> count scale]
       driven    mapie          BaseRegressionScore._beta_optimize           mapie _beta_optimize + get_quantile (composed)
       driven    crepes         ConformalRegressor.predict_int               crepes ConformalRegressor.predict_int
       driven    crepes         ConformalPredictiveSystem.predict_int        crepes ConformalPredictiveSystem.predict_int
@@ -310,8 +310,8 @@ all sites verified at the recorded line
 
 What replaces "seven have a distinct quantile/p-value helper"
 ------------------------------------------------------------------------------------------------------------
-  "Across the ten packages that resolve a coverage bound from a calibration
-  set, we count 35 distinct resolution sites -- expressions mapping a
+  "Across the ten packages that derive a coverage guarantee from a calibration
+  array, we count 35 distinct resolution sites -- expressions mapping a
   requested level to an index into that set -- reachable through 34 public
   API entry points."
 

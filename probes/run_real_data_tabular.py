@@ -9,8 +9,8 @@ Design, identical to the forecasting arms
 
 What the tabular arm adds that the forecasting arms cannot
 ---------------------------------------------------------
-Four independent implementations resolve the same bound from the SAME scores on
-the SAME split, so the paired delta separates them without any cross-dataset
+Four independent implementations resolve an identical bound from identical scores on
+an identical split, so the paired delta separates them without any cross-dataset
 comparison:
 
   mapie  SplitConformalClassifier (LAC)          corrected level + method='higher'
@@ -40,7 +40,7 @@ expects to fail is not an audit.
 The mapie clip, and why it is dead code on this path
 ---------------------------------------------------
 `get_quantile` corrects the level to ceil(alpha_ref*(n+1))/n and then clips it to
-1.0, which would return max(scores) where the conformal quantile does not exist.
+1.0, which would return max(scores) where no conformal quantile is available.
 That clip never alters a value through `SplitConformalRegressor`, at EITHER sym
 setting: `_check_alpha_and_n_samples` raises for every n where the corrected
 level would exceed 1. self_check() scans n = 2..5000 at five confidence levels

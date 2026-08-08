@@ -20,7 +20,7 @@ so p cancels from the ratio of expectations exactly as scale did, and
     pi(xi, i, gamma)  =  (i+1) * E_{s ~ Beta(i,1)} [ 1 - (1 + gamma(s^{-xi}-1))^{-1/xi} ]
 
 with the xi -> 0 limit taken continuously. That is the whole law. pi depends on the
-distribution ONLY through the extreme-value shape index xi.
+distribution only through xi, the tail-shape parameter xi.
 
 The three domains, and the one exact case
 -----------------------------------------
@@ -48,7 +48,7 @@ What this buys over W12
    (iii) fits an effective xi per (distribution, n) and finds it negative for the
    normal and positive for the lognormal, which is exactly the direction of the
    bracket W12 could only report. It also checks that the fitted xi drifts toward 0
-   as n grows, which is what asymptotic membership of the Gumbel domain requires.
+   as n grows, which is what membership in the Gumbel domain requires.
 3. It says what a practitioner needs to estimate: one number, the shape index, for
    which standard estimators exist. Block (v) reports how much accuracy a rough xi
    buys over assuming xi = 0.
@@ -223,7 +223,7 @@ def main():
         say(f"{xi:>8.3f}  {dom:<20}{row}{mark}")
     say("")
     say("    Every column decreases toward gamma = 0.5 with depth, and every row")
-    say("    increases with xi. So xi orders the family and depth flattens it.")
+    say("    increases with xi. So xi orders the family while depth flattens it.")
     say("")
 
     # ---------------- (ii) verification, all three domains ---------------
@@ -318,19 +318,19 @@ def main():
             say(f"{xi:>9.3f}{gam:>8.2f}{row}")
     say("")
     say("    The sensitivity is mild: mis-stating xi by 0.25 moves pi by a few")
-    say("    hundredths of a rank, which is an order of magnitude less than the")
-    say("    gamma-vs-pi gap it corrects. So a rough shape estimate -- or a")
+    say("    hundredths of a rank, which is roughly ten times smaller than the")
+    say("    gamma-vs-pi gap being corrected. So a rough tail estimate -- or a")
     say("    conservative bound on it -- recovers most of the benefit, and the")
     say("    distribution-free floor floor(h)/(n+1) is unaffected either way.")
     say("")
     say("=" * 104)
     say("SUMMARY")
     say("=" * 104)
-    say("  pi depends on the distribution only through the extreme-value shape xi.")
+    say("  pi depends through the tail-shape parameter only xi.")
     say("  One formula covers all three domains; W12's two forms are its xi = 0 and")
     say("  xi > 0 sections, and the Weibull domain xi < 0 was previously unreached.")
     say("  pi = gamma holds exactly at xi = -1 and nowhere else, so the flat-density")
-    say("  condition of the earlier results IS a statement about the shape index.")
+    say("  condition of the earlier results states a fact about the shape index.")
     say(f"  Measured to {wl:.5f} over {len(rows)} cells and seven distributions,")
     say(f"  against {w0:.5f} for the xi = 0 form.")
     with open(OUT, "w", encoding="utf-8") as fh:

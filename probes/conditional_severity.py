@@ -59,6 +59,9 @@ import sys
 import numpy as np
 from scipy import integrate
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+from conformal_coverage import required_rank  # noqa: E402
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "..", "outputs", "probe_output_conditional_severity.txt")
 
@@ -92,11 +95,6 @@ def decompose(n, q):
     h = virtual_index(n, q)
     j = math.floor(h + 1e-12)
     return h, j, h - j, n - j
-
-
-def required_rank(n, coverage):
-    k = math.ceil((n + 1) * coverage)
-    return None if k > n else k
 
 
 # ---------------------------------------------------------------------------

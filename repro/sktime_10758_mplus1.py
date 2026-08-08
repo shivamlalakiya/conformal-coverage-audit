@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""sktime #10758: `conformal` and `conformal_bonferroni` omit the (m+1) correction.
+"""sktime #10758: both conformal interval modes omit the sample-size correction.
 
 One filing, one script, no dependency on the rest of this repository.
 
@@ -63,12 +63,12 @@ def main():
         print(f"largest shortfall: {worst[2]:.2f} order statistics at m = {worst[0]}, "
               f"level {worst[1]}")
         print()
-        print("REPRODUCES. The (m+1) correction is the difference between the two "
+        print("REPRODUCES. The finite-sample correction is the difference between the two "
               "columns: with it the rank is ceil((m+1)c), without it the quantile "
               "lands at 1 + c(m-1).")
         if exact:
             print(f"It is not every size -- {len(exact)} cell(s) coincide -- which is "
-                  "why 'collect more data' is not the remedy.")
+                  "why enlarging the calibration set does not fix it.")
         return 0
     print("does not reproduce: the shipped path reached the required rank in every "
           "cell tested.")

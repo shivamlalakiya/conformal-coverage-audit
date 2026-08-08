@@ -12,8 +12,8 @@ residuals, so the calibration set consists of TWO-step errors.
 
 Two-step errors are larger than one-step errors for any process with positive
 autocorrelation in its increments, so the interval is wider than the level asks for --
-and, more importantly, the calibration scores are not exchangeable with the test
-residual at any horizon, so the finite-sample guarantee does not apply whatever the data.
+and, more importantly, calibration and test scores are drawn from different
+horizon errors, so the finite-sample guarantee has no valid exchangeability basis.
 
 This script does not argue that. It reads both diagonals out of the library's own fitted
 object and compares them to residuals it computes directly, which settles which diagonal
@@ -102,8 +102,8 @@ def main():
     if s["match"] == "TWO-step" and c["match"] == "one-step":
         print("REPRODUCES. The diagonal read at a one-step horizon holds two-step "
               "errors, and the correctly aligned set is the adjacent diagonal. The "
-              "calibration scores are therefore not exchangeable with the test "
-              "residual, at any horizon and for any data.")
+              "calibration scores therefore target a different horizon from the test "
+              "residual, so the exchangeability premise fails.")
         return 0
     print(f"does not reproduce: offset 1 matched {s['match']} and offset 0 matched "
           f"{c['match']}. If offset 1 now matches one-step, the alignment is fixed.")

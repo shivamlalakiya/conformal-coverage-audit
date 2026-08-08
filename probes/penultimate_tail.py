@@ -491,7 +491,7 @@ def main():
     say("uniform in xi over ALL of R and in gamma over (0,1), with no asymptotics.")
     say("Which turns the mean value step into an inequality, not an expansion:")
     say("    |pi - pi_GPD(xi)| <= |xi_n - xi| * (i+1)/(4i^2)")
-    say("with xi_n - xi = A(n/i)/rho + o(A) the domain-of-attraction hypothesis, so")
+    say("with xi_n - xi = A(n/i)/rho + o(A) the tail-class assumption, so")
     say("every remaining error term sits there and none in this step.")
     say("")
     # sup h over a fine grid, and how far above h(0) it goes -- the number that

@@ -25,8 +25,15 @@ warnings.filterwarnings("ignore")
 
 # ------------------------------------------------------------------ oracle --
 def required_rank(c, n):
-    """1-based order statistic a valid split-conformal upper bound needs."""
-    return math.ceil(F(c) * (n + 1))
+    """1-based order statistic a valid split-conformal upper bound needs.
+
+    Argument order is (level, n). Unlike the package helper this returns the raw
+    ceil even when it exceeds n -- callers here use it as an arithmetic figure,
+    not as a feasibility gate.
+    """
+    from conformal_coverage import required_rank as _rr
+    k = _rr(n, c)
+    return k if k is not None else math.ceil(F(c) * (n + 1))
 
 
 def darts_rank_theory(c, n):

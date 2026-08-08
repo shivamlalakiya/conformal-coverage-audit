@@ -9,58 +9,77 @@ monotone and never below the raw p, and the absolute one-rank miss is
 --------------------------------------------------------------------------------------------------------
 (A) CLUSTERED PERMUTATION TESTS, WITH A FAMILY-WISE CORRECTION
 --------------------------------------------------------------------------------------------------------
-Signs are flipped per SERIES, never per test point, so dependent rolling
-origins are not treated as independent draws. Holm-Bonferroni across the
+Signs are sign-changed by SERIES cluster, not by test point, so rolling
+origins do not masquerade as separate units. Holm-Bonferroni across the
 arms in the family. The paired arms are one-sided by construction where
 arm B contains arm A, so a two-sided p is conservative here and that is the
 direction to err in.
 
-arm                                  delta     s.e.  units      raw p     Holm p
+THE DIFFERENCES ARE THE ARMS' OWN, NOT A RECONSTRUCTION. An earlier version
+of this section sign-flipped synthetic draws calibrated to each cell's reported mean
+and standard error, because the per-series differences looked absent from the
+committed outputs. They are not absent. Each arm contributes one
+point per series; its per-series entry falls in {-1, 0, +1}, and the
+printed gains and losses determine that vector. Every cell below is
+parsed out of the file named beside it, and the parse asserts that the
+printed delta equals (gains - losses)/units -- a rolling-origin arm
+fails there instead of being permuted as though it had one point per series.
+
+The p is then exact rather than simulated. Sign flipping moves only the
+nonzero entries, so P(|S| >= |gains - losses|) for S a sum of Rademachers is
+a binomial tail with nothing left to estimate. The simulation is kept beside
+it as a check and not as the answer, because it cannot resolve below
+1/20001 = 5.000e-05 and the smallest of these is well under that.
+
+arm                            source             delta  units    g   l     exact p      MC p     Holm p
 --------------------------------------------------------------------------------------------------------
-sktime empirical w=20 (m1)         +0.0360   0.0118    250    0.00170    0.00680
-sktime empirical w=40 (m1)         +0.0640   0.0155    250    0.00015    0.00090
-statsforecast m=10 (m1)            +0.1080   0.0197    250    0.00005    0.00040
-statsforecast m=20 (m1)            +0.0400   0.0124    250    0.00105    0.00525
-statsforecast m=50 (m1)            +0.0120   0.0069    250    0.08155    0.08155
-darts cal=15 (m1)                  +0.0560   0.0146    250    0.00010    0.00070
-darts cal=35 (m1)                  +0.0360   0.0118    250    0.00225    0.00680
-darts cal=55 (m1)                  +0.0280   0.0105    250    0.00660    0.01320
+sktime empirical w=20 (m1)     real_data        +0.0360    250    9   0   3.906e-03   0.00315    0.01562
+sktime empirical w=40 (m1)     real_data        +0.0640    250   16   0   3.052e-05   0.00005    0.00021
+statsforecast m=10 (m1)        real_data_stat   +0.1080    250   27   0   1.490e-08   0.00005    0.00000
+statsforecast m=20 (m1)        real_data_stat   +0.0400    250   10   0   1.953e-03   0.00155    0.00977
+statsforecast m=50 (m1)        real_data_stat   +0.0120    250    3   0   2.500e-01   0.24569    0.25000
+darts cal=15 (m1)              real_data_dart   +0.0560    250   14   0   1.221e-04   0.00005    0.00073
+darts cal=35 (m1)              real_data_dart   +0.0360    250    9   0   3.906e-03   0.00315    0.01562
+darts cal=55 (m1)              real_data_dart   +0.0280    250    7   0   1.562e-02   0.01505    0.03125
+
+The MC column is the simulation, kept as a check on the closed form and not
+as the result: it agrees wherever it has the resolution to, and floors at
+0.00005 where it does not.
 
 7 of 8 arms remain significant at 0.05 after Holm-Bonferroni across the family.
 
 The arm(s) that do NOT survive, named rather than dropped quietly:
-    statsforecast m=50 (m1)          delta +0.0120  raw p 0.08155  Holm p 0.08155
+    statsforecast m=50 (m1)          delta +0.0120  raw p 0.25000  Holm p 0.25000
 These are the smallest effects in the family, which is what a
 family-wise correction is for. The disclosure can now say what
 survives correction and what does not, instead of declining to
 correct and asserting that it would not have mattered.
 
-Two limits, stated. The committed outputs carry cell means and standard
-errors rather than per-series differences, so the permutation runs on
-values matched to that mean and s.e.; the resulting p is an upper bound on
-what the raw differences would give. And the exactly-zero cells are omitted
-from the family because a test of a difference that is identically zero by
-construction has no null to reject.
+One limit, stated. The exactly-zero cells are omitted from the family,
+because a difference that is identically zero by construction has no null
+to reject and carrying it would inflate the family to weaken the correction
+applied to the rest. The coincidence cells of the audit's severity section
+are that case, and they are evidence by being zero rather than by a p.
 
 --------------------------------------------------------------------------------------------------------
-(B) THE INDEX ARITHMETIC, RE-IMPLEMENTED IN R AND CROSS-CHECKED
+(B) THE INDEX ARITHMETIC, rebuilt in R and compared
 --------------------------------------------------------------------------------------------------------
 cells: 56   field comparisons: 672   disagreements: 0
 
 Two implementations written against the same definitions in two
-languages agree on the required rank, the required span, both
-virtual indices and all four delivery decisions, at every cell.
+languages agree on the needed rank, the interval span, both
+virtual coordinates and all four delivery decisions, at every cell.
 That is the independence the fixture audit cannot supply: checks 2
 and 4 re-derive through the layer they check, and check 5's oracle
-is hand-audited by whoever wrote the builder.
+is reviewed by the builder author.
 
 --------------------------------------------------------------------------------------------------------
 (C) THE SAME ONE-RANK MISS, ABSOLUTELY AND AS AN EXCEEDANCE RATE
 --------------------------------------------------------------------------------------------------------
 A helper one rank short delivers (k*-1)/(n+1) rather than k*/(n+1). The
-absolute coverage miss is 1/(n+1) at every level. The exceedance rate a
-risk or alerting report states is 1 - coverage, and THERE the same miss is
-a multiplicative factor that grows as the level tightens.
+one-rank coverage change is 1/(n+1) at every level. Risk and alerting
+reports usually print 1 - coverage; there, that same miss becomes
+a larger rate multiplier at tighter requested levels.
 
      n   level   abs miss  rate asked   rate got   factor
 --------------------------------------------------------------------------------------------------------

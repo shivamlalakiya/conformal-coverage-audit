@@ -3,10 +3,10 @@ W10  HORIZON FEASIBILITY -- the floor scales with what you divide alpha by
 ====================================================================================================
 
 ----------------------------------------------------------------------------------------------------
-(0) RESIDUAL ALIGNMENT -- a horizon off-by-one, separate from the level map
-    residuals_matrix_ has A[i,j] = y[j] - y[origin_i - 1], so diag(offset=0)
-    is ALREADY the one-step residual set. sktime slices diag(offset=h) for
-    step h, which holds (h+1)-step residuals.
+(0) RESIDUAL ALIGNMENT -- an off-by-one in the horizon, not in the level
+    residuals_matrix_ has A[i,j] = y[j] - y[origin_i - 1], which puts
+    one-step residuals on the main diagonal already. The slice taken for
+    step h is diag(offset=h), whose entries span h+1 steps.
 ----------------------------------------------------------------------------------------------------
     structural, first four entries of each diagonal:
       diag(offset=0): index pairs [(30, 29), (31, 30), (32, 31), (33, 32)]   spans [1, 1, 1, 1]   -> 1-step residuals
@@ -19,13 +19,13 @@ W10  HORIZON FEASIBILITY -- the floor scales with what you divide alpha by
     diag(offset=1)       1.899              2           1
     diag(offset=2)       2.782              3           2
 
-    The (k+1)-step column is matched and the k-step column is not, at every
-    offset. The off-by-one is real. Direction: for an integrated series a
-    longer-horizon residual is larger, so the shipped interval is too WIDE.
-    A conservative defect fails no coverage test, which is why it survives.
+    Every offset matches the (k+1)-step column and misses the k-step one.
+    The misalignment is real. Which way it errs: on an integrated series a
+    residual reaching further ahead is bigger, so the shipped band is too
+    WIDE -- and nothing erring wide will fail a coverage test.
 
 ----------------------------------------------------------------------------------------------------
-(i) THE FLOOR under a Bonferroni split across a horizon of length H
+(i) THE FLOOR once alpha is cut H ways, one per forecast step
     n >= 1/alpha_eff - 1 with alpha_eff = alpha/H. Exact arithmetic.
 ----------------------------------------------------------------------------------------------------
  nominal    H  alpha_eff  floor n  x vs H=1   comment
@@ -50,10 +50,9 @@ W10  HORIZON FEASIBILITY -- the floor scales with what you divide alpha by
     0.99   24    0.00042     2399      24.2   no library default is within an order of magnitude
     0.99   52    0.00019     5199      52.5   no library default is within an order of magnitude
 
-    A monthly forecast one year ahead at 95% needs 239 calibration windows
-    for the Bonferroni band to be feasible at all. This is the SAME
-    infeasibility the audit reports for a two-window default, reached from a
-    configuration nobody would call a corner case.
+    Twelve months ahead at 95% wants 239 calibration windows before the
+    band is feasible at all. Same wall the two-window default runs into,
+    arrived at from a setting nobody would file under edge case.
 
 ----------------------------------------------------------------------------------------------------
 (ii) FOUR ARMS on sktime ConformalIntervals(method='conformal_bonferroni')
@@ -122,7 +121,7 @@ W10  HORIZON FEASIBILITY -- the floor scales with what you divide alpha by
        nominal 0.95 H=12  predicted 0.9919   D 0.9900   gap -0.0019   C 0.9967
 
   The h/(n+1) prediction of the fractional-rank result tracks arm D to within 0.0200 on the feasible cells,
-  measured against a SHIPPED helper's own level on exchangeable scores.
+  measured on scores that do exchange, at a level the library chose.
 
 ====================================================================================================
 SUMMARY

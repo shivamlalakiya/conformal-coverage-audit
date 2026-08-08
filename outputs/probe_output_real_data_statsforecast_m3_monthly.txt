@@ -23,6 +23,7 @@ method=conformal_distribution   nominal 0.90
       arm A (shipped)        coverage 0.6120   lands on median rank 2 of 2
       arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
       paired delta (B - A)   +0.3880  (s.e. 0.0309)  12.6 s.e.  <- >=2 s.e.
+      predicted delta        n/a (no feasible unit)
       status changed in 97 of 250 units: gains=97 losses=0   [arm B contains arm A: losses must be 0]
       ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
         not the level->rank map. 1 - A is the shortfall against a level no finite
@@ -31,6 +32,7 @@ method=conformal_distribution   nominal 0.90
       arm A (shipped)        coverage 0.7720   lands on median rank 5 of 5
       arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
       paired delta (B - A)   +0.2280  (s.e. 0.0266)  8.6 s.e.  <- >=2 s.e.
+      predicted delta        n/a (no feasible unit)
       status changed in 57 of 250 units: gains=57 losses=0   [arm B contains arm A: losses must be 0]
       ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
         not the level->rank map. 1 - A is the shortfall against a level no finite
@@ -39,18 +41,21 @@ method=conformal_distribution   nominal 0.90
       arm A (shipped)        coverage 0.8360   lands on median rank 10 of 10
       arm B (required rank)  coverage 0.9080   median required rank 10 of 10
       paired delta (B - A)   +0.0720  (s.e. 0.0164)  4.4 s.e.  <- >=2 s.e.
+      predicted delta        +0.0051
       status changed in 18 of 250 units: gains=18 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 3754   B 4759
   n_windows=20    series=250  median n=20
       arm A (shipped)        coverage 0.8760   lands on median rank 19 of 20
       arm B (required rank)  coverage 0.9240   median required rank 19 of 20
       paired delta (B - A)   +0.0480  (s.e. 0.0135)  3.5 s.e.  <- >=2 s.e.
+      predicted delta        +0.0036
       status changed in 12 of 250 units: gains=12 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 4124   B 4825
   n_windows=50    series=250  median n=50
       arm A (shipped)        coverage 0.8920   lands on median rank 46 of 50
       arm B (required rank)  coverage 0.9120   median required rank 46 of 50
       paired delta (B - A)   +0.0200  (s.e. 0.0089)  2.3 s.e.  <- >=2 s.e.
+      predicted delta        +0.0034
       status changed in 5 of 250 units: gains=5 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 4676   B 4951
 
@@ -59,6 +64,7 @@ method=conformal_distribution   nominal 0.95
       arm A (shipped)        coverage 0.6240   lands on median rank 2 of 2
       arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
       paired delta (B - A)   +0.3760  (s.e. 0.0307)  12.2 s.e.  <- >=2 s.e.
+      predicted delta        n/a (no feasible unit)
       status changed in 94 of 250 units: gains=94 losses=0   [arm B contains arm A: losses must be 0]
       ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
         not the level->rank map. 1 - A is the shortfall against a level no finite
@@ -67,6 +73,7 @@ method=conformal_distribution   nominal 0.95
       arm A (shipped)        coverage 0.8160   lands on median rank 5 of 5
       arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
       paired delta (B - A)   +0.1840  (s.e. 0.0246)  7.5 s.e.  <- >=2 s.e.
+      predicted delta        n/a (no feasible unit)
       status changed in 46 of 250 units: gains=46 losses=0   [arm B contains arm A: losses must be 0]
       ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
         not the level->rank map. 1 - A is the shortfall against a level no finite
@@ -75,6 +82,7 @@ method=conformal_distribution   nominal 0.95
       arm A (shipped)        coverage 0.8760   lands on median rank 10 of 10
       arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
       paired delta (B - A)   +0.1240  (s.e. 0.0209)  5.9 s.e.  <- >=2 s.e.
+      predicted delta        n/a (no feasible unit)
       status changed in 31 of 250 units: gains=31 losses=0   [arm B contains arm A: losses must be 0]
       ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
         not the level->rank map. 1 - A is the shortfall against a level no finite
@@ -83,12 +91,14 @@ method=conformal_distribution   nominal 0.95
       arm A (shipped)        coverage 0.9240   lands on median rank 20 of 20
       arm B (required rank)  coverage 0.9720   median required rank 20 of 20
       paired delta (B - A)   +0.0480  (s.e. 0.0135)  3.5 s.e.  <- >=2 s.e.
+      predicted delta        +0.0006
       status changed in 12 of 250 units: gains=12 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 4851   B 5868
   n_windows=50    series=250  median n=50
       arm A (shipped)        coverage 0.9600   lands on median rank 48 of 50
       arm B (required rank)  coverage 0.9840   median required rank 49 of 50
       paired delta (B - A)   +0.0240  (s.e. 0.0097)  2.5 s.e.  <- >=2 s.e.
+      predicted delta        +0.0216
       status changed in 6 of 250 units: gains=6 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 5563   B 6572
 
@@ -97,6 +107,7 @@ method=conformal_error   nominal 0.90
       arm A (shipped)        coverage 0.6200   lands on median rank 2 of 2
       arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
       paired delta (B - A)   +0.3800  (s.e. 0.0308)  12.4 s.e.  <- >=2 s.e.
+      predicted delta        n/a (no feasible unit)
       status changed in 95 of 250 units: gains=95 losses=0   [arm B contains arm A: losses must be 0]
       ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
         not the level->rank map. 1 - A is the shortfall against a level no finite
@@ -105,6 +116,7 @@ method=conformal_error   nominal 0.90
       arm A (shipped)        coverage 0.7720   lands on median rank 5 of 5
       arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
       paired delta (B - A)   +0.2280  (s.e. 0.0266)  8.6 s.e.  <- >=2 s.e.
+      predicted delta        n/a (no feasible unit)
       status changed in 57 of 250 units: gains=57 losses=0   [arm B contains arm A: losses must be 0]
       ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
         not the level->rank map. 1 - A is the shortfall against a level no finite
@@ -113,18 +125,21 @@ method=conformal_error   nominal 0.90
       arm A (shipped)        coverage 0.8400   lands on median rank 10 of 10
       arm B (required rank)  coverage 0.9080   median required rank 10 of 10
       paired delta (B - A)   +0.0680  (s.e. 0.0160)  4.3 s.e.  <- >=2 s.e.
+      predicted delta        +0.0051
       status changed in 17 of 250 units: gains=17 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 3807   B 4759
   n_windows=20    series=250  median n=20
       arm A (shipped)        coverage 0.8800   lands on median rank 19 of 20
       arm B (required rank)  coverage 0.9240   median required rank 19 of 20
       paired delta (B - A)   +0.0440  (s.e. 0.0130)  3.4 s.e.  <- >=2 s.e.
+      predicted delta        +0.0036
       status changed in 11 of 250 units: gains=11 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 4161   B 4825
   n_windows=50    series=250  median n=50
       arm A (shipped)        coverage 0.8960   lands on median rank 46 of 50
       arm B (required rank)  coverage 0.9120   median required rank 46 of 50
       paired delta (B - A)   +0.0160  (s.e. 0.0080)  2.0 s.e.  <- >=2 s.e.
+      predicted delta        +0.0034
       status changed in 4 of 250 units: gains=4 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 4691   B 4951
 
@@ -133,6 +148,7 @@ method=conformal_error   nominal 0.95
       arm A (shipped)        coverage 0.6360   lands on median rank 2 of 2
       arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
       paired delta (B - A)   +0.3640  (s.e. 0.0305)  11.9 s.e.  <- >=2 s.e.
+      predicted delta        n/a (no feasible unit)
       status changed in 91 of 250 units: gains=91 losses=0   [arm B contains arm A: losses must be 0]
       ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
         not the level->rank map. 1 - A is the shortfall against a level no finite
@@ -141,6 +157,7 @@ method=conformal_error   nominal 0.95
       arm A (shipped)        coverage 0.8160   lands on median rank 5 of 5
       arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
       paired delta (B - A)   +0.1840  (s.e. 0.0246)  7.5 s.e.  <- >=2 s.e.
+      predicted delta        n/a (no feasible unit)
       status changed in 46 of 250 units: gains=46 losses=0   [arm B contains arm A: losses must be 0]
       ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
         not the level->rank map. 1 - A is the shortfall against a level no finite
@@ -149,6 +166,7 @@ method=conformal_error   nominal 0.95
       arm A (shipped)        coverage 0.8760   lands on median rank 10 of 10
       arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
       paired delta (B - A)   +0.1240  (s.e. 0.0209)  5.9 s.e.  <- >=2 s.e.
+      predicted delta        n/a (no feasible unit)
       status changed in 31 of 250 units: gains=31 losses=0   [arm B contains arm A: losses must be 0]
       ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
         not the level->rank map. 1 - A is the shortfall against a level no finite
@@ -157,19 +175,23 @@ method=conformal_error   nominal 0.95
       arm A (shipped)        coverage 0.9320   lands on median rank 20 of 20
       arm B (required rank)  coverage 0.9720   median required rank 20 of 20
       paired delta (B - A)   +0.0400  (s.e. 0.0124)  3.2 s.e.  <- >=2 s.e.
+      predicted delta        +0.0006
       status changed in 10 of 250 units: gains=10 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 4877   B 5868
   n_windows=50    series=250  median n=50
       arm A (shipped)        coverage 0.9600   lands on median rank 48 of 50
       arm B (required rank)  coverage 0.9840   median required rank 49 of 50
       paired delta (B - A)   +0.0240  (s.e. 0.0097)  2.5 s.e.  <- >=2 s.e.
+      predicted delta        +0.0216
       status changed in 6 of 250 units: gains=6 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 5575   B 6572
 
 A positive delta means the required rank covers more than the shipped call.
-Real series are not exchangeable, so an absolute miss is not attributable to
+raw archives lack exchangeability so absolute misses is not attributable to
 the convention on its own -- the paired delta is what carries the claim.
 
 The n_windows=2 rows are the default configuration. Where arm B reads
-+inf-infeasible there, no index into a two-element score set supports a
++inf-infeasible there, a two-element score set has no index supporting
 0.90 or 0.95 bound, and arm A still returns a finite interval.
+
+written -> outputs/probe_output_real_data_statsforecast_m3_monthly.txt

@@ -2,8 +2,8 @@
 """Remove the convenience-sample hedge by measuring it instead of stating it.
 
 The forecasting arms in `run_real_data.py`, `run_real_data_statsforecast.py` and
-`run_real_data_darts.py` take the first 250 series above a length floor, in
-archive order, and give each series one test point at one horizon step. Two
+`run_real_data_darts.py` take the first 250 qualifying series in archive order
+and allocate one test point to each series at one horizon step. Two
 objections follow, and neither is answerable by argument:
 
   (a) "you chose the series"    -- archive order is a convenience sample
@@ -26,7 +26,7 @@ logic of its own.
 
 Why the standard error must be clustered
 ----------------------------------------
-The K origins of one series share almost all of their history, so their paired
+The K rolling origins from one series share nearly all history, so their paired
 outcomes are not independent. Treating 4372 origin-points as 4372 independent
 draws would understate the standard error and manufacture significance. Every
 cell here is aggregated **series first**: the K origin-level paired differences
@@ -192,13 +192,23 @@ def statsforecast_series(s):
 
 def fold(per_series_cells, key):
     """Collapse one cell across series into the reported record."""
-    deltas, a_cov, b_cov, ns, a_rank, req, infeas, points = [], [], [], [], [], [], 0, 0
+    deltas, preds, a_cov, b_cov, ns, a_rank, req, infeas, points = (
+        [], [], [], [], [], [], [], 0, 0)
     for cells in per_series_cells:
         recs = cells.get(key, [])
         if not recs:
             continue
         d = [float(r["b_covered"]) - float(r["a_covered"]) for r in recs]
         deltas.append(float(np.mean(d)))
+        # Per-series mean of the index prediction, then mean across series -- same
+        # clustering level as the measured delta. Feasible origins only.
+        p = [
+            (r["required_rank"] - r["a_rank"]) / (r["n"] + 1)
+            for r in recs
+            if r["feasible"] and r.get("required_rank") is not None
+        ]
+        if p:
+            preds.append(float(np.mean(p)))
         points += len(recs)
         for r in recs:
             a_cov.append(float(r["a_covered"]))
@@ -234,6 +244,7 @@ def fold(per_series_cells, key):
         "n_med": int(np.median(ns)),
         "a_cov": float(np.mean(a_cov)), "b_cov": float(np.mean(b_cov)),
         "delta": mean, "se": se, "se_naive": float(se_naive),
+        "pred_delta": float(np.mean(preds)) if preds else float("nan"),
         "a_rank_med": int(np.median(a_rank)),
         "req_med": int(np.median(req)) if req else 0,
         "gains": gains, "losses": losses, "changed": gains + losses,
@@ -249,10 +260,12 @@ def cell_line(prefix, r):
     if r is None:
         return f"{prefix} -- no usable cells"
     ratio = (r["se"] / r["se_naive"]) if r["se_naive"] > 0 else 0
+    pred = (f"pred_delta={r['pred_delta']:+.4f}"
+            if not math.isnan(r["pred_delta"]) else "pred_delta=nan")
     return (f"{prefix} series={r['series']} points={r['points']} n_med={r['n_med']} "
             f"a_cov={r['a_cov']:.4f} b_cov={r['b_cov']:.4f} "
             f"delta={r['delta']:+.4f} se={r['se']:.4f} se_naive={r['se_naive']:.4f} "
-            f"se_ratio={ratio:.4f} "
+            f"se_ratio={ratio:.4f} {pred} "
             f"a_rank_med={r['a_rank_med']} req_med={r['req_med']} unit={r['unit']} "
             f"gains={r['gains']} losses={r['losses']} changed={r['changed']} "
             f"infeasible={r['infeasible']}")
@@ -313,10 +326,10 @@ def main():
     say("req_med=0 marks a cell with no feasible required rank at all -- read it with")
     say("the infeasible count on the same line, never as a rank of zero.")
     say("")
-    say("unit=rank for a symmetric band on absolute scores; unit=span for a helper")
-    say("resolving TWO levels on signed ones, whose arm B is the index pair spanning")
-    say("the required number of gaps. Half of an asymmetric width is not an order")
-    say("statistic of anything, so the two figures are not interchangeable.")
+    say("unit=rank when absolute-score bands are symmetric; unit=span for a helper")
+    say("resolving a pair of levels on signed residuals, so arm B uses the span")
+    say("of gaps that the required coverage asks for. An asymmetric half-width")
+    say("does not pick any order statistic, so those two figures stay apart.")
     say("gains/losses/changed are counted over the test points. `changed` is NOT")
     say("delta x points: a clustered mean of per-series means does not equal that, and")
     say("gains - losses is the net rather than the count. losses must read 0 wherever")
@@ -359,7 +372,7 @@ def main():
 
     say("")
     say("A positive delta means the required rank covers more than the shipped call.")
-    say("Real series are not exchangeable, so an absolute coverage figure is still not")
+    say("Raw series lack exchangeability, so an absolute coverage figure is still not")
     say("attributable to the convention -- the paired delta is what carries the claim.")
     say("What this probe removes is the selection and resolution objections to that")
     say("delta, not the exchangeability caveat, which no amount of data can remove.")

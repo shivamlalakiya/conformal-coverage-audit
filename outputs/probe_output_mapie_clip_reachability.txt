@@ -30,9 +30,9 @@ self_check() passed at import (the clip window is derived, not assumed)
 
 --------------------------------------------------------------------------------------------
 (iii) DELIVERED COVERAGE on the flagged path, over the whole infeasible window.
-      Scores are tie-free 1..n, so the returned threshold IS the rank it landed
+      Scores are tie-free 1..n, so the returned threshold identifies its landed rank
       on. Where the required rank exceeds n the flagged path lands on rank n, so
-      the delivered coverage is n/(n+1) -- and it does not depend on the level
+      the delivered coverage is n over n plus one independent of level
       that was asked for. Exact arithmetic; the last row is the feasible control.
 --------------------------------------------------------------------------------------------
   level    n  req rank  feasible  rank got  delivered  nominal  shortfall
@@ -66,7 +66,7 @@ self_check() passed at import (the clip window is derived, not assumed)
 
     worst infeasible cell: n = 2 at nominal 0.95 delivers 0.6667, shortfall 0.2833
     the deficit here is a whole missing rank, not the O(1/n) one-rank deficit:
-    no rank in the sample reaches the requested level at these sizes.
+    no rank inside the sample attains the requested level at these sizes.
 
 --------------------------------------------------------------------------------------------
 (iv) THE SAME COVERAGE, MEASURED through predict_interval(allow_infinite_bounds=True)
@@ -107,9 +107,8 @@ self_check() passed at import (the clip window is derived, not assumed)
     CrossConformalRegressor            default -> ValueError   flagged -> finite (width 4.6722)   REACHES THE CLIP
     JackknifeAfterBootstrapRegressor   default -> ValueError   flagged -> finite (width 5.7316)   REACHES THE CLIP
 
-    3 of 3 public regressor classes exercised here raise on the default path and return a finite interval on the flagged one.
-    So the path is not a single entry point. It is the shared bound-construction
-    layer, and every public class routing through it inherits the behaviour.
+    3 of 3 public regressor classes exercised here fail on the default route and produce a finite interval on the flagged route.
+    So the path is not a single entry point. it is the common bound builder and every public class routing through it inherits the behaviour.
 
 --------------------------------------------------------------------------------------------
 VERDICT
@@ -118,7 +117,7 @@ VERDICT
   is skipped by the same flag the caller sets to opt into infinite bounds
   (regression/regression.py:1714, 'if not allow_infinite_bounds:'), and
   TimeSeriesRegressor passes allow_infinite_bounds=True internally
-  (regression/time_series_regression.py:319), so a caller who never sets the flag
+  (regression/time_series_regression.py:319), so callers leaving the flag unset
   can still reach it.
 
   Direction: ANTI-CONSERVATIVE. A finite interval is returned where no valid finite
