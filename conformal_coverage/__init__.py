@@ -32,7 +32,21 @@ __version__ = "0.1.0"
 
 
 def _exact(x):
-    """A level as an exact rational, via its shortest decimal form."""
+    """A level as an exact rational, via its shortest decimal form.
+
+    A ``Fraction`` passes through untouched. A float is read as the decimal it
+    prints as, which is exact for a level a caller writes as a decimal --
+    ``0.9`` becomes ``9/10``, not the binary float just under it -- and is the
+    reason this helper exists.
+
+    It is NOT the level when the level has no terminating decimal. ``1 - 1/11``
+    prints as ``0.9090909090909091`` and reads back a hair above ``10/11``, so
+    ``required_rank(10, 1 - 1/11)`` reports infeasible where the exact required
+    rank is 10; the divided levels of a Bonferroni correction, ``1 - alpha/H``,
+    are the same trap. **Pass a Fraction for any level that is not a decimal.**
+    Both of those reached a probe's self-check as a failure rather than a wrong
+    number, which is the only reason they were caught.
+    """
     return x if isinstance(x, Fraction) else Fraction(str(x))
 
 

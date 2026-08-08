@@ -215,17 +215,26 @@ def self_check():
 
     # (4) q_needed inverts h for the continuous definitions and REDUCES to the
     #     required rank for the rounding ones. One rule, two regimes, checked.
+    # The levels are exact rationals, and 1/11 is here because its decimal does
+    # not terminate. required_rank is the ORACLE and takes the exact level; the
+    # instrument functions take the float a caller would actually pass. Handing
+    # the float to both hides a disagreement between them, and did: a float
+    # level reaches required_rank as Fraction(str(x)), which is the shortest
+    # decimal and not the number, so 1 - 1/11 arrived a hair above 10/11 and
+    # n=10 was reported infeasible where the exact rank is 10.
     for n in (10, 11, 19, 20, 50, 101):
-        for alpha in (0.10, 0.05, 0.33, 1 / 11):
+        for alpha in (Fraction(1, 10), Fraction(1, 20), Fraction(33, 100),
+                      Fraction(1, 11)):
+            af = float(alpha)
             target = (1 - alpha) * (n + 1)
             for method in HF:
-                q = q_needed(n, alpha, method)
+                q = q_needed(n, af, method)
                 if q is None:
                     continue
                 assert abs(virtual_index(n, q, method) / (n + 1)
-                           - (1 - alpha)) < 1e-7, (n, alpha, method)
+                           - float(1 - alpha)) < 1e-7, (n, alpha, method)
             for method in ("inverted_cdf", "higher"):
-                q = q_needed(n, alpha, method)
+                q = q_needed(n, af, method)
                 k = required_rank(n, 1 - alpha)
                 if q is None:
                     assert k is None, (n, alpha, method)
@@ -233,23 +242,23 @@ def self_check():
                 assert k is not None
                 assert abs(virtual_index(n, q, method) - k) < 1e-9, (
                     n, alpha, method, k)
-                assert math.ceil(target - 1e-12) == k, (n, alpha, target, k)
+                assert math.ceil(target) == k, (n, alpha, target, k)
 
     # (5) the folklore correction is EXACT for the rounding definitions that
     #     return an order statistic, and strictly overshoots under `linear` --
     #     the asymmetry this probe rests on
     for n in (9, 10, 20, 50, 100):
-        for alpha in (0.10, 0.05):
+        for alpha in (Fraction(1, 10), Fraction(1, 20)):
             k = required_rank(n, 1 - alpha)
             if k is None:
                 continue
-            qf = q_folklore(n, alpha)
+            qf = q_folklore(n, float(alpha))
             for method in ("higher", "inverted_cdf"):
                 assert abs(virtual_index(n, qf, method) - k) < 1e-9, (n, alpha, method)
-            assert virtual_index(n, qf, "linear") > (1 - alpha) * (n + 1) - 1e-9
+            assert virtual_index(n, qf, "linear") > float(1 - alpha) * (n + 1) - 1e-9
 
     # (6) feasibility floor, stated against the boundary
-    for alpha, first in ((0.10, 9), (0.05, 19)):
+    for alpha, first in ((Fraction(1, 10), 9), (Fraction(1, 20), 19)):
         assert required_rank(first - 1, 1 - alpha) is None
         assert required_rank(first, 1 - alpha) is not None
 
@@ -448,11 +457,14 @@ def main():
         cov = 1 - alpha
         for method in ("inverted_cdf", "averaged_inverted_cdf", "weibull",
                        "higher", "linear", "median_unbiased"):
+            # cov is exact for the oracle, float for the instrument: the question
+            # is whether the convention, computed the way a library computes it,
+            # reaches the rank exact arithmetic requires
             feas = [n for n in range(2, amax + 1)
-                    if required_rank(n, float(cov)) is not None]
+                    if required_rank(n, cov) is not None]
             ok = [n for n in feas
                   if math.floor(virtual_index(n, float(cov), method) + 1e-12)
-                  >= required_rank(n, float(cov))]
+                  >= required_rank(n, cov)]
             # measure the period rather than deriving it: smallest p > 0 such
             # that membership is p-periodic over the whole feasible range
             period = None
@@ -471,16 +483,25 @@ def main():
                 f"{(ok[0] if ok else 0):>9}{len(ok):>10}{len(feas):>5}"
                 f"{dens:>9.4f}{(period if period else 0):>8}  "
                 + ", ".join(str(x) for x in ok[:8]) + (" ..." if len(ok) > 8 else ""))
+            # per-n membership, n=2..100, for the residue-comb figure -- sliced
+            # from the SAME feas/ok computed above, not recomputed, so the comb
+            # cannot disagree with the density/period this line already printed
+            feas_set, ok_set = set(feas), set(ok)
+            member = "".join("1" if n in ok_set else "0" if n in feas_set else "."
+                              for n in range(2, 101))
+            say(f"MEMBER  {str(alpha):<6}{method:<26}{member}")
         say("")
+    say("    'MEMBER' rows: one character per n=2..100, '.' infeasible at this")
+    say("    alpha, '0' feasible but the raw level does not deliver, '1' delivers.")
     # the unification, stated as a machine-checkable line rather than as prose:
     # restrict `higher` to the deficit map's own range so the two results in the
     # manuscript can be joined only if they are literally the same set
     lo_n, hi_n = 9, 60
     feas = [n for n in range(lo_n, hi_n + 1)
-            if required_rank(n, 0.90) is not None]
+            if required_rank(n, Fraction(9, 10)) is not None]
     ok = [n for n in feas
           if math.floor(virtual_index(n, 0.90, "higher") + 1e-12)
-          >= required_rank(n, 0.90)]
+          >= required_rank(n, Fraction(9, 10))]
     say(f"    unification: `higher` at alpha=1/10 delivers at {len(ok)} of {len(feas)}"
         f" values of n in {lo_n}..{hi_n}")
     say("    Read that against the audit's deficit map over the same range: the")

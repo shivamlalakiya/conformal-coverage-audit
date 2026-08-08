@@ -1,49 +1,57 @@
-# Conformal quantile convention probes
+# Conformal coverage audit
 
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21799203-1682D4)](https://doi.org/10.5281/zenodo.21799203)
+[![CI](https://github.com/shivamlalakiya/conformal-coverage-audit/actions/workflows/ci.yml/badge.svg)](https://github.com/shivamlalakiya/conformal-coverage-audit/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/downloads/)
 
-Archived on Zenodo. **Cite `10.5281/zenodo.21799203`** — the all-versions DOI, which always resolves to
-the latest release.
+Measurement harnesses for auditing how Python conformal-prediction implementations
+resolve the conformal quantile at finite sample sizes, plus a tiny stdlib package
+that does the rank arithmetic without asking a quantile function.
 
-To pin an exact reproduction, cite a version DOI. Resolve it by **which tree it
-archives**, not by the version string Zenodo shows: `.zenodo.json`'s version field
-was bumped after tagging rather than in the tagged commit, so two records carry a
-label one release behind their contents. The labels are permanent per record; this
-table is the mapping, each row checked against the Zenodo API.
+**Cite the archive:** [`10.5281/zenodo.21799203`](https://doi.org/10.5281/zenodo.21799203)
+(all-versions DOI; always resolves to the latest release).
 
-| Version DOI | Zenodo label | Archives |
-|---|---|---|
-| `10.5281/zenodo.21799204` | v1.0.0 | tree `v1.0.0`, predating every real-data arm |
-| `10.5281/zenodo.21811491` | v1.1.0 | tree `v1.1.0` |
-| `10.5281/zenodo.21814982` | v1.1.0 | tree **`v1.2.0`** — whole-archive robustness arm, exact feasibility floor, the `conformal_coverage` package |
-| `10.5281/zenodo.21816837` | v1.2.0 | tree **`v1.3.0`** — probes print the ratios the write-up quotes |
-| `10.5281/zenodo.21816871` | v1.3.1 | tree `v1.3.1` — first record whose label matches its contents |
+| | |
+|---|---|
+| **Package** | [`conformal_coverage`](README-package.md) — four functions, zero dependencies |
+| **Probes** | `probes/` — one harness per question; committed transcripts in `outputs/` |
+| **Ten-minute check** | `python -m conformal_coverage` and `python verify_headline.py` |
+| **Disclosure record** | [`DISCLOSURE.md`](DISCLOSURE.md) — upstream reports with filing dates |
+| **Research plan** | [`PLAN.md`](PLAN.md) — question, method, protocol, what is *not* established |
+| **License** | MIT |
 
-`v1.3.1` and later are labelled correctly; `paperlib/check_release_version.py` in the
-write-up repository fails a release whose `.zenodo.json` and `CITATION.cff` disagree
-with the tag.
+---
 
-Measurement harnesses for auditing how Python conformal-prediction implementations resolve the conformal
-quantile at finite sample sizes.
+## About
 
-Distribution-free intervals at finite sample size are indexed by **order statistics**. The APIs libraries
-use to obtain one accept a **level**, and the map from level to rank depends on an interpolation
-convention. These probes measure which rank each implementation actually lands on, and what coverage that
-rank delivers.
+Distribution-free intervals at finite sample size are indexed by **order statistics**.
+The APIs libraries use to obtain one accept a **level**, and the map from level to
+rank depends on an interpolation convention. These probes measure which rank each
+implementation actually lands on, and what coverage that rank delivers.
 
-## Layout
+This repository is the public measurement artifact: pinned library versions, scripts
+that re-derive their own formulas with `fractions.Fraction` at import, and plain-text
+outputs committed beside each script so a third party can re-run or re-parse without
+guessing.
 
+It is **not** a conformal-prediction library. For the arithmetic alone, install
+`conformal-coverage` (or vendor `conformal_coverage/__init__.py`).
+
+---
+
+## Quick start
+
+```bash
+# package only — stdlib, no third-party deps
+pip install -e .
+python -m conformal_coverage
+
+# headline quantities from first principles (needs numpy)
+pip install numpy
+python verify_headline.py
+# or: make verify
 ```
-probes/               the harnesses
-outputs/              committed output of each harness, one file per script
-conformal_coverage/   the rank arithmetic, as an installable package
-```
-
-## The arithmetic, without the harnesses
-
-Most readers want four functions rather than twenty-nine probes. They are packaged
-separately, with no dependencies at all -- stdlib `fractions` and `math` -- so the module
-can be vendored as a single file.
 
 ```python
 from conformal_coverage import (
@@ -57,13 +65,35 @@ required_rank(8, 0.9)             # None
 conformal_threshold(scores, 0.1)  # the threshold, or +inf where none is valid
 ```
 
-`conformal_threshold` indexes the sorted scores directly, so no interpolation convention
-can move it, and it returns `+inf` rather than a number where no valid bound exists --
-which is the honest answer at that size. Levels are converted with `Fraction(str(x))`,
-not `Fraction(x)`: the latter is `8106479329266893/9007199254740992` for `0.9`, strictly
-greater than `9/10`, and gives the wrong rank at `n = 9`.
+`conformal_threshold` indexes the sorted scores directly, so no interpolation
+convention can move it, and it returns `+inf` rather than a number where no valid
+bound exists — which is the honest answer at that size. Levels are converted with
+`Fraction(str(x))`, not `Fraction(x)`: the latter is
+`8106479329266893/9007199254740992` for `0.9`, strictly greater than `9/10`, and
+gives the wrong rank at `n = 9`.
 
-Check it with `python -m conformal_coverage`. See `README-package.md` for the rest.
+See [`README-package.md`](README-package.md) for the rest of the API surface.
+
+---
+
+## Layout
+
+```
+conformal_coverage/   installable package (rank arithmetic)
+probes/               measurement harnesses
+outputs/              committed output of each harness, one file per script
+repro/                reproduction helpers
+verify_headline.py    ten-minute referee path (numpy only)
+DISCLOSURE.md         filed upstream reports
+PLAN.md               research plan and phase status
+PREREGISTRATION.md    pre-registration note
+CITATION.cff          citation metadata
+.zenodo.json          Zenodo deposit metadata
+```
+
+---
+
+## Probes
 
 ### Synthetic and structural
 
@@ -111,7 +141,9 @@ only the **paired delta** supports a claim. See [`PLAN.md`](PLAN.md) §5.
 **The research plan is in [`PLAN.md`](PLAN.md)** — the question, the method, the protocol, phase status,
 and what has *not* been established.
 
-## Running them
+---
+
+## Running the probes
 
 Three environments are needed: the packages under audit pin incompatible numpy and pandas releases.
 `probe-requirements.txt` documents all three and names which probe needs which.
@@ -177,6 +209,8 @@ first — `m1_monthly_dataset` keeps the unsuffixed name.
 at a directory of unpacked package sources with `--root`, or run it with the packages installed; either
 way it **reports** which packages it could not locate rather than quietly counting fewer sites.
 
+---
+
 ## Two conventions worth knowing before reading the code
 
 **Each script re-derives its own formulas with `fractions.Fraction` the moment it loads.** A failing
@@ -188,16 +222,69 @@ rank *is* `n`, returning the sample maximum is right. Separating those two cases
 identified over several `n`, not a single probe — `conformance_suite.py` does it by fitting the rule and
 probing the boundary, and it is written that way because the single-probe version mislabelled a library.
 
+---
+
+## Continuous integration
+
+GitHub Actions runs on every push and pull request to `main`:
+
+1. install `conformal-coverage` and run `python -m conformal_coverage` on Python 3.9–3.13
+2. install numpy and run `python verify_headline.py` (re-derives the abstract quantities against committed outputs)
+
+Full probe reproduction is **not** in CI: it needs three pinned environments and, for some arms, archive downloads measured in tens of minutes. Use the commands above for that path.
+
+---
+
 ## Not included
 
 - Third-party library sources are **not** redistributed here. `probe-requirements.txt` pins the exact
   versions instead.
 - The `.npz` series cache `export_series.py` writes. The two commands that regenerate it are above.
 
+---
+
+## Zenodo version DOIs
+
+Archived on Zenodo. **Cite `10.5281/zenodo.21799203`** — the all-versions DOI, which always resolves to
+the latest release.
+
+To pin an exact reproduction, cite a version DOI. Resolve it by **which tree it
+archives**, not by the version string Zenodo shows: `.zenodo.json`'s version field
+was bumped after tagging rather than in the tagged commit, so two records carry a
+label one release behind their contents. The labels are permanent per record; this
+table is the mapping, each row checked against the Zenodo API.
+
+| Version DOI | Zenodo label | Archives |
+|---|---|---|
+| `10.5281/zenodo.21799204` | v1.0.0 | tree `v1.0.0`, predating every real-data arm |
+| `10.5281/zenodo.21811491` | v1.1.0 | tree `v1.1.0` |
+| `10.5281/zenodo.21814982` | v1.1.0 | tree **`v1.2.0`** — whole-archive robustness arm, exact feasibility floor, the `conformal_coverage` package |
+| `10.5281/zenodo.21816837` | v1.2.0 | tree **`v1.3.0`** — probes print the ratios the write-up quotes |
+| `10.5281/zenodo.21816871` | v1.3.1 | tree `v1.3.1` — first record whose label matches its contents |
+
+`v1.3.1` and later are labelled correctly; `paperlib/check_release_version.py` in the
+write-up repository fails a release whose `.zenodo.json` and `CITATION.cff` disagree
+with the tag.
+
+---
+
 ## Citing
 
-See `CITATION.cff`.
+```bibtex
+@software{lalakiya_conformal_coverage_audit,
+  author       = {Lalakiya, Shivam},
+  title        = {Conformal quantile convention probes},
+  year         = {2026},
+  publisher    = {Zenodo},
+  doi          = {10.5281/zenodo.21799203},
+  url          = {https://doi.org/10.5281/zenodo.21799203}
+}
+```
+
+Machine-readable metadata: [`CITATION.cff`](CITATION.cff). GitHub's "Cite this repository" widget reads the same file.
+
+---
 
 ## License
 
-MIT — see `LICENSE`.
+MIT — see [`LICENSE`](LICENSE).

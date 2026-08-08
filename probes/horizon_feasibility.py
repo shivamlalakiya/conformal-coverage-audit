@@ -172,8 +172,13 @@ def self_check():
             # probe about tests that cannot catch anything had one of its own.
             level = Fraction(1) - Fraction(str(alpha)) / H
             assert floor_n(Fraction(1) - level) == fl, (alpha, H, fl)
-            assert required_rank(fl, 1 - alpha / H) is not None
-            assert required_rank(fl - 1, 1 - alpha / H) is None
+            # `level`, not `1 - alpha / H`: the divided level is exactly what has
+            # no terminating decimal, and required_rank reads a float as its
+            # shortest decimal form. At alpha=1/10, H=12 the level is 119/120 and
+            # the float reading put it a hair above, so n=119 -- the floor itself
+            # -- came back infeasible where the exact required rank is 119.
+            assert required_rank(fl, level) is not None
+            assert required_rank(fl - 1, level) is None
     # H=1 must reduce to the ordinary floor, or the parameterisation is wrong
     assert floor_n(0.10 / 1) == 9 and floor_n(0.05 / 1) == 19
     # and the divided level goes through `linear`, which never lands on an integer
