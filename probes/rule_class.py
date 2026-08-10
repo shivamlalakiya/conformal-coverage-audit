@@ -125,12 +125,30 @@ def p_trunc(x, base=0):
     return int(x) if x >= 0 else -int(-x)
 
 
+def p_nearest_even(x, base=0):
+    """Round to nearest, ties to the EVEN side -- numpy's `closest_observation`.
+
+    Hyndman & Fan (1996) p.362 state the tie-break 0-indexed ("nearest even order
+    statistic"); shifted to this module's 1-indexed h = qn - 1/2, the tie recurs at
+    h itself integral and the favoured side is h even, not h odd -- checked against
+    numpy 2.4.6 at 2673 (n, level) pairs before being trusted here. Ties to the
+    integer part of x + base rather than of x alone, for the reason
+    p_round_half_even documents: the reduction drops floor(Ln) from x, and a tie's
+    side depends on the full h's parity, not on the bounded remainder's.
+    """
+    lo = math.floor(x)
+    if x != lo:
+        return math.ceil(x)
+    return lo if (lo + base) % 2 == 0 else lo + 1
+
+
 POLICIES = {"floor": p_floor_b, "ceil": p_ceil_b, "half_up": p_round_half_up,
-            "half_even": p_round_half_even, "trunc": p_trunc}
+            "half_even": p_round_half_even, "trunc": p_trunc,
+            "nearest_even": p_nearest_even}
 # the policies that read whether the whole integer part is even, and so push the
 # period to 2d. Named rather than detected: a policy silently promoted into
 # this set would change every period in the output with nothing to say so.
-PARITY_POLICIES = {"half_even"}
+PARITY_POLICIES = {"half_even", "nearest_even"}
 
 
 def required_rank(n, L):
@@ -308,6 +326,32 @@ HF = [
     ("higher",                 1,      0, -1,     1, "ceil"),
     ("nearest",                1,      0, -1,     1, "half_even"),
 ]
+
+# The five numpy exposes beside the eight above, closing HF out to all thirteen.
+# Verified against numpy 2.4.6 directly -- not read off documentation -- before
+# being trusted as (a, b, policy): `averaged_inverted_cdf` and
+# `interpolated_inverted_cdf` share `inverted_cdf`'s h = qn, and `lower` and
+# `midpoint` share `higher`'s h = q(n-1) + 1; only their POLICY differs, which is
+# why each lands as a variant row rather than a new (a, b) pair.
+#
+# `averaged_inverted_cdf` returns the average of two order statistics exactly where
+# h is integral, but that average's floor -- the guarantee this module scores --
+# equals ceil(h) there too (ceil of an integer is itself), so its row is `ceil`,
+# identical to `inverted_cdf`'s: the two are observationally the same rule here
+# even though one of them is not, at that point, returning an order statistic.
+# `midpoint` likewise averages floor(h) and ceil(h) unconditionally; its guarantee
+# is floor(h) regardless, so it collapses onto `linear`'s row, as does `lower`,
+# which floors outright. Three names, one cell -- worth reporting as itself an
+# instance of the collapse \S\ref{sec:certificate} already names for a different
+# pair.
+HF_EXTRA = [
+    ("averaged_inverted_cdf",  0,      0, 0,      1, "ceil"),
+    ("interpolated_inverted_cdf", 0,   0, 0,      1, "floor"),
+    ("lower",                  1,      0, -1,     1, "floor"),
+    ("midpoint",                1,      0, -1,     1, "floor"),
+    ("closest_observation",    F(-1, 2), 0, 0,     1, "nearest_even"),
+]
+HF = HF + HF_EXTRA
 
 
 def self_check():
@@ -766,6 +810,136 @@ def main():
             f"a miss at n = {n} where L(n+1) is NOT an integer: the "
             f"no-slack explanation does not cover it")
         assert got == k + 1, (n, k, got)
+    say("")
+
+    # -------------------------------------------------------------------
+    say("=" * 100)
+    say("(6) ALL THIRTEEN, BOTH CORRECTIONS, FIVE LEVELS: IS inverted_cdf ALONE?")
+    say("=" * 100)
+    say("Section (1) checked eight named definitions at L = 9/10 and 5/7 and reported")
+    say("inverted_cdf as the only one reaching the class minimum. Eight is not")
+    say("thirteen: numpy exposes averaged_inverted_cdf, interpolated_inverted_cdf,")
+    say("lower, midpoint and closest_observation besides. Each of the five was")
+    say("checked against numpy 2.4.6 directly -- not read off documentation -- before")
+    say("being trusted as an (a, b, policy) row; two of them turned out to share a row")
+    say("with a definition already in the table, which the table below reports rather")
+    say("than hides.")
+    say("")
+    survey_levels = [F(9, 10), F(19, 20), F(5, 7), F(2, 3), F(1, 2)]
+    say(f"{'definition':<26} {'corr':>10} {'level':>8} {'valid':>6} {'max D':>6}")
+    say("-" * 100)
+    survey = []
+    for name, a0, a1, b0, b1, pol in HF:
+        for corrected in (False, True):
+            for L in survey_levels:
+                U = effective_U(a0, a1, b0, b1, L, corrected)
+                vec = deficit_vector(pol, U, L)
+                ok = min(vec) >= 0
+                say(f"{name:<26} {('corrected' if corrected else 'raw'):>10} "
+                    f"{str(L):>8} {('yes' if ok else 'NO'):>6} {max(vec):>6}")
+                survey.append({"name": name, "corrected": corrected, "L": L,
+                               "valid": ok, "worst": max(vec)})
+    say("")
+    combos = {}
+    for r in survey:
+        combos.setdefault((r["name"], r["corrected"]), []).append(r)
+    valid_everywhere = sorted(
+        f"{name}/{'corrected' if corrected else 'raw'}"
+        for (name, corrected), rows in combos.items() if all(x["valid"] for x in rows))
+    zero_everywhere = sorted(
+        name for (name, corrected), rows in combos.items()
+        if corrected and all(x["valid"] and x["worst"] == 0 for x in rows))
+    say(f"Of {len(combos)} (definition, correction) pairs across "
+        f"{len(survey_levels)} levels, {len(valid_everywhere)} are valid at every "
+        "level tested:")
+    say(f"  {', '.join(valid_everywhere)}")
+    say(f"and {len(zero_everywhere)} of those attain the minimax zero at every level")
+    say(f"tested: {', '.join(zero_everywhere)}.")
+    say("MACHINE survey_combos=%d survey_valid=%d survey_zero=%d" %
+        (len(combos), len(valid_everywhere), len(zero_everywhere)))
+    say("")
+    say("closest_observation is neither exact nor merely wide: rounding to the")
+    say("nearest rank falls BELOW the requirement on roughly half the residues, at")
+    say("both the raw and the corrected level and at every level tested here. That is")
+    say("a validity failure, the kind \\S\\ref{sec:ruleclass} rules out by construction")
+    say("for the rules it recommends, not a width cost like higher's.")
+    say("")
+    assert len(combos) == 13 * 2, (len(combos), "HF should carry exactly 13 names")
+    assert zero_everywhere == ["averaged_inverted_cdf", "inverted_cdf"], (
+        "the set attaining the minimax zero at every tested level changed", zero_everywhere)
+    assert "closest_observation/corrected" not in valid_everywhere and \
+        "closest_observation/raw" not in valid_everywhere, (
+        "closest_observation is valid somewhere it was measured invalid before")
+    assert "weibull/corrected" not in valid_everywhere, (
+        "weibull/corrected should fail off the unit fractions in this level set")
+    # excluding the two that return an average rather than an order statistic
+    # (averaged_inverted_cdf averages on the grid; midpoint always does) should
+    # leave inverted_cdf as the unique attainer -- the restriction stated in
+    # prop:minimax, checked here rather than only argued in the manuscript.
+    order_stat_zero = [n for n in zero_everywhere if n not in ("averaged_inverted_cdf",)]
+    assert order_stat_zero == ["inverted_cdf"], (
+        "excluding averaging conventions should leave inverted_cdf alone", order_stat_zero)
+
+    say("Two of those thirteen names are not new rows: midpoint and lower share")
+    say("linear's cell exactly (same guarantee, same (a, b), same policy), which is")
+    say("the same collapse \\S\\ref{sec:certificate} already reports for a corrected")
+    say("level through inverted_cdf against a direct order statistic -- a third")
+    say("instance of it, not a new phenomenon.")
+    collapsed_with_linear = sorted(
+        n for n in ("lower", "midpoint")
+        if all(deficit_vector(pol, effective_U(a0, a1, b0, b1, L, corrected), L)
+               == deficit_vector("floor", effective_U(1, 0, -1, 1, L, corrected), L)
+               for L in survey_levels for corrected in (False, True)
+               for (nm, a0, a1, b0, b1, pol) in HF if nm == n))
+    assert collapsed_with_linear == ["lower", "midpoint"], collapsed_with_linear
+    say("")
+
+    say("Real execution, not only the reduction, for the two names new to this")
+    say("section that are not already exercised in section (5): does")
+    say("averaged_inverted_cdf really tie inverted_cdf once numpy runs it, and does")
+    say("closest_observation really fall short once numpy runs it.")
+    say("")
+    say("averaged_inverted_cdf can return the AVERAGE of two order statistics, not")
+    say("one of them, so the comparison below is against the GUARANTEE floor(h) of")
+    say("Proposition prop:interp -- floor of the returned value -- and not against")
+    say("the raw value itself, exactly as the manuscript scores it. Comparing the raw")
+    say("value instead makes an exact tie print as an over-cover on every no-slack")
+    say("size, which is not what the algebra above claims and was caught here by")
+    say("disagreeing with section (6)'s own exact-rational prediction.")
+    say("")
+    say(f"{'level':>7} {'sizes':>6} | {'averaged_inverted_cdf @ corrected':>34} | "
+        f"{'closest_observation @ corrected':>32}")
+    say(f"{'':>7} {'':>6} | {'exact':>10}{'over':>12}{'under':>12} | "
+        f"{'exact':>10}{'over':>11}{'under':>11}")
+    say("-" * 100)
+    clo_short_seen = False
+    for L in survey_levels:
+        sizes = [n for n in range(10, 400) if math.ceil((n + 1) * L) <= n]
+        tal2 = {k: [0, 0, 0] for k in ("avg", "clo")}
+        for n in sizes:
+            v = np.arange(1, n + 1, dtype=float)
+            k = required_rank(n, L)
+            qc = min(1.0, float(L) * (n + 1) / n)
+            got2 = {"avg": math.floor(np.quantile(v, qc, method="averaged_inverted_cdf")),
+                    "clo": math.floor(np.quantile(v, qc, method="closest_observation"))}
+            for key, val in got2.items():
+                tal2[key][0 if val == k else (1 if val > k else 2)] += 1
+        if tal2["clo"][2] > 0:
+            clo_short_seen = True
+        say(f"{str(L):>7} {len(sizes):>6} | {tal2['avg'][0]:>10}{tal2['avg'][1]:>12}"
+            f"{tal2['avg'][2]:>12} | {tal2['clo'][0]:>10}{tal2['clo'][1]:>11}"
+            f"{tal2['clo'][2]:>11}")
+        assert tal2["avg"][2] == 0, (
+            f"averaged_inverted_cdf came in SHORT at L = {L} in real execution: "
+            f"the algebraic tie with inverted_cdf does not hold in practice")
+    say("")
+    assert clo_short_seen, (
+        "closest_observation never fell short in real execution: the algebraic "
+        "validity failure above is not reproduced by numpy, and the claim above "
+        "must not be printed as it stands")
+    say("closest_observation falls short in real numpy execution, not only in the")
+    say("exact-rational reduction, confirming section (6)'s table rather than")
+    say("merely repeating it.")
     say("")
 
     say("=" * 100)

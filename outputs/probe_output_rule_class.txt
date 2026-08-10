@@ -9,7 +9,7 @@ that one residue does NOT separate the class, and that the validity filter
 and the policy axis both discriminate.
 
 THE CLASS.  h(q, n) = a0 + a1 n + q (b0 + b1 n), rational coefficients, then
-a rounding policy out of ceil, floor, half_even, half_up, trunc, then optionally
+a rounding policy out of ceil, floor, half_even, half_up, nearest_even, trunc, then optionally
 the correction q -> min(1, q(n+1)/n), then optionally a clip into [1, n].
 
 THE REDUCTION.  Pin the level at L = p/d, lowest terms, and h goes linear in
@@ -33,12 +33,12 @@ the level, and the bound is stated rather than left implicit.
 ----------------------------------------------------------------------------------------------------
    level    d  period   cells   valid  |S| full  |S| valid  min max D  attained by
 ----------------------------------------------------------------------------------------------------
-    9/10   10      20     111      39        20         20          0            1
-   19/20   20      40     221      74        40         40          0            1
-  99/100  100     200    1101     354       200        200          0            1
-     2/3    3       6      18       8         3          3          0            1
-     5/7    7      14      77      30        14         14          0            1
-     6/7    7      14      42      16         7          7          0            1
+    9/10   10      20     116      44        20         20          0            1
+   19/20   20      40     231      84        40         40          0            1
+  99/100  100     200    1151     404       200        200          0            1
+     2/3    3       6      19       9         3          3          0            1
+     5/7    7      14      81      34        14         14          0            1
+     6/7    7      14      43      17         7          7          0            1
 
 'cells' is the observational quotient of an UNCOUNTABLE class: every rule
 with rational coefficients lands in one of them, so the certificate below is
@@ -72,14 +72,24 @@ higher                    raw       1/10     NO      0   [0, -1, -1, -1, -1, -1,
 higher              corrected      79/80    yes      1   [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
 nearest                   raw       1/10     NO     -1   [-1, -1, -1, -1, -1, -1, -1, -2, -2, -1, -1, -1, -1, -1, -1, -1, -2, -2, -2, -1]
 nearest             corrected      79/80     NO      0   [0, 0, 0, 0, 0, -1, -1, -1, -1, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1, 0]
+averaged_inverted_cdf        raw          0     NO      0   [-1, -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0]
+averaged_inverted_cdf  corrected       9/10    yes      0   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+interpolated_inverted_cdf        raw          0     NO     -1   [-1, -2, -2, -2, -2, -2, -2, -2, -2, -1, -1, -2, -2, -2, -2, -2, -2, -2, -2, -1]
+interpolated_inverted_cdf  corrected       9/10     NO      0   [-1, -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0]
+lower                     raw       1/10     NO     -1   [-1, -1, -2, -2, -2, -2, -2, -2, -2, -1, -1, -1, -2, -2, -2, -2, -2, -2, -2, -1]
+lower               corrected      79/80     NO      0   [-1, -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0]
+midpoint                  raw       1/10     NO     -1   [-1, -1, -2, -2, -2, -2, -2, -2, -2, -1, -1, -1, -2, -2, -2, -2, -2, -2, -2, -1]
+midpoint            corrected      79/80     NO      0   [-1, -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0]
+closest_observation        raw       -1/2     NO     -1   [-1, -1, -1, -1, -1, -2, -2, -2, -2, -1, -1, -1, -1, -1, -1, -1, -2, -2, -2, -1]
+closest_observation  corrected        2/5     NO      0   [0, 0, 0, 0, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1, 0]
 
-  valid at every size above the prefix: 3 of 16
+  valid at every size above the prefix: 4 of 26
   least worst-case over-coverage among them: 0 rank(s)
-  attained by: inverted_cdf/corrected, weibull/corrected
+  attained by: averaged_inverted_cdf/corrected, inverted_cdf/corrected, weibull/corrected
   least attainable anywhere in the class: 0 rank(s)
   the folklore idiom, higher at the corrected level: valid, worst-case 1
   SO THE FOLKLORE IDIOM IS 1 RANK SHORT OF OPTIMAL.
-  inverted_cdf/corrected, weibull/corrected hits the required rank at every size, while
+  averaged_inverted_cdf/corrected, inverted_cdf/corrected, weibull/corrected hits the required rank at every size, while
   higher lands past it on a residue class. Serviceable advice, then,
   and not the rule that minimises the worst case.
 
@@ -103,14 +113,24 @@ higher                    raw        2/7     NO      0   [0, -1, -1, 0, 0, -1, 0
 higher              corrected      55/56    yes      1   [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1]
 nearest                   raw        2/7     NO      0   [-1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, 0]
 nearest             corrected      55/56     NO      0   [0, 0, -1, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0]
+averaged_inverted_cdf        raw          0     NO      0   [-1, -1, -1, 0, -1, -1, 0, -1, -1, -1, 0, -1, -1, 0]
+averaged_inverted_cdf  corrected        5/7    yes      0   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+interpolated_inverted_cdf        raw          0     NO     -1   [-1, -2, -2, -1, -2, -2, -1, -1, -2, -2, -1, -2, -2, -1]
+interpolated_inverted_cdf  corrected        5/7     NO      0   [-1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, 0]
+lower                     raw        2/7     NO     -1   [-1, -1, -2, -1, -1, -2, -1, -1, -1, -2, -1, -1, -2, -1]
+lower               corrected      55/56     NO      0   [-1, -1, -1, 0, -1, -1, 0, -1, -1, -1, 0, -1, -1, 0]
+midpoint                  raw        2/7     NO     -1   [-1, -1, -2, -1, -1, -2, -1, -1, -1, -2, -1, -1, -2, -1]
+midpoint            corrected      55/56     NO      0   [-1, -1, -1, 0, -1, -1, 0, -1, -1, -1, 0, -1, -1, 0]
+closest_observation        raw       -1/2     NO     -1   [-1, -1, -2, -1, -1, -1, -1, -1, -1, -2, -1, -1, -1, -1]
+closest_observation  corrected       3/14     NO      0   [0, -1, -1, 0, 0, -1, 0, 0, -1, -1, 0, 0, -1, 0]
 
-  valid at every size above the prefix: 2 of 16
+  valid at every size above the prefix: 3 of 26
   least worst-case over-coverage among them: 0 rank(s)
-  attained by: inverted_cdf/corrected
+  attained by: averaged_inverted_cdf/corrected, inverted_cdf/corrected
   least attainable anywhere in the class: 0 rank(s)
   the folklore idiom, higher at the corrected level: valid, worst-case 1
   SO THE FOLKLORE IDIOM IS 1 RANK SHORT OF OPTIMAL.
-  inverted_cdf/corrected hits the required rank at every size, while
+  averaged_inverted_cdf/corrected, inverted_cdf/corrected hits the required rank at every size, while
   higher lands past it on a residue class. Serviceable advice, then,
   and not the rule that minimises the worst case.
 
@@ -187,6 +207,16 @@ higher                    raw     9/10     -1      0     NO     no
 higher              corrected     9/10      0      1    yes     no
 nearest                   raw     9/10     -2     -1     NO     no
 nearest             corrected     9/10     -1      0     NO     no
+averaged_inverted_cdf        raw     9/10     -1      0     NO     no
+averaged_inverted_cdf  corrected     9/10      0      0    yes    YES
+interpolated_inverted_cdf        raw     9/10     -2     -1     NO     no
+interpolated_inverted_cdf  corrected     9/10     -1      0     NO     no
+lower                     raw     9/10     -2     -1     NO     no
+lower               corrected     9/10     -1      0     NO     no
+midpoint                  raw     9/10     -2     -1     NO     no
+midpoint            corrected     9/10     -1      0     NO     no
+closest_observation        raw     9/10     -2     -1     NO     no
+closest_observation  corrected     9/10     -1      0     NO     no
 
 inverted_cdf              raw      5/7     -1      0     NO     no
 inverted_cdf        corrected      5/7      0      0    yes    YES
@@ -204,6 +234,16 @@ higher                    raw      5/7     -1      0     NO     no
 higher              corrected      5/7      0      1    yes     no
 nearest                   raw      5/7     -1      0     NO     no
 nearest             corrected      5/7     -1      0     NO     no
+averaged_inverted_cdf        raw      5/7     -1      0     NO     no
+averaged_inverted_cdf  corrected      5/7      0      0    yes    YES
+interpolated_inverted_cdf        raw      5/7     -2     -1     NO     no
+interpolated_inverted_cdf  corrected      5/7     -1      0     NO     no
+lower                     raw      5/7     -2     -1     NO     no
+lower               corrected      5/7     -1      0     NO     no
+midpoint                  raw      5/7     -2     -1     NO     no
+midpoint            corrected      5/7     -1      0     NO     no
+closest_observation        raw      5/7     -2     -1     NO     no
+closest_observation  corrected      5/7     -1      0     NO     no
 
 `inverted_cdf` at the corrected level is exact at both levels. `weibull` at
 the corrected level is exact at 9/10 and not at 5/7 -- the unit-fraction
@@ -221,12 +261,12 @@ the prefix, so a set of sizes is a set of residues and there are 2^d of them.
 
    level   cells   valid  |S| all cells               residues  |S| valid only
 ----------------------------------------------------------------------------------------------------
-    9/10     111      39             20 [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]              20
-   19/20     221      74             40 [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39]              40
-  99/100    1101     354            200 [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199]             200
-     2/3      18       8              3              [0, 1, 2]               3
-     5/7      77      30             14 [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]              14
-     6/7      42      16              7  [0, 1, 2, 3, 4, 5, 6]               7
+    9/10     116      44             20 [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]              20
+   19/20     231      84             40 [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39]              40
+  99/100    1151     404            200 [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199]             200
+     2/3      19       9              3              [0, 1, 2]               3
+     5/7      81      34             14 [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]              14
+     6/7      43      17              7  [0, 1, 2, 3, 4, 5, 6]               7
 
 A residue r is realised by any size n with p n mod d = r, of which there are
 infinitely many, so the certificate is a statement about d sizes and not
@@ -268,7 +308,7 @@ read out of the sorted scores directly. A derived recommendation about shipped
 software is not evidence about shipped software -- and running it changed the
 recommendation a second time.
 
-numpy 2.4.6. Scores run 1..n, so whatever comes back IS the rank
+numpy 2.5.1. Scores run 1..n, so whatever comes back IS the rank
 it selected, and no interpolation can hide behind equal values.
 
   level  sizes |   inverted_cdf @ corrected |       higher @ corrected |   sort()[k-1]
@@ -344,6 +384,195 @@ tight sizes. Earlier write-ups pointed at `higher` on the same level; that is
 valid too, but wide across an entire residue class instead of a few sizes a
 double cannot hold. Superseded here.
 
+
+====================================================================================================
+(6) ALL THIRTEEN, BOTH CORRECTIONS, FIVE LEVELS: IS inverted_cdf ALONE?
+====================================================================================================
+Section (1) checked eight named definitions at L = 9/10 and 5/7 and reported
+inverted_cdf as the only one reaching the class minimum. Eight is not
+thirteen: numpy exposes averaged_inverted_cdf, interpolated_inverted_cdf,
+lower, midpoint and closest_observation besides. Each of the five was
+checked against numpy 2.4.6 directly -- not read off documentation -- before
+being trusted as an (a, b, policy) row; two of them turned out to share a row
+with a definition already in the table, which the table below reports rather
+than hides.
+
+definition                       corr    level  valid  max D
+----------------------------------------------------------------------------------------------------
+inverted_cdf                      raw     9/10     NO      0
+inverted_cdf                      raw    19/20     NO      0
+inverted_cdf                      raw      5/7     NO      0
+inverted_cdf                      raw      2/3     NO      0
+inverted_cdf                      raw      1/2     NO      0
+inverted_cdf                corrected     9/10    yes      0
+inverted_cdf                corrected    19/20    yes      0
+inverted_cdf                corrected      5/7    yes      0
+inverted_cdf                corrected      2/3    yes      0
+inverted_cdf                corrected      1/2    yes      0
+weibull                           raw     9/10     NO      0
+weibull                           raw    19/20     NO      0
+weibull                           raw      5/7     NO      0
+weibull                           raw      2/3     NO      0
+weibull                           raw      1/2     NO      0
+weibull                     corrected     9/10    yes      0
+weibull                     corrected    19/20    yes      0
+weibull                     corrected      5/7     NO      0
+weibull                     corrected      2/3    yes      0
+weibull                     corrected      1/2    yes      0
+linear                            raw     9/10     NO     -1
+linear                            raw    19/20     NO     -1
+linear                            raw      5/7     NO     -1
+linear                            raw      2/3     NO     -1
+linear                            raw      1/2     NO      0
+linear                      corrected     9/10     NO      0
+linear                      corrected    19/20     NO      0
+linear                      corrected      5/7     NO      0
+linear                      corrected      2/3     NO      0
+linear                      corrected      1/2     NO      0
+hazen                             raw     9/10     NO     -1
+hazen                             raw    19/20     NO     -1
+hazen                             raw      5/7     NO     -1
+hazen                             raw      2/3     NO     -1
+hazen                             raw      1/2     NO      0
+hazen                       corrected     9/10     NO      0
+hazen                       corrected    19/20     NO      0
+hazen                       corrected      5/7     NO      0
+hazen                       corrected      2/3     NO      0
+hazen                       corrected      1/2    yes      0
+median_unbiased                   raw     9/10     NO     -1
+median_unbiased                   raw    19/20     NO     -1
+median_unbiased                   raw      5/7     NO     -1
+median_unbiased                   raw      2/3     NO     -1
+median_unbiased                   raw      1/2     NO      0
+median_unbiased             corrected     9/10     NO      0
+median_unbiased             corrected    19/20     NO      0
+median_unbiased             corrected      5/7     NO      0
+median_unbiased             corrected      2/3     NO      0
+median_unbiased             corrected      1/2    yes      0
+normal_unbiased                   raw     9/10     NO     -1
+normal_unbiased                   raw    19/20     NO     -1
+normal_unbiased                   raw      5/7     NO     -1
+normal_unbiased                   raw      2/3     NO     -1
+normal_unbiased                   raw      1/2     NO      0
+normal_unbiased             corrected     9/10     NO      0
+normal_unbiased             corrected    19/20     NO      0
+normal_unbiased             corrected      5/7     NO      0
+normal_unbiased             corrected      2/3     NO      0
+normal_unbiased             corrected      1/2    yes      0
+higher                            raw     9/10     NO      0
+higher                            raw    19/20     NO      0
+higher                            raw      5/7     NO      0
+higher                            raw      2/3     NO      0
+higher                            raw      1/2    yes      0
+higher                      corrected     9/10    yes      1
+higher                      corrected    19/20    yes      1
+higher                      corrected      5/7    yes      1
+higher                      corrected      2/3    yes      1
+higher                      corrected      1/2    yes      1
+nearest                           raw     9/10     NO     -1
+nearest                           raw    19/20     NO     -1
+nearest                           raw      5/7     NO      0
+nearest                           raw      2/3     NO      0
+nearest                           raw      1/2     NO      0
+nearest                     corrected     9/10     NO      0
+nearest                     corrected    19/20     NO      0
+nearest                     corrected      5/7     NO      0
+nearest                     corrected      2/3    yes      0
+nearest                     corrected      1/2    yes      0
+averaged_inverted_cdf             raw     9/10     NO      0
+averaged_inverted_cdf             raw    19/20     NO      0
+averaged_inverted_cdf             raw      5/7     NO      0
+averaged_inverted_cdf             raw      2/3     NO      0
+averaged_inverted_cdf             raw      1/2     NO      0
+averaged_inverted_cdf       corrected     9/10    yes      0
+averaged_inverted_cdf       corrected    19/20    yes      0
+averaged_inverted_cdf       corrected      5/7    yes      0
+averaged_inverted_cdf       corrected      2/3    yes      0
+averaged_inverted_cdf       corrected      1/2    yes      0
+interpolated_inverted_cdf         raw     9/10     NO     -1
+interpolated_inverted_cdf         raw    19/20     NO     -1
+interpolated_inverted_cdf         raw      5/7     NO     -1
+interpolated_inverted_cdf         raw      2/3     NO     -1
+interpolated_inverted_cdf         raw      1/2     NO     -1
+interpolated_inverted_cdf   corrected     9/10     NO      0
+interpolated_inverted_cdf   corrected    19/20     NO      0
+interpolated_inverted_cdf   corrected      5/7     NO      0
+interpolated_inverted_cdf   corrected      2/3     NO      0
+interpolated_inverted_cdf   corrected      1/2     NO      0
+lower                             raw     9/10     NO     -1
+lower                             raw    19/20     NO     -1
+lower                             raw      5/7     NO     -1
+lower                             raw      2/3     NO     -1
+lower                             raw      1/2     NO      0
+lower                       corrected     9/10     NO      0
+lower                       corrected    19/20     NO      0
+lower                       corrected      5/7     NO      0
+lower                       corrected      2/3     NO      0
+lower                       corrected      1/2     NO      0
+midpoint                          raw     9/10     NO     -1
+midpoint                          raw    19/20     NO     -1
+midpoint                          raw      5/7     NO     -1
+midpoint                          raw      2/3     NO     -1
+midpoint                          raw      1/2     NO      0
+midpoint                    corrected     9/10     NO      0
+midpoint                    corrected    19/20     NO      0
+midpoint                    corrected      5/7     NO      0
+midpoint                    corrected      2/3     NO      0
+midpoint                    corrected      1/2     NO      0
+closest_observation               raw     9/10     NO     -1
+closest_observation               raw    19/20     NO     -1
+closest_observation               raw      5/7     NO     -1
+closest_observation               raw      2/3     NO     -1
+closest_observation               raw      1/2     NO      0
+closest_observation         corrected     9/10     NO      0
+closest_observation         corrected    19/20     NO      0
+closest_observation         corrected      5/7     NO      0
+closest_observation         corrected      2/3     NO      0
+closest_observation         corrected      1/2     NO      0
+
+Of 26 (definition, correction) pairs across 5 levels, 3 are valid at every level tested:
+  averaged_inverted_cdf/corrected, higher/corrected, inverted_cdf/corrected
+and 2 of those attain the minimax zero at every level
+tested: averaged_inverted_cdf, inverted_cdf.
+MACHINE survey_combos=26 survey_valid=3 survey_zero=2
+
+closest_observation is neither exact nor merely wide: rounding to the
+nearest rank falls BELOW the requirement on roughly half the residues, at
+both the raw and the corrected level and at every level tested here. That is
+a validity failure, the kind \S\ref{sec:ruleclass} rules out by construction
+for the rules it recommends, not a width cost like higher's.
+
+Two of those thirteen names are not new rows: midpoint and lower share
+linear's cell exactly (same guarantee, same (a, b), same policy), which is
+the same collapse \S\ref{sec:certificate} already reports for a corrected
+level through inverted_cdf against a direct order statistic -- a third
+instance of it, not a new phenomenon.
+
+Real execution, not only the reduction, for the two names new to this
+section that are not already exercised in section (5): does
+averaged_inverted_cdf really tie inverted_cdf once numpy runs it, and does
+closest_observation really fall short once numpy runs it.
+
+averaged_inverted_cdf can return the AVERAGE of two order statistics, not
+one of them, so the comparison below is against the GUARANTEE floor(h) of
+Proposition prop:interp -- floor of the returned value -- and not against
+the raw value itself, exactly as the manuscript scores it. Comparing the raw
+value instead makes an exact tie print as an over-cover on every no-slack
+size, which is not what the algebra above claims and was caught here by
+disagreeing with section (6)'s own exact-rational prediction.
+
+  level  sizes |  averaged_inverted_cdf @ corrected |  closest_observation @ corrected
+               |      exact        over       under |      exact       over      under
+----------------------------------------------------------------------------------------------------
+   9/10    390 |        390           0           0 |        215          0        175
+  19/20    381 |        381           0           0 |        200          0        181
+    5/7    390 |        389           1           0 |        224          0        166
+    2/3    390 |        385           5           0 |        260          0        130
+    1/2    390 |        375          15           0 |        287          0        103
+
+closest_observation falls short in real numpy execution, not only in the
+exact-rational reduction, confirming section (6)'s table rather than
+merely repeating it.
 
 ====================================================================================================
 WHAT THIS DOES NOT SETTLE
