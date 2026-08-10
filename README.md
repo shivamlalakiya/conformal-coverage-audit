@@ -102,6 +102,7 @@ CITATION.cff          citation metadata
 | `probes/branch_d_check.py` | The convention in isolation: an uncorrected level versus the required order statistic on identical draws. 200k draws per cell, `fractions.Fraction` oracle |
 | `probes/convention_probe.py` | Structural branch identification, coverage sweeps with paired standard errors, threshold extraction |
 | `probes/rank_map.py` | The nine Hyndman–Fan quantile definitions plus four aliases, read for what guarantee each can carry rather than for estimation accuracy: which express `⌈(n+1)(1−α)⌉` at all, and what each delivers instead |
+| `probes/rule_class.py` | Affine level→index rules reduced by residue arithmetic: numpy's thirteen method names scored for validity at every size and for worst-case over-coverage, plus how many calibration sizes separate the classes. Exact rationals; executed against numpy |
 | `probes/run_sktime_river.py` | sktime `ConformalIntervals` via `predict_interval`, river `RegressionJackknife` via `predict_one`, with an oracle independent of both |
 | `probes/run_darts.py` | Exact rank arithmetic, paired Monte Carlo on identical draws, and an end-to-end run through a real `ConformalNaiveModel` |
 | `probes/run_darts_tighten.py` | The same construction at 2000 fits per cell across four calibration lengths, with the exact coverage the convention predicts beside each measurement |
@@ -155,6 +156,7 @@ python3 -m venv .venv-probe
 .venv-probe/bin/python probes/convention_probe.py
 .venv-probe/bin/python probes/branch_d_check.py
 .venv-probe/bin/python probes/rank_map.py
+.venv-probe/bin/python probes/rule_class.py
 .venv-probe/bin/python probes/run_sktime_river.py
 .venv-probe/bin/python probes/verify_statsforecast_rebuttal.py
 .venv-probe/bin/python probes/run_real_data.py m1_monthly_dataset 250
