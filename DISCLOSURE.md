@@ -19,7 +19,7 @@ applies is stated per site in the next section.
 
 | Date | Package | Site | Report | Status |
 |---|---|---|---|---|
-| 2026-08-02 | `mapie` | classification quantile lands one order statistic too high | [scikit-learn-contrib/MAPIE#973](https://github.com/scikit-learn-contrib/MAPIE/pull/973) (PR) | open |
+| 2026-08-02 | `mapie` | classification quantile lands one order statistic too high | [scikit-learn-contrib/MAPIE#973](https://github.com/scikit-learn-contrib/MAPIE/pull/973) (PR) | merged 2026-08-11 |
 | 2026-08-02 | `mapie` | corrected level silently clipped to `1.0` where no conformal quantile exists | [scikit-learn-contrib/MAPIE#974](https://github.com/scikit-learn-contrib/MAPIE/issues/974) | open |
 | 2026-08-04 | `mapie` | asymmetric quantile score cancels the calibration-size guard | [scikit-learn-contrib/MAPIE#978](https://github.com/scikit-learn-contrib/MAPIE/pull/978) (PR) | open |
 | 2026-07-10 | `mapie` | eight inline findings raised in review on a third party's PR; merged with the blocking one unfixed, which #978 addresses | [scikit-learn-contrib/MAPIE#958](https://github.com/scikit-learn-contrib/MAPIE/pull/958) (review) | merged |
