@@ -27,6 +27,7 @@ puncc 0.9.3           BaseCalibrator.compute_quantile                      c-exa
 puncc 0.9.3           ClasswiseCalibrator.compute_quantile                 c-exact  -    yes  OK
 puncc 0.9.3           quantile                                             d        -    yes  OK
 puncc 0.9.3           BaseCalibrator.compute_quantile (Bonferroni)         ?        -    -    OK
+puncc 0.9.3           ScoreCalibrator.is_conformal                         a        -    yes  OK
 puncc 0.9.3           alpha_calib_check                                    a        yes  -    OK
 puncc 0.9.3           EnbPI.predict                                        d        -    yes  OK
 puncc 0.9.3           EnbPI.predict (online update)                        d        -    yes  OK
@@ -102,6 +103,9 @@ neuralforecast 3.2.1  add_conformal_error_intervals                        d    
   puncc 0.9.3  BaseCalibrator.compute_quantile (Bonferroni)
       deel/puncc/api/calibration.py:254
       rule: alpha is Bonferroni-divided across output dimensions BEFORE the feasibility check, so multivariate targets tighten the check rather than loosen it
+  puncc 0.9.3  ScoreCalibrator.is_conformal
+      deel/puncc/api/calibration.py:592
+      rule: the ONE puncc site that corrects a level instead of appending +inf. The corrected level goes to the shared api/utils.py quantile at method='inverted_cdf', which lands on ceil(level*n) = ceil((1-alpha)(n+1)), the required rank -- so above the floor it is exact. But that helper's own guard at api/utils.py:385 reads `if np.any(q <= 0) or np.any(q >= 1)` and rejects the OPEN interval's endpoint, and the corrected level is exactly 1 at n = 1/alpha - 1, which is the feasibility floor and where the required rank is n, i.e. max(scores). So it RAISES at exactly the smallest n where a valid deterministic bound exists, then works from n+1 upward. Branch (a), CLASSIFIED BY RUNNING on the suite's tie-free scores 1..n: over n = 1..3000 x 11 levels it is anti-conservative in 0 cells, one rank conservative in 213, returns finite where no valid rank exists in 0, and raises where a valid rank exists in exactly the 11 floor cells (1,.5) (3,.25) (4,.2) (9,.1) (19,.05) (39,.025) (49,.02) (99,.01) (199,.005) (499,.002) (999,.001)
   puncc 0.9.3  alpha_calib_check
       deel/puncc/api/utils.py:247
       rule: GUARD, not a resolver: raises with 1/(n+1) <= alpha < 1 derived in the docstring, plus the two-sided n/(n+1) bound for jackknife+/CV+
@@ -176,10 +180,10 @@ neuralforecast 3.2.1  add_conformal_error_intervals                        d    
 COUNTS
 ============================================================================================================
   P1  sites documented before this census                        21   (19 of them determine a returned bound)
-  P2  sites determining a returned bound, pinned versions        35   <-- USE THIS ONE, and say so
-  P3  public API entry points routing through a P2 site          34
+  P2  sites determining a returned bound, pinned versions        36   <-- USE THIS ONE, and say so
+  P3  public API entry points routing through a P2 site          36
 
-  new in this census, absent from the map: 16 of the 35 P2 sites
+  new in this census, absent from the map: 17 of the 36 P2 sites
   unclassified branch ('?') and therefore open audit work: 0
 
   P2 by library:
@@ -188,7 +192,7 @@ COUNTS
       mapie 1.4.1               6   (5 new)
       neuralforecast 3.2.1      2
       nonconformist 2.1.0       3   (2 new)
-      puncc 0.9.3               5   (5 new)
+      puncc 0.9.3               6   (6 new)
       river 0.25.0              1
       sktime 1.1.0              5   (1 new)
       statsforecast 2.1.1       4   (1 new)
@@ -205,7 +209,7 @@ COUNTS
   driven    12   the suite constructs this helper and calls it
   shared    11   resolves through a numpy quantile expression the table carries once
   pvalue     3   a p-value denominator: no threshold, so no rank to report
-  absent     9   not in the conformance table; the suite does not reach it
+  absent    10   not in the conformance table; the suite does not reach it
 
       driven    mapie          BaseConformityScore.get_quantile             mapie get_quantile
       driven    mapie          _compute_quantiles                           mapie LAC quantiles [prefit/mean -> delegates]
@@ -237,6 +241,7 @@ COUNTS
       absent    crepes         ConformalRegressor.predict_int_online        
       absent    crepes         ConformalPredictiveSystem.predict_int_online 
       absent    puncc          ClasswiseCalibrator.compute_quantile         
+      absent    puncc          ScoreCalibrator.is_conformal                 
       absent    puncc          EnbPI.predict                                
       absent    puncc          EnbPI.predict (online update)                
       absent    nonconformist  SignErrorErrFunc.apply_inverse               
@@ -251,7 +256,7 @@ COUNTS
                         ->  14 call paths, which is what the table's rows count
 
   So a proportion over 14 call paths is not a proportion over
-  35 sites and not a proportion of the ecosystem. The manuscript must say
+  36 sites and not a proportion of the ecosystem. The manuscript must say
   which, and the two rows below are the ones that stand for more than one site.
       numpy method='higher'                                       2 site(s)
       numpy method='linear'                                       9 site(s)
@@ -300,6 +305,8 @@ COUNTS
       NeuralForecast.predict(prediction_intervals=PredictionIntervals())
       RC3P.calibrate
       RegressionJackknife.predict_one
+      ScoreCalibrator.is_conformal
+      SplitCAD.predict
       SplitCP.predict
       SplitConformalClassifier.predict_set
       SplitConformalRegressor.predict_interval
@@ -311,9 +318,9 @@ all sites verified at the recorded line
 What replaces "seven have a distinct quantile/p-value helper"
 ------------------------------------------------------------------------------------------------------------
   "Across the ten packages that derive a coverage guarantee from a calibration
-  array, we count 35 distinct resolution sites -- expressions mapping a
-  requested level to an index into that set -- reachable through 34 public
+  array, we count 36 distinct resolution sites -- expressions mapping a
+  requested level to an index into the calibration set -- reachable through 36 public
   API entry points."
 
-  19 of the 35 were already documented by this audit; the other
-  16 this census located. "Seven" understated the surface by 5.0x.
+  19 of the 36 were already documented by this audit; the other
+  17 this census located. "Seven" understated the surface by 5.1x.

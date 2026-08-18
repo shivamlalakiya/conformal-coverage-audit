@@ -211,6 +211,24 @@ MANIFEST = [
       "feasibility check, so multivariate targets tighten the check rather "
       "than loosen it",
       "?", False, False, []),
+    S("puncc 0.9.3", "deel/puncc/api/calibration.py", 592,
+      "ScoreCalibrator.is_conformal",
+      "self._nonconf_scores, q=(1 - alpha) * (n + 1) / n, w=weights",
+      "the ONE puncc site that corrects a level instead of appending +inf. The "
+      "corrected level goes to the shared api/utils.py quantile at "
+      "method='inverted_cdf', which lands on ceil(level*n) = ceil((1-alpha)(n+1)), "
+      "the required rank -- so above the floor it is exact. But that helper's own "
+      "guard at api/utils.py:385 reads `if np.any(q <= 0) or np.any(q >= 1)` and "
+      "rejects the OPEN interval's endpoint, and the corrected level is exactly 1 "
+      "at n = 1/alpha - 1, which is the feasibility floor and where the required "
+      "rank is n, i.e. max(scores). So it RAISES at exactly the smallest n where a "
+      "valid deterministic bound exists, then works from n+1 upward. Branch (a), "
+      "CLASSIFIED BY RUNNING on the suite's tie-free scores 1..n: over n = 1..3000 "
+      "x 11 levels it is anti-conservative in 0 cells, one rank conservative in "
+      "213, returns finite where no valid rank exists in 0, and raises where a "
+      "valid rank exists in exactly the 11 floor cells (1,.5) (3,.25) (4,.2) "
+      "(9,.1) (19,.05) (39,.025) (49,.02) (99,.01) (199,.005) (499,.002) (999,.001)",
+      "a", False, True, ["ScoreCalibrator.is_conformal", "SplitCAD.predict"]),
     S("puncc 0.9.3", "deel/puncc/api/utils.py", 247,
       "alpha_calib_check",
       "def alpha_calib_check(",
@@ -450,6 +468,7 @@ SUITE_DISPOSITION = {
     # ---- puncc -----------------------------------------------------------
     "BaseCalibrator.compute_quantile": ("driven", "puncc BaseCalibrator.compute_quantile"),
     "ClasswiseCalibrator.compute_quantile": ("absent", ""),
+    "ScoreCalibrator.is_conformal": ("absent", ""),
     "quantile": ("driven", "puncc api/utils.py quantile (shared utility)"),
     "EnbPI.predict": ("absent", ""),
     "EnbPI.predict (online update)": ("absent", ""),
