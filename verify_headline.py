@@ -121,8 +121,8 @@ def main():
     print()
     print("(5) THE SHIPPED DEFAULT BELOW ITS OWN FLOOR --- read, not re-run")
     # This one needs statsforecast and 250 real series, so it is READ from the
-    # committed output and the arithmetic around it is what gets recomputed: at
-    # m=2 the required rank for 0.90 is 3, which exceeds the two scores available.
+    # committed output and the arithmetic around it is what gets recomputed: two
+    # calibration windows give ceil(3 * 0.90) = 3, one more rank than exists.
     k = math.ceil(F(3) * F(9, 10))
     check("required rank at m=2, nominal 0.90", "recomputed", k, 3)
     check("...exceeds the calibration size", "recomputed", k > 2, True)

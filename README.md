@@ -230,7 +230,7 @@ probing the boundary, and it is written that way because the single-probe versio
 
 GitHub Actions runs on every push and pull request to `main`:
 
-1. install `conformal-coverage` and run `python -m conformal_coverage` on Python 3.9–3.13
+1. `pip install -e .` and run `python -m conformal_coverage` (self-check) on Python 3.9–3.13
 2. install numpy and run `python verify_headline.py` (re-derives the abstract quantities against committed outputs)
 
 Full probe reproduction is **not** in CI: it needs three pinned environments and, for some arms, archive downloads measured in tens of minutes. Use the commands above for that path.

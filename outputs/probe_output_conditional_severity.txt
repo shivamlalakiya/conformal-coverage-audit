@@ -4,9 +4,9 @@ W15  GROUP-CONDITIONAL SEVERITY -- where the deficit stops being O(1/n)
 
   A total calibration budget of 2000 scores, split G ways. Every cell has
   the SAME total budget, so the only thing that changes is how finely it
-  is divided. Groups are exponential-tailed (xi = 0 exactly) with scales
-  rising across groups; scores are i.i.d. within a group, so per-group
-  exchangeability holds and absolute coverage is attributable.
+  is divided. Every group is exponential-tailed (xi = 0 exactly), and the
+  scale grows from one group to the next; scores are i.i.d. within a group,
+  so per-group exchangeability holds and absolute coverage is attributable.
   4000 replications per cell   seed 20260805
 
 ------------------------------------------------------------------------------------------------------------

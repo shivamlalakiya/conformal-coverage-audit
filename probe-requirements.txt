@@ -1,4 +1,4 @@
-# THREE ENVIRONMENTS, because the audited libraries do not agree on numpy/pandas.
+# THREE ENVIRONMENTS: the audited libraries pin conflicting numpy/pandas releases.
 # Each probe's docstring names the one it needs. Nothing here is redistributed --
 # these are the versions the audit read and ran.
 #

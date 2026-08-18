@@ -193,9 +193,9 @@ def main():
     say("")
     say("  A total calibration budget of 2000 scores, split G ways. Every cell has")
     say("  the SAME total budget, so the only thing that changes is how finely it")
-    say("  is divided. Groups are exponential-tailed (xi = 0 exactly) with scales")
-    say("  rising across groups; scores are i.i.d. within a group, so per-group")
-    say("  exchangeability holds and absolute coverage is attributable.")
+    say("  is divided. Every group is exponential-tailed (xi = 0 exactly), and the")
+    say("  scale grows from one group to the next; scores are i.i.d. within a group,")
+    say("  so per-group exchangeability holds and absolute coverage is attributable.")
     say(f"  {REPS} replications per cell   seed {SEED}")
     say("")
 

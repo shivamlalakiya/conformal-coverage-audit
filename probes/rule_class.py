@@ -341,9 +341,9 @@ HF = [
 # even though one of them is not, at that point, returning an order statistic.
 # `midpoint` likewise averages floor(h) and ceil(h) unconditionally; its guarantee
 # is floor(h) regardless, so it collapses onto `linear`'s row, as does `lower`,
-# which floors outright. Three names, one cell -- worth reporting as itself an
-# instance of the collapse \S\ref{sec:certificate} already names for a different
-# pair.
+# which floors outright. Three names sharing one cell is worth flagging on its
+# own: \S\ref{sec:certificate} elsewhere documents this same coincidence for a
+# different pair of names.
 HF_EXTRA = [
     ("averaged_inverted_cdf",  0,      0, 0,      1, "ceil"),
     ("interpolated_inverted_cdf", 0,   0, 0,      1, "floor"),
@@ -614,10 +614,10 @@ def main():
                     f"{('yes' if min(v) >= 0 else 'NO'):>6} "
                     f"{('YES' if min(v) == max(v) == 0 else 'no'):>6}")
         say("")
-    say("`inverted_cdf` at the corrected level is exact at both levels. `weibull` at")
-    say("the corrected level is exact at 9/10 and not at 5/7 -- the unit-fraction")
-    say("dependence again, since its offset 2L falls inside the exact window only for")
-    say("alpha = 1/d. Every other cell is invalid or lands wide.")
+    say("`inverted_cdf` holds exactly at both corrected levels. `weibull` does not")
+    say("share that: corrected, it lands exact at 9/10 but misses at 5/7, repeating")
+    say("the unit-fraction dependence, because its offset 2L sits inside the exact")
+    say("window only when alpha = 1/d. Every other cell is invalid or lands wide.")
     say("")
     say("=" * 100)
     say("(3) THE CERTIFICATE, MADE ABSOLUTE")
@@ -755,11 +755,12 @@ def main():
         say(f"{str(r['L']):>7} {r['n']:>7} {r['noslack']:>15} "
             f"{len(r['misses']):>8} {frac:>16}")
     say("")
-    say("Every miss lands where L(n+1) comes out whole: the requirement is met with")
-    say("nothing to spare, L(n+1)/n has no exact double, and the product returns")
-    say("28.000000000000004 in place of 28, so ceil hands back 29. Floating-point")
-    say("representation does this, not the convention, and only where nothing is to")
-    say("spare -- so how often it can bite is capped by how often the level is tight.")
+    say("Every miss lands exactly where L(n+1) comes out to a whole number, leaving")
+    say("no slack to absorb a rounding error: L(n+1)/n has no exact double, and the")
+    say("product returns 28.000000000000004 in place of 28, so ceil hands back 29.")
+    say("Floating-point representation does this, not the convention, and only where")
+    say("there is no slack -- so how often it can bite is capped by how often the")
+    say("level is tight.")
     say("Which of those sizes break is settled by the bits of the corrected level and")
     say("does not follow from alpha: every tight size came out clean at alpha = 1/10")
     say("and 1/20, while 2/7, 1/3 and 1/2 hold all the failures. No characterisation")
@@ -788,8 +789,9 @@ def main():
         # and the floating-point departure must be one-sided and rare
         assert r["inv"][2] == 0, (
             f"inverted_cdf at the corrected level came in SHORT at L = {r['L']}: "
-            f"{r['inv'][2]} cells. That is a validity failure, not a width cost, and "
-            f"the recommendation must not be printed as it stands.")
+            f"{r['inv'][2]} cells. Landing short of the required rank is invalid, "
+            f"not merely a wider interval, and the recommendation must not be "
+            f"printed as it stands.")
         # no arbitrary rate threshold: the structural claim is that every miss sits
         # at a no-slack size, so the exposure is bounded by the density of those and
         # not by a number chosen to pass. At alpha = 1/2 that density is 1/2, which is
@@ -853,16 +855,18 @@ def main():
         f"{len(survey_levels)} levels, {len(valid_everywhere)} are valid at every "
         "level tested:")
     say(f"  {', '.join(valid_everywhere)}")
-    say(f"and {len(zero_everywhere)} of those attain the minimax zero at every level")
-    say(f"tested: {', '.join(zero_everywhere)}.")
+    say(f"and {len(zero_everywhere)} of those reach the class minimum, zero, at every")
+    say(f"level tested: {', '.join(zero_everywhere)}.")
     say("MACHINE survey_combos=%d survey_valid=%d survey_zero=%d" %
         (len(combos), len(valid_everywhere), len(zero_everywhere)))
     say("")
-    say("closest_observation is neither exact nor merely wide: rounding to the")
-    say("nearest rank falls BELOW the requirement on roughly half the residues, at")
-    say("both the raw and the corrected level and at every level tested here. That is")
-    say("a validity failure, the kind \\S\\ref{sec:ruleclass} rules out by construction")
-    say("for the rules it recommends, not a width cost like higher's.")
+    say("closest_observation earns neither label, exact or merely wide. Its")
+    say("rounding-to-even undershoots the required rank on close to half the residue")
+    say("classes measured, at both the raw and the corrected level and every level")
+    say("tested here. Landing short of the rank is invalid outright, unlike higher's")
+    say("overshoot, which only costs interval width -- \\S\\ref{sec:ruleclass}")
+    say("distinguishes the two failure modes and rules the first out by construction")
+    say("for the rules it recommends.")
     say("")
     assert len(combos) == 13 * 2, (len(combos), "HF should carry exactly 13 names")
     assert zero_everywhere == ["averaged_inverted_cdf", "inverted_cdf"], (
@@ -881,10 +885,10 @@ def main():
         "excluding averaging conventions should leave inverted_cdf alone", order_stat_zero)
 
     say("Two of those thirteen names are not new rows: midpoint and lower share")
-    say("linear's cell exactly (same guarantee, same (a, b), same policy), which is")
-    say("the same collapse \\S\\ref{sec:certificate} already reports for a corrected")
-    say("level through inverted_cdf against a direct order statistic -- a third")
-    say("instance of it, not a new phenomenon.")
+    say("linear's cell exactly -- same guarantee, same (a, b), same policy. That is")
+    say("the same coincidence \\S\\ref{sec:certificate} documents elsewhere for the")
+    say("corrected inverted_cdf pairing against a direct order statistic, showing up")
+    say("here a third time and not as anything new.")
     collapsed_with_linear = sorted(
         n for n in ("lower", "midpoint")
         if all(deficit_vector(pol, effective_U(a0, a1, b0, b1, L, corrected), L)

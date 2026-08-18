@@ -1,6 +1,6 @@
 # Research plan
 
-**Status: measurement complete, no prose written yet.** This file is the scientific plan — the question,
+**Status: measurement complete; the write-up is under review.** This file is the scientific plan — the question,
 the method, the protocol, and what is finished versus what is not. It is deliberately explicit about what
 has *not* been established.
 
@@ -23,10 +23,13 @@ quantile convention turns that level into a position by its own rule. Hence:
 > cover. The level→rank map does.
 
 Supporting observation already measured on synthetic draws: two libraries that both omit the correction
-sit **0.0000** and **0.1643** from nominal at comparable `n`. One passes an uncorrected level through a
-rounding-based method whose landing point coincides with the required rank in a fifth to two-thirds of cells;
-the other interpolates two separate quantiles of signed residuals, which lands between order statistics
-rather than on one.
+depart from nominal by different amounts at comparable `n`, one landing at exactly **0.0000**. One passes
+an uncorrected level through a rounding-based method whose landing point coincides with the required rank
+in a fifth to two-thirds of cells; the other interpolates two separate quantiles of signed residuals,
+which lands between order statistics rather than on one. The second library's original grid measurement
+was dropped (`fff41e0`): it terminated two cells past the boundary it found and its coverage figure was
+one-sided. No replacement figure for that comparison is committed; treat the qualitative contrast above
+as current and the number as retracted rather than superseded by a specific probe.
 
 ## 3. Method
 

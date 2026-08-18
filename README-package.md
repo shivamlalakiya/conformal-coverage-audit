@@ -4,7 +4,7 @@ Exact rank arithmetic for finite-sample distribution-free prediction bounds. Fou
 functions, no dependencies, stdlib only.
 
 ```bash
-pip install conformal-coverage
+pip install -e .
 ```
 
 ```python
