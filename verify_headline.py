@@ -137,6 +137,27 @@ def main():
           f"(read from the committed output; re-running it needs the archive)")
 
     print()
+    print("(6) THE FLAGGED PATH BELOW THE FLOOR --- arithmetic recomputed, reach read")
+    # The abstract promoted this cell over the statsforecast default, so the
+    # ten-minute path has to reach it. Driving mapie's public regressors needs
+    # mapie installed, which this entry point does not have, so the REACH is read
+    # from the committed output and the two numbers the abstract quotes are
+    # recomputed from first principles: at n = 10 and nominal 0.95 the required
+    # rank is 11, one more than exists, and rank n therefore delivers n/(n+1).
+    n, level = 10, F(95, 100)
+    req = math.ceil(F(n + 1) * level)
+    check("required rank at n=10, nominal 0.95", "recomputed", req, 11)
+    check("...exceeds the calibration size", "recomputed", req > n, True)
+    check("rank n delivers n/(n+1)", "recomputed",
+          f"{float(F(n, n + 1)):.4f}", "0.9091")
+    reaches = committed(
+        "probe_output_mapie_clip_reachability.txt",
+        r"(\d+) of \d+ public regressor classes exercised here fail on the "
+        r"default route and produce a finite interval on the flagged route")
+    print(f"         {reaches} public regressor classes reach it "
+          f"(read from the committed output; re-running it needs mapie installed)")
+
+    print()
     bad = [c for c in checks if not c[0]]
     print(f"{len(checks) - len(bad)} of {len(checks)} checks reproduce.")
     if bad:
