@@ -142,8 +142,9 @@ def main():
     # ten-minute path has to reach it. Driving mapie's public regressors needs
     # mapie installed, which this entry point does not have, so the REACH is read
     # from the committed output and the two numbers the abstract quotes are
-    # recomputed from first principles: at n = 10 and nominal 0.95 the required
-    # rank is 11, one more than exists, and rank n therefore delivers n/(n+1).
+    # recomputed from first principles. Ten calibration points asked for 0.95 need
+    # order statistic 11, which is one past the largest that exists, so the top rank
+    # is what comes back and it carries n/(n+1).
     n, level = 10, F(95, 100)
     req = math.ceil(F(n + 1) * level)
     check("required rank at n=10, nominal 0.95", "recomputed", req, 11)
