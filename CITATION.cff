@@ -34,14 +34,21 @@ identifiers:
   - type: doi
     value: 10.5281/zenodo.21816871
     description: "Version v1.3.1 -- first record whose label matches its contents"
+  # v1.4.0 has no record and never will. Its GitHub release fired at
+  # 2026-08-06T16:28:41Z; the Zenodo webhook was created at 23:27:35Z the same day,
+  # seven hours later, so nothing was listening. The hook's delivery log is empty and
+  # Zenodo does not archive a release that predates its own hook. The tag stands in
+  # git, and the tree it names is archived by the next record below rather than by one
+  # of its own. This is why the list jumps: it is a gap in the record set, not an
+  # omission from this file.
 # verified against the live remote
 repository-code: "https://github.com/shivamlalakiya/conformal-coverage-audit"
 # This is what GitHub's cite widget and the indexers read. Left at v1.1.0 it sent a
 # reviewer to the snapshot whose DISCLOSURE.md carries one row and an open TODO list,
 # and the write-up's disclosure claim was judged against that. Bump it in the commit
 # that gets tagged, not after -- a release naming the previous version is the same bug.
-version: v1.4.0
-date-released: "2026-08-06"
+version: v1.5.0
+date-released: "2026-08-23"
 abstract: >-
   Measurement harnesses used to audit how Python conformal-prediction
   implementations resolve the conformal quantile at finite sample sizes. Each
