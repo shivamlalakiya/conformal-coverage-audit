@@ -59,7 +59,7 @@ from conformal_coverage import (
 )
 
 required_rank(100, 0.9)           # 91   the order statistic the guarantee needs
-delivered_coverage(90, 100)       # 0.8910...   what rank 90 actually delivers
+delivered_coverage(90, 100)       # Fraction(90, 101)   what rank 90 actually delivers
 feasibility_floor(0.9)            # 9    below this no valid finite bound exists
 required_rank(8, 0.9)             # None
 conformal_threshold(scores, 0.1)  # the threshold, or +inf where none is valid

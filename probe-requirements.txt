@@ -11,7 +11,8 @@
 #   [2] darts         darts pins pandas 3.x, which sktime 1.1.0 rejects
 #                     probes: run_darts, run_darts_tighten, darts_scoring_path,
 #                             run_real_data_darts, helper_census
-#   [3] tabular       mapie, crepes, puncc, openml. puncc pins numpy 1.26.x
+#   [3] tabular       mapie, crepes, puncc, openml, torchcp, nonconformist, torch.
+#                     puncc pins numpy 1.26.x
 #                     probes: run_real_data_tabular,
 #                             conformance_suite (tabular run)
 #
@@ -66,15 +67,39 @@ utilsforecast==0.2.16
 
 # --------------------------------------------------------------------- [3] tabular
 # python -m venv .venv-tabular && .venv-tabular/bin/pip install \
-#     mapie==1.4.1 openml==0.15.1 scikit-learn==1.7.2 crepes==0.9.1 puncc==0.9.3
+#     mapie==1.4.1 openml==0.15.1 scikit-learn==1.7.2 crepes==0.9.1 puncc==0.9.3 \
+#     torchcp==1.2.1 nonconformist==2.1.0 torch
 # Installing puncc last is deliberate: it pins numpy down to 1.26.4, and mapie,
 # crepes and scikit-learn 1.7.2 all still import and run against that pin --
 # verified, not assumed.
+#
+# torchcp and nonconformist were absent from this file until 18 Aug 2026, although
+# run_real_data_tabular imports both -- `from torchcp.utils.common import
+# calculate_conformal_value` (:509) and `from nonconformist.nc import AbsErrorErrFunc`
+# (:536) -- and probe_output_conformance_tabular.txt carries a measured row for each.
+# The versions here are the ones probe_output_helper_census.txt records: torchcp 1.2.1,
+# nonconformist 2.1.0.
+#
+# torch is a torchcp dependency, imported lazily at run_real_data_tabular.py:508. No
+# torch version was recorded when the outputs were produced, so none is pinned here;
+# 2.13.0 resolves cleanly against the rest of this set.
+#
+# Only `nonconformist.nc` is usable. `import nonconformist.acp` raises
+# ModuleNotFoundError: No module named 'sklearn.cross_validation' -- removed in
+# scikit-learn 0.20, so under every sklearn this file could pin. The probe imports
+# nc and nothing else, which is why that does not block the run.
 # MAPIE==1.4.1
 # openml==0.15.1
 # crepes==0.9.1
 # puncc==0.9.3
 # scikit-learn==1.7.2
+# torchcp==1.2.1
+# nonconformist==2.1.0
 # numpy==1.26.4
 # pandas==3.0.5
-# scipy==1.18.0
+# scipy: NOT PINNED, and the earlier `scipy==1.18.0` line here was wrong -- scipy
+#   1.18.0 requires numpy>=2.0.0,<2.8, so it cannot be co-installed with the
+#   numpy==1.26.4 above. No tabular probe imports scipy; it arrives transitively,
+#   and pip resolves 1.17.1 (numpy>=1.26.4,<2.7) against this set. The version the
+#   committed outputs were produced under was never recorded, so it is not invented
+#   here.

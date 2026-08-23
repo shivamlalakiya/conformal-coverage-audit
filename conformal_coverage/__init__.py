@@ -11,7 +11,7 @@ easier than adding a requirement.
     >>> required_rank(100, 0.9)
     91
     >>> delivered_coverage(90, 100)
-    0.8910891089108911
+    Fraction(90, 101)
     >>> feasibility_floor(0.9)
     9
     >>> required_rank(8, 0.9) is None      # below the floor, no valid bound
@@ -65,10 +65,20 @@ def required_rank(n, coverage):
 
 
 def delivered_coverage(rank, n):
-    """Coverage of the bound at 1-based ``rank``: exactly ``rank / (n + 1)``."""
+    """Coverage of the bound at 1-based ``rank``: exactly ``rank / (n + 1)``.
+
+    Returns a ``Fraction``, not a float, for the reason the module docstring
+    gives. ``float`` here was not merely inelegant: it made this package's own
+    self-check unfalsifiable, because the check compared ``rank / (n + 1)``
+    against ``rank / (n + 1)`` and both sides were the same float division.
+    An exact return makes the same check fail a float implementation --
+    ``Fraction(91, 101) == 91 / 101`` is ``False``.
+
+    Call ``float()`` on the result to report it.
+    """
     if not 0 <= rank <= n:
         raise ValueError(f"rank {rank} outside 0..{n}")
-    return rank / (n + 1)
+    return Fraction(rank, n + 1)
 
 
 def feasibility_floor(coverage):
@@ -103,7 +113,21 @@ def _self_check():
     """Run me. Cheap, and each assertion here failed something once."""
     # the identity the whole package is about
     assert required_rank(100, 0.9) == 91
-    assert delivered_coverage(91, 100) == 91 / 101
+    # exact on the right-hand side, deliberately. Comparing against ``91 / 101``
+    # would be an assertion that cannot fail: both sides would be the same float
+    # division, so a wrong denominator would agree with itself.
+    assert delivered_coverage(91, 100) == Fraction(91, 101)
+    assert delivered_coverage(91, 100) != 91 / 101      # the float is not the rational
+    assert delivered_coverage(91, 100) != Fraction(91, 100)   # catches rank / n
+    assert isinstance(delivered_coverage(91, 100), Fraction)
+    # the rank required is the smallest one whose delivered coverage clears the level
+    for n in (10, 19, 100, 999):
+        for cov in (Fraction(9, 10), Fraction(19, 20), Fraction(99, 100)):
+            k = required_rank(n, cov)
+            if k is None:
+                continue
+            assert delivered_coverage(k, n) >= cov, (n, cov, k)
+            assert delivered_coverage(k - 1, n) < cov, (n, cov, k)
 
     # the floor, and that required_rank agrees with it at the boundary
     for cov in (Fraction(9, 10), Fraction(19, 20), Fraction(99, 100), Fraction(2, 3)):
