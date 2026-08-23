@@ -32,7 +32,9 @@ THREE COUNTS, and any write-up must name which one it uses
   P2  every site in the pinned versions that determines a returned bound
       -- the honest total, and the one to use
   P3  public API entry points that route through at least one P2 site
-      -- the user-facing surface, always the largest number
+      -- the user-facing surface. No order relation to P2 holds: entries are
+         shared between sites and sites are reachable from several entries,
+         so P3 can land above, below or exactly on P2, as it does here
 
 Scope, stated because it changes the count
 ------------------------------------------
@@ -391,11 +393,11 @@ MASTER_ONLY = [
 # ---------------------------------------------------------------------------
 # How each P2 site reaches the conformance table, declared per site.
 #
-# The census counts 35 resolution sites and Table "conformance" carries 14 rows.
+# The census counts 36 resolution sites and Table "conformance" carries 14 rows.
 # Those are counts of different populations -- a row is a call path the suite can
 # construct, and one row can stand for several sites that call the same
 # expression -- and until this block existed nothing in either paper said so. A
-# reader who put "8 of 14 call paths" beside a 35-site census had no way to close
+# reader who put "8 of 14 call paths" beside a 36-site census had no way to close
 # the gap.
 #
 #   driven    the suite builds this library's helper and calls it; the row is
@@ -414,7 +416,7 @@ MASTER_ONLY = [
 # ---------------------------------------------------------------------------
 # The rows of the conformance table, read off its committed outputs rather than
 # retyped. A 'driven' site must name one of these, so the join counts rows and the
-# 35-sites-to-14-rows arithmetic closes instead of stopping at a four-way split.
+# 36-sites-to-14-rows arithmetic closes instead of stopping at a four-way split.
 def _conformance_rows():
     here = os.path.dirname(os.path.abspath(__file__))
     rows = set()
@@ -447,7 +449,7 @@ SUITE_DISPOSITION = {
     "BaseConformityScore.get_quantile": ("driven", "mapie get_quantile"),
     # Same row as the LAC prefit/mean site below: that row delegates here, so one
     # row executes two sites. Naming the row rather than the delegation is what
-    # lets the join count ROWS and reconcile 35 sites against 14 table rows.
+    # lets the join count ROWS and reconcile 36 sites against 14 table rows.
     "_compute_quantiles":
         ("driven", "mapie LAC quantiles [prefit/mean -> delegates]"),
     "LACConformityScore.get_conformity_score_quantiles [prefit/mean]":

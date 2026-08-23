@@ -5,7 +5,7 @@ self_check() passed at import: every row of DISCLOSURE.md parses to a
 resolvable target, both issues and pull requests are present, no URL appears
 twice, and every date is a date.
 
-queried 2026-08-11 UTC through the gh CLI against the public API.
+queried 2026-08-23 UTC through the gh CLI against the public API.
 
 WHAT A STATE MEANS AND DOES NOT. `merged` is the maintainer accepting a patch
 and is the strongest signal available; it is not an endorsement of this paper.
@@ -19,22 +19,22 @@ filing identity from the local gh credential: shivamlalakiya
 ------------------------------------------------------------------------------------------------------------
       date package         target                                state  merged  replies  not mine  age d
 ------------------------------------------------------------------------------------------------------------
-2026-08-02 mapie           scikit-learn-contrib/MAPIE#973       closed     yes        6         3      9
-2026-08-02 mapie           scikit-learn-contrib/MAPIE#974         open       -        1         0      9
-2026-08-04 mapie           scikit-learn-contrib/MAPIE#978         open      no        3         2      7
-2026-07-10 mapie           scikit-learn-contrib/MAPIE#958       closed     yes        0         0     32
-2026-08-02 crepes          henrikbostrom/crepes#46                open       -        0         0      9
-2026-08-02 crepes          henrikbostrom/crepes#47                open       -        0         0      9
-2026-08-02 crepes          henrikbostrom/crepes#48                open       -        1         0      9
-2026-08-02 crepes          henrikbostrom/crepes#49                open      no        0         0      9
-2026-08-02 crepes          henrikbostrom/crepes#50                open      no        0         0      9
-2026-08-04 sktime          sktime/sktime#10757                    open       -        4         2      7
-2026-08-04 sktime          sktime/sktime#10765                    open      no        1         0      7
-2026-08-04 sktime          sktime/sktime#10758                    open       -        0         0      7
-2026-08-05 sktime          sktime/sktime#10766                    open       -        1         0      6
-2026-08-04 statsforecast   Nixtla/statsforecast#1202              open       -        1         0      7
-2026-08-04 torchcp         ml-stat-Sustech/torchcp#122          closed     yes        1         1      7
-2026-08-06 mapie           scikit-learn-contrib/MAPIE#980         open       -        1         0      5
+2026-08-02 mapie           scikit-learn-contrib/MAPIE#973       closed     yes        6         3     21
+2026-08-02 mapie           scikit-learn-contrib/MAPIE#974         open       -        1         0     21
+2026-08-04 mapie           scikit-learn-contrib/MAPIE#978         open      no        3         2     19
+2026-07-10 mapie           scikit-learn-contrib/MAPIE#958       closed     yes        0         0     44
+2026-08-02 crepes          henrikbostrom/crepes#46                open       -        0         0     21
+2026-08-02 crepes          henrikbostrom/crepes#47                open       -        0         0     21
+2026-08-02 crepes          henrikbostrom/crepes#48                open       -        1         0     21
+2026-08-02 crepes          henrikbostrom/crepes#49                open      no        0         0     21
+2026-08-02 crepes          henrikbostrom/crepes#50                open      no        0         0     21
+2026-08-04 sktime          sktime/sktime#10757                    open       -        4         2     19
+2026-08-04 sktime          sktime/sktime#10765                    open      no        2         0     19
+2026-08-04 sktime          sktime/sktime#10758                    open       -        0         0     19
+2026-08-05 sktime          sktime/sktime#10766                    open       -        1         0     18
+2026-08-04 statsforecast   Nixtla/statsforecast#1202              open       -        1         0     19
+2026-08-04 torchcp         ml-stat-Sustech/torchcp#122          closed     yes        1         1     19
+2026-08-06 mapie           scikit-learn-contrib/MAPIE#980         open       -        1         0     17
 
 ============================================================================================================
 THE TALLY
@@ -48,11 +48,11 @@ open                       13
 drew a reply from someone
   other than the filer     4
 no comment at all          6
-oldest filing              5 to 32 days
+oldest filing              17 to 44 days
 
 READ THIS AS A SHORT WINDOW, WHICH IS WHAT IT IS. The filings run from
 2026-07-10 to 2026-08-06 and the
-oldest is 32 days old. Maintainer
+oldest is 44 days old. Maintainer
 response times in these projects are measured in weeks, so the open count is
 a statement about elapsed time and not about the findings. The table is
 regenerated at submission rather than frozen here, and a filing that turns

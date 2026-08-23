@@ -9,7 +9,7 @@ makes the ordering — report first, publish second — a checkable fact rather 
 assurance. It is generated to match the write-up's own table, and the build fails if the
 two disagree.
 
-⚠️ **An unlisted site is not a site certified correct.** 35 resolution sites were
+⚠️ **An unlisted site is not a site certified correct.** 36 resolution sites were
 surveyed and far fewer are reportable defects, by design. Two reasons keep a site off
 this table: its measured behaviour is documented and deliberate, or it was newly found
 here and filing it would spend a maintainer's attention for no fix. Which of the two
@@ -80,14 +80,14 @@ edited silently, and this manifest now carries the committed values.
 
 ## Not filed, and why — stated as policy, not left open
 
-19 of the 35 census sites are **pre-existing and documented**: a library resolving an
+19 of the 36 census sites are **pre-existing and documented**: a library resolving an
 uncorrected level through a rounding definition is doing something its own
 documentation describes. Where such a site is already public, the census output cites
 its existing issue or pull-request number rather than re-filing it. What was surveyed
 here is source, not trackers, so nothing in this file settles who knew what about the
-remaining 16 — and no claim of that shape is made anywhere in the programme.
+remaining 17 — and no claim of that shape is made anywhere in the programme.
 
-The rule applied across all 35 is: **file where a maintainer would have to change code
+The rule applied across all 36 is: **file where a maintainer would have to change code
 or documentation to make the shipped behaviour match its own stated contract; do not
 file where the behaviour is intended, documented, and merely lossy.** Every filing in
 the table above meets the first test. The remainder do not, and are reported in the
