@@ -44,6 +44,9 @@ identifiers:
   - type: doi
     value: 10.5281/zenodo.22072086
     description: "Version v1.5.0 -- archives the v1.4.0 tree and everything since"
+  - type: doi
+    value: 10.5281/zenodo.22100841
+    description: "Version v1.5.1 -- the 24 Aug disclosure re-query"
 # verified against the live remote
 repository-code: "https://github.com/shivamlalakiya/conformal-coverage-audit"
 # This is what GitHub's cite widget and the indexers read. Left at v1.1.0 it sent a
