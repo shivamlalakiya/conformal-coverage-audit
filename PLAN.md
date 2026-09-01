@@ -178,6 +178,27 @@ These are not aspirations; they have each already caught a real error in this wo
 - Sample-path simulators that produce trajectories rather than a split-conformal interval.
 - Which method is *best*. This is a correctness audit, not a benchmark of predictive performance.
 
+## 11b. Candidates read and excluded by criterion, with anchors
+
+The criterion is whether a package turns a miscoverage target into a position in a
+held-out sample. It admits or excludes; it is not tuned. Each exclusion below names
+the file and the line a reader can open, because an exclusion asserted in prose is a
+claim about somebody else's code with nothing behind it.
+
+- **uq360 0.2** (read 31 Aug 2026). Excluded. Its interval comes from
+  `uq360/algorithms/infinitesimal_jackknife/infinitesimal_jackknife.py:80-81`,
+  `np.quantile(y, q=0.5 * alpha, axis=0)` and its upper twin, where `y` is built at
+  lines 76-79 by setting the model's parameters to each of `params.shape[0]`
+  perturbed draws and re-predicting. That is a percentile across a predictive
+  distribution, not an order statistic of a set of held-out scores, so no rank and no
+  finite-sample coverage attach to it. The same reasoning excludes the CV+ and
+  jackknife+ aggregation in other libraries, which quantile cross-fit prediction
+  arrays rather than calibration scores.
+
+A note for a later pass rather than a finding: the copy of `venn_abers` read here is
+1.5.4, while the pinned local copy used elsewhere in this work is 1.5.3. Anchors taken
+from one do not transfer to the other without re-reading.
+
 ## 11a. A warning for anyone extending this to a literature census
 
 A search over conformal-prediction papers was run and is deliberately not reported here or in
