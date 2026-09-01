@@ -514,6 +514,103 @@ def adapters():
     return out, skipped
 
 
+# --------------------------------------------------------------------------
+# adapters for packages OUTSIDE the census, behind --oos
+# --------------------------------------------------------------------------
+def _dist_version(dist, module):
+    """The installed distribution's version, and the module's own if it disagrees.
+
+    `crepes_weighted.__version__` reads "0.1.1" inside the 0.1.3 distribution, so a
+    row labelled from the module attribute alone names a version that is not what
+    ran. The installed metadata is authoritative; the declared string is printed
+    beside it when the two differ, because that disagreement is itself a fact about
+    the package a reader may want.
+    """
+    from importlib.metadata import PackageNotFoundError, version
+    try:
+        meta = version(dist)
+    except PackageNotFoundError:
+        meta = "?"
+    declared = getattr(module, "__version__", None)
+    if declared and declared != meta:
+        return f"{meta}; module declares {declared}"
+    return meta
+
+# These do not belong in the two committed conformance outputs: those rows feed a
+# gated table whose fixture is hand-audited, and the census is a statement about
+# ten packages at pinned versions. `--oos` writes its own output and the default
+# run is byte-identical to what it was before this function existed.
+#
+# Every package here was located by reading the released sdist and anchored to a
+# file and a line before an adapter was written for it. The classic crepes-weighted
+# branch is included ONLY as a control: its expression is inherited verbatim from
+# `crepes 0.9.1`, which the census already counts, so it must not be counted again.
+# What is new in that fork is the weighted branch.
+def oos_adapters():
+    """(label, callable) for out-of-census packages importable here."""
+    out, skipped = [], []
+
+    try:
+        import crepes_weighted
+        from crepes_weighted import ConformalRegressor
+
+        def cw_classic(s, lv):
+            cr = ConformalRegressor().fit(residuals=np.asarray(s, dtype=float))
+            return np.asarray(cr.predict(y_hat=np.zeros(1), confidence=lv))[0, 1]
+
+        def cw_weighted(s, lv):
+            """The same class, the branch the fork added, at unit weights.
+
+            `base.py:566-577` in 0.1.3. With every likelihood ratio equal to 1 the
+            weighting is uniform, so this row asks whether the added branch agrees
+            with the classic one on identical data, which is a question about the
+            expression and not about the weighting.
+            """
+            s = np.asarray(s, dtype=float)
+            cr = ConformalRegressor().fit(residuals=s,
+                                          likelihood_ratios=np.ones(len(s)))
+            return np.asarray(cr.predict(y_hat=np.zeros(1),
+                                         likelihood_ratios=np.ones(1),
+                                         confidence=lv))[0, 1]
+
+        v = _dist_version("crepes-weighted", crepes_weighted)
+        out.append((f"crepes-weighted classic branch [{v}] (CONTROL: expression "
+                    f"inherited from crepes 0.9.1)", cw_classic))
+        out.append((f"crepes-weighted weighted branch [{v}], ratios=1", cw_weighted))
+    except Exception as exc:
+        skipped.append(("crepes-weighted", type(exc).__name__))
+
+    try:
+        import pandas as pd
+        import skforecast
+        from skforecast.preprocessing import ConformalIntervalCalibrator
+
+        def skf_calibrator(s, lv):
+            """`_preprocessing.py:2694`, reached through the public calibrator.
+
+            The class takes caller-supplied arrays, so held-out-ness is the caller's
+            contract. y_true is zero and the lower bound carries the score, which
+            makes the calibrator's own conformity score equal the supplied score
+            exactly: it computes max(lower - y, y - upper).
+            """
+            s = np.asarray(s, dtype=float)
+            idx = pd.RangeIndex(len(s))
+            c = ConformalIntervalCalibrator(nominal_coverage=lv,
+                                            symmetric_calibration=True)
+            c.fit(y_true=pd.Series(np.zeros(len(s)), index=idx, name="y"),
+                  y_pred_interval=pd.DataFrame(
+                      {"lower_bound": s, "upper_bound": np.zeros(len(s))}, index=idx))
+            return float(c.correction_factor_[list(c.correction_factor_)[0]])
+
+        v = _dist_version("skforecast", skforecast)
+        out.append((f"skforecast ConformalIntervalCalibrator [{v}], symmetric",
+                    skf_calibrator))
+    except Exception as exc:
+        skipped.append(("skforecast ConformalIntervalCalibrator", type(exc).__name__))
+
+    return out, skipped
+
+
 # One row per CALL PATH. Two of these paths reach the same resolution site under
 # the census's criterion -- a single formula converting level to rank -- and the
 # table shows both deliberately, because the flag's effect is to select which branch
@@ -540,8 +637,13 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="outputs/probe_output_conformance.txt")
     ap.add_argument("--level", type=float, default=LEVEL)
+    ap.add_argument("--oos", action="store_true",
+                    help="classify packages OUTSIDE the census instead of the "
+                         "censused ones, and write to a separate output")
     args = ap.parse_args()
     level = args.level
+    if args.oos and args.out == "outputs/probe_output_conformance.txt":
+        args.out = "outputs/probe_output_conformance_oos.txt"
 
     lines = []
 
@@ -567,7 +669,7 @@ def main():
     say("two order statistics.")
     say("")
 
-    helpers, skipped = adapters()
+    helpers, skipped = oos_adapters() if args.oos else adapters()
 
     say(f"{'helper':<52} {'br':>3} {'at n_bad':>10} {'rank@n_ok':>10} "
         f"{'delivered':>10} {'n_min':>6} {'warn?':>6}")
@@ -589,16 +691,27 @@ def main():
             f"{(n_min if n_min else '>2000'):>6} {warns:>6}")
 
     shipped = [r[0] for r in rows if len(r[0]) != 1]
-    dup = {k: v for k, v in SHARED_SITE.items() if k in shipped}
+    if args.oos:
+        say("")
+        say("These rows are NOT a census count. The census criterion counts one")
+        say("resolution site per distinct expression reachable from a public entry")
+        say("point, and applying it here needs a decision per package that this run")
+        say("does not make: crepes-weighted's classic branch is the same expression")
+        say("as an already-counted crepes 0.9.1 site, and skforecast ships the same")
+        say("line in several forecasters. The rows report what each helper delivers.")
+    dup = {} if args.oos else {k: v for k, v in SHARED_SITE.items() if k in shipped}
     for path, site in dup.items():
         assert site in shipped, f"{path} names {site}, which is not in the table"
     say("")
-    say(f"shipped call paths: {len(shipped)}   distinct resolution sites: "
-        f"{len(shipped) - len(dup)}   paths sharing a site: {len(dup)}")
-    for path, site in sorted(dup.items()):
-        say(f"      {path}  is the same site as  {site}")
-    say("A count over the rows above is a count over call paths. The site count is")
-    say("what the census criterion measures, and it is the smaller of the two.")
+    if args.oos:
+        say(f"rows: {len(shipped)}   no site count is printed here, on purpose")
+    else:
+        say(f"shipped call paths: {len(shipped)}   distinct resolution sites: "
+            f"{len(shipped) - len(dup)}   paths sharing a site: {len(dup)}")
+        for path, site in sorted(dup.items()):
+            say(f"      {path}  is the same site as  {site}")
+        say("A count over the rows above is a count over call paths. The site count is")
+        say("what the census criterion measures, and it is the smaller of the two.")
 
     say("")
     say("Evidence per helper")

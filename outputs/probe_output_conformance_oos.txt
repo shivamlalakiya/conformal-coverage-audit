@@ -1,0 +1,76 @@
+========================================================================================================
+CONFORMANCE SUITE -- what does this quantile helper actually deliver?
+========================================================================================================
+self_check() passed at import: the classifier labelled reference
+implementations of branches a, b, c, d and g correctly, and threshold
+extraction recovered the exact rank on a tie-free score set.
+
+requested coverage: 0.90
+feasibility floor:  n >= 9  (below it, ceil((n+1)*0.90) exceeds n and NO finite bound is valid)
+probe at n=8 (infeasible) and n=40 (interior)
+
+Scores are 1..n with no ties; threshold values therefore identify
+their selected rank -- a non-integer value means the helper interpolated between
+two order statistics.
+
+helper                                                br   at n_bad  rank@n_ok  delivered  n_min  warn?
+--------------------------------------------------------------------------------------------------------
+reference a                                            a     raises     38.000     0.9000      9      -
+reference b                                            b      8.000     38.000     0.9000      9      -
+reference c                                            c       +inf     37.000     0.9000      9      -
+reference d                                            d      7.300     36.100        nan  >2000      -
+reference g                                            g      1.310      2.700        nan  >2000      -
+crepes-weighted classic branch [0.1.3; module declares 0.1.1] (CONTROL: expression inherited from crepes 0.9.1)   c       +inf     37.000     0.9091     10  warns
+crepes-weighted weighted branch [0.1.3; module declares 0.1.1], ratios=1   c       +inf     38.000     0.9524     20  warns
+skforecast ConformalIntervalCalibrator [0.24.0], symmetric   d      7.300     36.100        nan  >2000      -
+
+These rows are NOT a census count. The census criterion counts one
+resolution site per distinct expression reachable from a public entry
+point, and applying it here needs a decision per package that this run
+does not make: crepes-weighted's classic branch is the same expression
+as an already-counted crepes 0.9.1 site, and skforecast ships the same
+line in several forecasters. The rows report what each helper delivers.
+
+rows: 3   no site count is printed here, on purpose
+
+Evidence per helper
+--------------------------------------------------------------------------------------------------------
+  a
+      branch (a): rule fitted over 6 interior n: corrected higher, 1-sided (max deviation 0.000 ranks); corrects, then raises at n=8
+      first delivers 0.90 at n=9, as 9/10 = 0.9000
+  b
+      branch (b): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: corrected higher, 1-sided (max deviation 0.000 ranks); corrects, then returns max(scores) at n=8 where the corrected level exceeds 1 -- the clamp
+      first delivers 0.90 at n=9, as 9/10 = 0.9000
+  c
+      branch (c): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: raw order-stat, 1-sided (max deviation 0.000 ranks); corrects, then returns +inf at n=8
+      first delivers 0.90 at n=9, as 9/10 = 0.9000
+  d
+      branch (d): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: raw linear, 1-sided (max deviation 0.000 ranks); no (n+1)/n correction applied, so the feasibility boundary is never encountered and no branch decision occurs; threshold lands BETWEEN order statistics, so no exchangeability bound applies to it directly
+      never delivers 0.90 for any n <= 2000
+  g
+      branch (g): silent at the boundary: no warning emitted at n=8; NO candidate rule fits: closest is 'raw linear, 1-sided', off by 102.7 ranks over 6 interior n. Read this as either an approximate estimator (river's P-squared is the real case) OR a rule this suite's candidate set does not yet name -- check the second before reporting the first
+      never delivers 0.90 for any n <= 2000
+  crepes-weighted classic branch [0.1.3; module declares 0.1.1] (CONTROL: expression inherited from crepes 0.9.1)
+      branch (c): WARNS at the boundary: "the no. of calibration examples is too smallfor the chosen confidence level; the interva"; rule fitted over 6 interior n: raw order-stat, 1-sided (max deviation 0.000 ranks); corrects, then returns +inf at n=8
+      first delivers 0.90 at n=10, as 10/11 = 0.9091
+  crepes-weighted weighted branch [0.1.3; module declares 0.1.1], ratios=1
+      branch (c): WARNS at the boundary: "the no. of calibration examples is too smallfor the chosen confidence level; the interva"; rule fitted over 6 interior n: corrected higher, 1-sided (max deviation 0.000 ranks); corrects, then returns +inf at n=8
+      first delivers 0.90 at n=20, as 20/21 = 0.9524
+  skforecast ConformalIntervalCalibrator [0.24.0], symmetric
+      branch (d): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: raw linear, 1-sided (max deviation 0.000 ranks); no (n+1)/n correction applied, so the feasibility boundary is never encountered and no branch decision occurs; threshold lands BETWEEN order statistics, so no exchangeability bound applies to it directly
+      never delivers 0.90 for any n <= 2000
+
+========================================================================================================
+THE THREE-ITEM REPORTING CHECKLIST
+========================================================================================================
+Any paper or library that claims a distribution-free coverage level should
+report these three numbers. They are short enough that a reviewer can demand
+them and cheap enough that no author can object.
+
+  1. The DELIVERED coverage, not the nominal coverage: the rank the implementation lands on, divided by n+1.
+  2. The RANK itself, reported as k of n, letting a reader verify the arithmetic without re-executing anything.
+  3. The CALIBRATION SET SIZE n, together with whether a valid finite bound can exist at that n for the nominated level.
+
+The third item matters because it alone can declare 'no valid bound exists
+here'. Items 1 and 2 are always answerable; item 3 is what flags a finite
+interval handed back where no valid one can be constructed.

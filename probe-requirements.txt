@@ -15,6 +15,10 @@
 #                     puncc pins numpy 1.26.x
 #                     probes: run_real_data_tabular,
 #                             conformance_suite (tabular run)
+#   [4] out-of-census crepes-weighted, skforecast. Packages the census does NOT
+#                     cover, classified to test the suite outside the set it was
+#                     built on.
+#                     probes: conformance_suite --oos
 #
 # helper_census reads source text only, so it runs under any of the three; it
 # reports which packages it could not locate rather than skipping them silently.
@@ -103,3 +107,22 @@ utilsforecast==0.2.16
 #   and pip resolves 1.17.1 (numpy>=1.26.4,<2.7) against this set. The version the
 #   committed outputs were produced under was never recorded, so it is not invented
 #   here.
+
+# --------------------------------------------------------------- [4] out-of-census
+# python -m venv .venv-oos && .venv-oos/bin/pip install \
+#     crepes-weighted==0.1.3 skforecast==0.24.0
+# Both resolve against current numpy/pandas, so no pin conflicts with [1] except the
+# numpy minor. The versions below are what produced
+# outputs/probe_output_conformance_oos.txt.
+#
+# crepes_weighted 0.1.3 declares `__version__ = "0.1.1"` at base.py:17. The probe
+# prints the installed distribution's version and the declared one when they differ,
+# rather than trusting the module attribute, which would have labelled the row 0.1.1.
+# crepes_weighted==0.1.3
+# skforecast==0.24.0
+# numpy==2.5.2
+# pandas==2.3.3
+# scikit-learn==1.9.0
+# scipy==1.18.1
+# joblib==1.6.0
+# threadpoolctl==3.6.0
