@@ -1,0 +1,156 @@
+========================================================================================================
+FRAME SWEEP -- the candidate list against a query over the index
+========================================================================================================
+self_check() passed at import: the evidence pattern fires on a
+conformal-prediction statement and stays silent on an ERP nonconformity
+register, the name pattern admits it cannot see a package called river,
+and the screen separates an ordering call from bare arithmetic.
+
+queried 2026-09-01 UTC. Names come from PyPI's own index, metadata from the
+PyPI JSON API, download counts from ecosyste.ms in this same run. The
+counts here are a dated snapshot. They are NOT the pypistats figures the
+install-weight output carries: different API, different date, and the two
+must not be set against each other.
+
+--------------------------------------------------------------------------------------------------------
+ARM A -- every name on the index, then the metadata behind each hit
+--------------------------------------------------------------------------------------------------------
+  distributions on the index           882,761
+  names matching the stem pattern          219
+  carrying conformal evidence               39
+  name matched, metadata did not           180
+  metadata unreachable                       0
+
+--------------------------------------------------------------------------------------------------------
+ARM B -- the download-ranked head, read the same way
+--------------------------------------------------------------------------------------------------------
+  distributions read                     5,000
+  monthly-download floor at the edge   820,160
+  carrying conformal evidence                0
+  metadata unreachable                       0
+  candidate-list packages inside it          3   prophet, sktime, statsforecast
+
+  Nothing above that floor says the word. The conformal-prediction
+  ecosystem sits entirely below the head of the index, which is why
+  a download-ordered read cannot assemble the candidate list either.
+
+--------------------------------------------------------------------------------------------------------
+RECALL -- both arms turned on the candidate list, which is known-positive
+--------------------------------------------------------------------------------------------------------
+Each arm is asked to find packages already known to belong. What it
+misses here is what it would miss anywhere, and the miss is the reason
+the manuscript keeps a named list rather than replacing it with a query.
+
+  candidate list                            22
+  reachable by the name pattern              3   nonconformist, conformal-tights, venn-abers
+  declaring it in their own metadata         9
+  declaring nothing anywhere                13   neuralforecast, river, sktime, statsforecast, fortuna, uncertainty-toolbox, quantile-forest, nixtla, pytorch-forecasting, gluonts, prophet, skforecast, orbit-ml
+  of those, audited by this paper            4   neuralforecast, river, sktime, statsforecast
+
+  A query reaches a package only where the package announces itself. Of
+  the ten under audit, 4 announce nothing of the kind anywhere in what
+  they publish; 2 of them clear arm B's floor, were opened in full, and
+  came back empty all the same: sktime, statsforecast.
+
+--------------------------------------------------------------------------------------------------------
+WHAT THE CANDIDATE LIST MISSED -- conformal-first, outside it   (36)
+--------------------------------------------------------------------------------------------------------
+package                                monthly   py files  screened in
+conformal-clip-data                      1,128          1            0
+nonconform                                 584         21            5
+conformal                                  504          3            0
+insurance-conformal                        490        128           44
+conformal-clip                             448         11            1
+econformal                                 224         24            4
+conformal-ops                              149         18            3
+insurance-conformal-claims                 122         13            5
+conditionalconformal                       121         11            1
+conformal-oracle                           107         71           13
+conformal-region-designer                  103         21            2
+conformguard                                93         52            5
+insurance-conformal-ts                      81         18            6
+gpyconform                                  79          8            0
+conformist                                  74         13            2
+adaptive-conformal-inference                59          3            1
+insurance-conformal-risk                    57         21            2
+online-conformal                            57         13            5
+conformal-feedback-alignment                53         23            0
+conformal-eval                              42         15            2
+insurance-multivariate-conformal            42         20            7
+insurance-spatial-conformal                 42         19            4
+insurance-conformal-fraud                   40         17            3
+tsconformal                                 38         16            0
+geoconformal                                32         14            6
+conforma                                    31          9            2
+selfcalibratingconformal                    23          9            2
+conformal-prediction-framework              21          6            1
+conformalpy                                 21         72           27
+conformalguide                              18          2            1
+photonai-conformal                          17          6            0
+ConformalImpact                              ?          2            0
+Orange3-Conformal                            ?         15            1
+conformal-finance                            ?         34            9
+quantconformal                               ?          9            5
+tinyconformal                                ?         36           13
+
+  monthly downloads over the 36           4,900
+  holding a file the screen passes            29
+
+  the audited ten, same source, same run   3,988,375
+  what the candidate list missed, as a share of the audited ten   0.12%
+
+--------------------------------------------------------------------------------------------------------
+THE ONE ROW THAT IS NOT A LONG TAIL
+--------------------------------------------------------------------------------------------------------
+  quantconformal 0.3.0
+    summary: Exact finite-sample conformal prediction: correct rank arithmetic, explicit eligibility, no silent saturation
+    first release on the index: 2026-08-19
+    sdist sha256: df65b70b97ee9203083d5cb1025f55c2a45de07787caacc92af361d61c4c7763
+
+    It ships the behaviour this paper's checklist asks for, and the
+    lines below are what it did when run rather than what it says.
+
+    executed against quantconformal 0.3.0
+    rank equals ceil((n+1)(1-alpha)) in all 55 cells tried
+    below the floor at n=10, alpha=0.05: raises InsufficientCalibration
+    opted in below the floor: threshold inf, eligible False, rank 11 of 10
+    a non-finite calibration score is rejected
+
+========================================================================================================
+THE COUNTS
+========================================================================================================
+  distributions on the index         882761
+  arm A name candidates              219
+  arm A carrying evidence            39
+  arm B distributions read           5000
+  arm B download floor               820160
+  arm B carrying evidence            0
+  candidate list size                22
+  candidate list found by name       3
+  candidate list declaring evidence  9
+  candidate list declaring nothing   13
+  audited packages declaring nothing 4
+  conformal-first outside the list   36
+  of those the screen passes         29
+  their monthly downloads            4900
+  audited ten monthly downloads      3988375
+  missed share of audited percent    0.12
+  quantconformal rank cells          55
+  quantconformal first release       2026-08-19
+
+========================================================================================================
+WHAT THIS DOES NOT SETTLE
+========================================================================================================
+Nothing here rules on a site. The screen puts a ceiling on the missed
+set and settles no package inside it; ruling means reading one expression
+at a time against the criterion, and this sweep read none that way.
+
+Arm A cannot see a conformal library named after an ordinary word, and
+the recall block measures exactly how badly. Arm B cannot see anything
+below its floor, which is where every conformal-first package lives.
+Between them they bound the gap; neither closes it, and a package that
+publishes no metadata at all is outside both.
+
+The index moves. Names are added daily and download ranks turn over, so
+a re-run will not reproduce these counts exactly. The date above is the
+claim's scope.

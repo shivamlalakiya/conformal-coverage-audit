@@ -151,3 +151,12 @@ utilsforecast==0.2.16
 # flax==0.8.5
 # optax==0.1.9
 # numpy==1.24.3
+
+# --------------------------------------------------------------- [1] addition, sweep
+# frame_sweep reaches the network and reads metadata, so it needs nothing installed
+# beyond the standard library -- except for the one package it EXECUTES rather than
+# describes. quantconformal is the sweep's own find: a distribution implementing the
+# behaviour the checklist asks for, which the probe runs so that the paragraph about
+# it is a measurement instead of a reading. It shares [1] because it wants numpy and
+# nothing else.
+# quantconformal==0.3.0

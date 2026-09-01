@@ -62,10 +62,12 @@ repository-code: "https://github.com/shivamlalakiya/conformal-coverage-audit"
 # reviewer to the snapshot whose DISCLOSURE.md carries one row and an open TODO list,
 # and the write-up's disclosure claim was judged against that. Bump it in the commit
 # that gets tagged, not after -- a release naming the previous version is the same bug.
-version: v1.5.4
-# Zenodo stamped this record 2026-09-01; the tag and the GitHub release were created
-# on 2026-08-31 in the author's timezone. The published record is what a citation
-# resolves to, so its date is the one here.
+version: v1.5.5
+# This is the TAG date, not yet a record date. The v1.5.5 record does not exist when
+# this commit is written -- the version field has to be right in the commit that gets
+# tagged, and the Zenodo stamp only exists after the push. v1.5.4 archived a day after
+# its tag for exactly this reason. Reconcile this line against the record's own stamp
+# in the commit that records the v1.5.5 DOI below, the same way v1.5.4's was.
 date-released: "2026-09-01"
 abstract: >-
   Measurement harnesses used to audit how Python conformal-prediction

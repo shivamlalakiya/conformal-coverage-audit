@@ -1,0 +1,63 @@
+========================================================================================================
+SECOND CODER -- the instrument, shipped blank
+========================================================================================================
+self_check() passed at import: kappa returns 1 on identical labels and 0
+at chance, and the redactor removes a branch label rather than the prose
+around it. What was written is then read back, and rejected outright
+should any pre-filled response or key label survive in it.
+
+The audit classified every site itself. That is the authors-as-oracle
+threat the manuscript declares, and the three things standing in for
+independence are not independence. This is what a second party would
+need in order to disagree.
+
+  the sample, as drawn:
+    01  sktime 1.1.0         sktime/forecasting/conformal.py:329
+    02  crepes 0.9.1         crepes/base.py:900
+    03  statsforecast 2.1.1  statsforecast/models.py:156
+    04  puncc 0.9.3          deel/puncc/api/calibration.py:268
+    05  nonconformist 2.1.0  nonconformist/nc.py:191
+    06  statsforecast 2.1.1  statsforecast/models.py:4302
+    07  mapie 1.4.1          mapie/conformity_scores/sets/lac.py:156
+    08  river 0.25.0         river/conf/jackknife.py:97
+    09  crepes 0.9.1         crepes/base.py:2909
+    10  sktime 1.1.0         sktime/forecasting/conformal.py:319
+    11  mapie 1.4.1          mapie/regression/quantile_regression.py:1037
+    12  torchcp 1.2.1        torchcp/utils/common.py:74
+
+========================================================================================================
+THE COUNTS
+========================================================================================================
+  sites in the census            36
+  drawn into the worksheet       12
+  seed                           20260901
+  source lines of context each   4
+  items whose source is absent   0
+  labels offered to the coder    9
+  sheets returned                0
+
+========================================================================================================
+AGREEMENT
+========================================================================================================
+  sheets returned                0
+  raw agreement                  not measured
+  Cohen's kappa                  not measured
+
+No figure is printed and none is withheld. The author filling in a sheet
+the author wrote would produce a number that measures nothing, so the
+worksheet ships blank and the manuscript reports the absence.
+
+========================================================================================================
+WHAT THIS DOES NOT SETTLE
+========================================================================================================
+The blind stops an answer reaching the sheet. It does not stop a
+determined reader looking one up: the labels sit in the census manifest in
+this same repository and in the manuscript's own table, both public. What
+the redaction buys is that nobody is told the answer by accident while
+reading the item, which is the failure a worksheet actually has.
+
+A sample of twelve bounds a kappa loosely even once somebody fills it in.
+The sample is also drawn from sites the audit already located, so it
+measures agreement on classification and says nothing about whether the
+census found every site there is. That second question is the frame
+sweep's and the enumerator calibration's, not this one's.

@@ -68,7 +68,12 @@ WINDOWS = (20, 40)
 # runs on: its scores are captured from the library's internal conformal call by a spy,
 # with no residuals_matrix_ diagonal anywhere in the path, so nothing between the
 # generator and the helper can break exchangeability.
-SF_WINDOWS = (10, 20, 50)
+# 2 is statsforecast's own shipped default and the cell the headline quotes; 5 and
+# 9 bracket the 0.90 feasibility floor, which sits at n = 9 exactly. The grid runs
+# below the boundary rather than up to it, because the question the sub-floor rows
+# answer is whether the shortfall at the shipped default survives exchangeability --
+# and a grid that stops at the first feasible cell cannot answer it.
+SF_WINDOWS = (2, 5, 9, 10, 20, 50)
 _ = WINDOWS  # kept: the sktime windows, for the note in the summary below
 SEED = 20260806
 MIN_LEN = 80
@@ -344,10 +349,16 @@ def main():
                     # index above n, which this probe prints rather than clamps.
                     is_os = max(idxs) <= n
                     # Proposition 2's test is CONTAINMENT in the bracket, not a
-                    # distance from one end of it.
+                    # distance from one end of it. Two verdicts, because they are
+                    # different claims and printing one as the other hid a cell:
+                    # STRICT is the point estimate inside the bracket, and the
+                    # tolerant test allows three standard errors of Monte Carlo
+                    # error at each end. The w=2 rows are where they part company.
+                    strict = lo_pred <= got <= hi_pred
                     inside = lo_pred - 3 * (se or 0) <= got <= hi_pred + 3 * (se or 0)
                     if kind == "walk" and is_os:
-                        pred_z.append((inside, got, lo_pred, hi_pred, method, cov, iw))
+                        pred_z.append((inside, got, lo_pred, hi_pred, method, cov,
+                                       iw, strict))
                     note = ("" if is_os
                             else "  <- threshold not an order statistic of |cs|")
                     if is_os and not inside:
@@ -366,13 +377,21 @@ def main():
     say("=" * 104)
     if pred_z:
         n_in = sum(1 for r in pred_z if r[0])
+        n_strict = sum(1 for r in pred_z if r[7])
         say(f"PROPOSITION 2 AGAINST SHIPPED CODE, on exchangeable-by-construction")
-        say(f"data: measured coverage lies inside the distribution-free bracket")
-        say(f"[(r-1)/(n+1), r/(n+1)] in {n_in} of {len(pred_z)} cells where the")
-        say(f"returned threshold is an order statistic of the score set.")
-        for ok, got, lo, hi, mt, cv, w in pred_z:
-            say(f"    {'in ' if ok else 'OUT'}  {mt:<22} nominal {cv:.2f} w={w:<3} "
-                f"measured {got:.4f} in [{lo:.4f}, {hi:.4f}]")
+        say(f"data, in cells where the returned threshold is an order statistic of")
+        say(f"the score set. Two verdicts, because they are two claims:")
+        say(f"  strict containment of the point estimate   {n_strict} of {len(pred_z)}")
+        say(f"  within three standard errors of the ends   {n_in} of {len(pred_z)}")
+        say(f"The bracket is [(r-1)/(n+1), r/(n+1)]. A cell marked ~se is outside the")
+        say(f"bracket on the point estimate and inside it on the sampling error; the")
+        say(f"distance is printed so a reader can see which.")
+        for ok, got, lo, hi, mt, cv, w, strict in pred_z:
+            mark = "in " if strict else ("~se" if ok else "OUT")
+            over = (0.0 if strict else (got - hi if got > hi else lo - got))
+            tail = "" if strict else f"   outside by {over:.4f}"
+            say(f"    {mark}  {mt:<22} nominal {cv:.2f} w={w:<3} "
+                f"measured {got:.4f} in [{lo:.4f}, {hi:.4f}]{tail}")
         say("")
         say("Why statsforecast and not sktime. An earlier version of this probe ran")
         say("sktime's public predict_interval and its measured coverage sat four")
@@ -422,7 +441,7 @@ def main():
     say("")
     say("Agreement between the two generators is what removes the fitted AR(1) from")
     say("the argument. The walk rows need no specification at all: a last-value")
-    say("forecaster's one-step residuals on a random walk are its innovations, so")
+    say("forecaster leaves errors on a random walk that ARE the innovations, so")
     say("nothing but the resampling stands between the real series and the claim.")
 
     path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),

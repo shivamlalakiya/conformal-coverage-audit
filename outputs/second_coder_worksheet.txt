@@ -1,0 +1,225 @@
+====================================================================================================
+BLIND RE-CLASSIFICATION WORKSHEET
+====================================================================================================
+
+You are looking at expressions taken from released Python packages.
+Each one may or may not convert a requested coverage or miscoverage
+level into a position inside an array of held-out calibration scores.
+
+For each item, write one label from this list on the ANSWER line.
+Guessing is fine. Leaving it blank is also fine and is scored as a
+non-answer rather than as a disagreement.
+
+  a       corrects the level by (n+1)/n, then hands it to a quantile routine that RAISES when the corrected level exceeds 1
+  b       corrects the level, then CLAMPS it at 1, returning the largest observed score where no rank carries the request
+  c       corrects the level, then returns an INFINITE bound where no rank carries the request
+  d       applies NO (n+1) correction: the requested level reaches the quantile routine unaltered
+  e       a p-value construction whose denominator is n
+  f       a p-value construction whose denominator is n+1, or a smoothed one
+  g       an approximate or streaming estimator that matches no exact rule
+  count   compares an inclusion COUNT against a count-scale threshold, carrying no (n+1) correction
+  none    this expression resolves no level onto a position, or its output does not control a returned bound
+
+Return the file with the ANSWER lines filled in. Score it with:
+    python probes/second_coder.py --score <this file>
+
+----------------------------------------------------------------------------------------------------
+ITEM 01   sktime 1.1.0   sktime/forecasting/conformal.py:329
+----------------------------------------------------------------------------------------------------
+        325                  alphas = 1 - coverage2
+        326                  quantiles = 1 - alphas / len(fh)
+        327                  pred_int_row = np.quantile(abs_resids, quantiles)
+        328              elif self.method == "conformal":
+  >>    329                  quantiles = coverage2
+        330                  pred_int_row = np.quantile(abs_resids, quantiles)
+        331  
+        332              pred_int.loc[fh_ind] = pred_int_row
+        333  
+
+  reached from: ConformalIntervals.predict_interval
+
+  ANSWER 01: 
+
+----------------------------------------------------------------------------------------------------
+ITEM 02   crepes 0.9.1   crepes/base.py:900
+----------------------------------------------------------------------------------------------------
+        896          if type(bins) == list:
+        897              bins = np.array(bins)
+        898          intervals = np.zeros((len(y_hat),2))
+        899          if not self.mondrian:
+  >>    900              alpha_index = int((1-confidence)*(len(self.alphas)+1))-1
+        901              if alpha_index >= 0:
+        902                  alpha = self.alphas[alpha_index]
+        903                  if self.normalized:
+        904                      intervals[:,0] = y_hat - alpha*sigmas
+
+  reached from: ConformalRegressor.predict_int
+
+  ANSWER 02: 
+
+----------------------------------------------------------------------------------------------------
+ITEM 03   statsforecast 2.1.1   statsforecast/models.py:156
+----------------------------------------------------------------------------------------------------
+        152      `level` should be already sorted. Uses the `lv / 100` quantile of the
+        153      absolute conformity scores as the error margin around `fcst["mean"]`.
+        154      Returns the modified `fcst` dict.
+        155      """
+  >>    156      quantiles = {lv: np.quantile(cs, lv / 100, axis=0) for lv in level}
+        157      for lv in reversed(level):
+        158          fcst[f"lo-{lv}"] = fcst["mean"] - quantiles[lv]
+        159      for lv in level:
+        160          fcst[f"hi-{lv}"] = fcst["mean"] + quantiles[lv]
+
+  reached from: StatsForecast.forecast(prediction_intervals=ConformalIntervals())
+
+  ANSWER 03: 
+
+----------------------------------------------------------------------------------------------------
+ITEM 04   puncc 0.9.3   deel/puncc/api/calibration.py:268
+----------------------------------------------------------------------------------------------------
+        264  
+        265          infty_shape = (1, residuals.shape[-1]) if residuals.ndim > 1 else (1,)
+        266          infty_array = np.full(infty_shape, np.inf)
+        267  
+  >>    268          lemma_residuals = np.concatenate((residuals, infty_array), axis=0)
+        269  
+        270          residuals_Q = quantile(
+        271              lemma_residuals,
+        272              1 - alpha,
+
+  reached from: BaseCalibrator.calibrate, SplitCP.predict, CvPlus.predict
+
+  ANSWER 04: 
+
+----------------------------------------------------------------------------------------------------
+ITEM 05   nonconformist 2.1.0   nonconformist/nc.py:191
+----------------------------------------------------------------------------------------------------
+        187  		return (prediction - y)
+        188  
+        189  	def apply_inverse(self, nc, significance):
+        190  		nc = np.sort(nc)[::-1]
+  >>    191  		upper = int(np.floor((significance / 2) * (nc.size + 1)))
+        192  		lower = int(np.floor((1 - significance / 2) * (nc.size + 1)))
+        193  		# TODO: should probably warn against too few calibration examples
+        194  		upper = min(max(upper, 0), nc.size - 1)
+        195  		lower = max(min(lower, nc.size - 1), 0)
+
+  reached from: IcpRegressor.predict
+
+  ANSWER 05: 
+
+----------------------------------------------------------------------------------------------------
+ITEM 06   statsforecast 2.1.1   statsforecast/models.py:4302
+----------------------------------------------------------------------------------------------------
+       4298          if n <= 0:
+       4299              return float(q)
+       4300          if q < 0.5:
+       4301              return max(0.0, float(np.floor((n + 1.0) * q)) / n)
+  >>   4302          return min(1.0, float(np.ceil((n + 1.0) * q)) / n)
+       4303  
+       4304      def _intervals_from_samples(
+       4305          self, samples: np.ndarray, level: Sequence[Union[int, float]]
+       4306      ) -> Dict[str, np.ndarray]:
+
+  reached from: ConformalSeasonalPool.forecast
+
+  ANSWER 06: 
+
+----------------------------------------------------------------------------------------------------
+ITEM 07   mapie 1.4.1   mapie/conformity_scores/sets/lac.py:156
+----------------------------------------------------------------------------------------------------
+        152          """
+        153          n = len(conformity_scores)
+        154  
+        155          if cv == "prefit" or agg_scores in ["mean"]:
+  >>    156              quantiles_ = _compute_quantiles(conformity_scores, alpha_np)
+        157          else:
+        158              quantiles_ = (n + 1) * (1 - alpha_np)
+        159  
+        160          return quantiles_
+
+  reached from: SplitConformalClassifier.predict_set
+
+  ANSWER 07: 
+
+----------------------------------------------------------------------------------------------------
+ITEM 08   river 0.25.0   river/conf/jackknife.py:97
+----------------------------------------------------------------------------------------------------
+         93          self.regressor = regressor
+         94          self.confidence_level = confidence_level
+         95          self.window_size = window_size
+         96  
+  >>     97          alpha = (1 - confidence_level) / 2
+         98          self._lower = (
+         99              stats.RollingQuantile(alpha, window_size) if window_size else stats.Quantile(alpha)
+        100          )
+        101          self._upper = (
+
+  reached from: RegressionJackknife.predict_one
+
+  ANSWER 08: 
+
+----------------------------------------------------------------------------------------------------
+ITEM 09   crepes 0.9.1   crepes/base.py:2909
+----------------------------------------------------------------------------------------------------
+       2905                                        for c in range(alphas_test.shape[1])]
+       2906                                       for i in range(len(alphas_test))])
+       2907              else:
+       2908                  p_values = np.array([
+  >>   2909                      (np.sum(alphas_cal >= alphas_test[i])+1)/(q+1)
+       2910                      for i in range(len(alphas_test))])
+       2911      else:
+       2912          p_values = np.zeros(alphas_test.shape)
+       2913          bin_values, bin_indexes = np.unique(np.hstack((bins_cal, bins_test)),
+
+  reached from: ConformalClassifier.predict_p, ConformalRegressor.predict_p, ConformalPredictiveSystem.predict_p
+
+  ANSWER 09: 
+
+----------------------------------------------------------------------------------------------------
+ITEM 10   sktime 1.1.0   sktime/forecasting/conformal.py:319
+----------------------------------------------------------------------------------------------------
+        315                  )
+        316              abs_resids = np.abs(resids)
+        317              coverage2 = np.repeat(coverage, 2)
+        318              if self.method == "empirical":
+  >>    319                  quantiles = 0.5 + np.tile([-0.5, 0.5], len(coverage)) * coverage2
+        320                  pred_int_row = np.quantile(resids, quantiles)
+        321              if self.method == "empirical_residual":
+        322                  quantiles = 0.5 - 0.5 * coverage2
+        323                  pred_int_row = np.quantile(abs_resids, quantiles)
+
+  reached from: ConformalIntervals.predict_interval
+
+  ANSWER 10: 
+
+----------------------------------------------------------------------------------------------------
+ITEM 11   mapie 1.4.1   mapie/regression/quantile_regression.py:1037
+----------------------------------------------------------------------------------------------------
+       1033          alpha = self.alpha if symmetry else self.alpha / 2
+       1034          _check_alpha_and_n_samples(alpha, self.n_calib_samples)
+       1035  
+       1036          n = self.n_calib_samples
+  >>   1037          q = (1 - (alpha)) * (1 + (1 / n))
+       1038  
+       1039          y_preds = np.full(
+       1040              shape=(3, _num_samples(X)),
+       1041              fill_value=np.nan,
+
+  reached from: ConformalizedQuantileRegressor.predict_interval
+
+  ANSWER 11: 
+
+----------------------------------------------------------------------------------------------------
+ITEM 12   torchcp 1.2.1   torchcp/utils/common.py:74
+----------------------------------------------------------------------------------------------------
+         70          warnings.warn(
+         71              f"The value of quantile exceeds 1. It should be a value in [0,1]. To avoid program crash, the thre
+         72          return torch.inf
+         73  
+  >>     74      return torch.kthvalue(scores, math.ceil((N + 1) * (1 - alpha)), dim=0).values.to(scores.device)
+
+  reached from: SplitPredictor.calibrate, ClassConditionalPredictor.calibrate, ClusterPredictor.calibrate, RC3P.calibrate, GraphSplitPredictor.calibrate
+
+  ANSWER 12: 
+

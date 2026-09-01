@@ -1,0 +1,157 @@
+========================================================================================================
+OUT-OF-CENSUS PREVALENCE -- what the shortcut recovers, measured first
+========================================================================================================
+self_check() passed at import: the enumerator finds a plain site, stays
+quiet on arithmetic, and does not count an ordering call that carries no
+level.
+
+A prevalence needs a numerator and a denominator built the same way. The
+census's numerator is a hand read, one expression at a time. What follows
+asks whether a mechanical read can stand in for it.
+
+--------------------------------------------------------------------------------------------------------
+CALIBRATION -- the enumerator against the census, which is known-positive
+--------------------------------------------------------------------------------------------------------
+package               candidates  census sites  recovered
+crepes                        50             6          3
+darts                         28             2          2
+mapie                         23             6          2
+neuralforecast                18             2          2
+nonconformist                 14             3          2
+puncc                         30             6          4
+river                         18             1          0
+sktime                       143             5          5
+statsforecast                 29             4          3
+torchcp                       25             1          1
+
+  census sites                 36
+  recovered by the enumerator  24
+  lost                         12
+
+--------------------------------------------------------------------------------------------------------
+HOW A REAL SITE ESCAPES A MECHANICAL READ
+--------------------------------------------------------------------------------------------------------
+Each mechanism below is named at a census anchor the enumerator lost. A
+wider window does not reach any of them; the level and the ordering are
+not in one statement in the first place.
+
+  COMPARISON
+    crepes crepes/base.py:340
+    ConformalClassifier.predict_set
+    the level meets the score array through `>=`, not through an index or an ordering call
+
+  DELEGATION
+    mapie mapie/conformity_scores/sets/lac.py:156
+    LACConformityScore.get_conformity_score_quantiles [prefit/mean]
+    the level is passed onward and the position is chosen inside the callee
+
+  TRANSFORMATION
+    river river/conf/jackknife.py:97
+    RegressionJackknife.predict_one
+    the level is halved into a local name and the ordering happens against that name later
+
+  PLUMBING
+    statsforecast statsforecast/models.py:127
+    _add_conformal_distribution_intervals
+    the level becomes a list of cut points, which then reaches the ordering call as an argument
+
+  every site the enumerator lost, in full (12):
+    crepes           crepes/base.py:340
+    crepes           crepes/base.py:2909
+    crepes           crepes/base.py:1525
+    mapie            mapie/conformity_scores/sets/lac.py:156
+    mapie            mapie/conformity_scores/sets/lac.py:214
+    mapie            mapie/conformity_scores/regression.py:211
+    mapie            mapie/regression/quantile_regression.py:1037
+    nonconformist    nonconformist/icp.py:241
+    puncc            deel/puncc/api/calibration.py:268
+    puncc            deel/puncc/api/calibration.py:592
+    river            river/conf/jackknife.py:97
+    statsforecast    statsforecast/models.py:127
+
+--------------------------------------------------------------------------------------------------------
+THE UNAUDITED SIDE -- candidate surface, which is not a site count
+--------------------------------------------------------------------------------------------------------
+Read with the instrument calibrated above. These are lines a hand read
+would have to visit, not sites, and the recall figure says the list is
+incomplete as well as noisy.
+
+package                   candidates   held under cp-src
+fortuna                           25
+uncertainty-toolbox                6
+quantile-forest                    1
+conformal-tights                   7
+crepes-weighted                   37
+venn-abers                         0
+nixtla                             5
+pytorch-forecasting               22
+gluonts                           38
+prophet                            3
+skforecast                       106
+orbit-ml                          10
+
+--------------------------------------------------------------------------------------------------------
+ONE PACKAGE FILED WITH A SINGLE ANCHOR HAS MORE OF THE SAME SHAPE
+--------------------------------------------------------------------------------------------------------
+The out-of-census read files fortuna at one anchor, quantile.py:90,
+with a byte-identical twin named beside it. Its conformal package
+holds these expressions of the same shape, each reachable from a
+public entry point and none of them ruled on here:
+
+    aws_fortuna-0.2.0/fortuna/conformal/regression/cvplus.py:96
+        qleft = jnp.quantile(left, q=error, axis=0)
+    aws_fortuna-0.2.0/fortuna/conformal/regression/cvplus.py:97
+        qright = jnp.quantile(right, q=1 - error, axis=0)
+    aws_fortuna-0.2.0/fortuna/conformal/regression/enbpi.py:167
+        test_quantiles = jnp.quantile(aggr_bootstrap_test_preds, q=1 - error, axis=0)
+    aws_fortuna-0.2.0/fortuna/conformal/regression/enbpi.py:168
+        residuals_quantile = jnp.quantile(train_residuals, q=1 - error, axis=0)
+    aws_fortuna-0.2.0/fortuna/conformal/regression/enbpi.py:281
+        residuals_quantile = jnp.quantile(train_residuals, q=1 - error, axis=0)
+    aws_fortuna-0.2.0/fortuna/conformal/regression/jackknife_minmax.py:79
+        q = jnp.quantile(r, q=1 - error, axis=0)
+    aws_fortuna-0.2.0/fortuna/conformal/regression/jackknifeplus.py:81
+        qleft = jnp.quantile(left, q=error, axis=0)
+    aws_fortuna-0.2.0/fortuna/conformal/regression/jackknifeplus.py:82
+        qright = jnp.quantile(right, q=1 - error, axis=0)
+    aws_fortuna-0.2.0/fortuna/conformal/regression/onedim_uncertainty.py:90
+        return jnp.quantile(scores, jnp.ceil((n + 1) * (1 - error)) / n)
+    aws_fortuna-0.2.0/fortuna/conformal/regression/onedim_uncertainty.py:147
+        quantile = self.quantile(val_preds, val_uncertainties, val_targets, error)
+    aws_fortuna-0.2.0/fortuna/conformal/regression/quantile.py:90
+        return jnp.quantile(scores, jnp.ceil((n + 1) * (1 - error)) / n)
+    aws_fortuna-0.2.0/fortuna/conformal/regression/quantile.py:174
+        quantile = self.quantile(
+
+  expressions of the shape in fortuna/conformal   12
+  ruled on by this probe                              0
+
+========================================================================================================
+THE COUNTS
+========================================================================================================
+  census sites offered              36
+  enumerator recovered              24
+  enumerator lost                   12
+  loss mechanisms reproduced        4
+  unaudited packages enumerated     12
+  fortuna conformal expressions     12
+  sites ruled on outside the census 0
+
+========================================================================================================
+WHAT THIS DOES NOT SETTLE, AND WHY NO RATE IS PRINTED
+========================================================================================================
+No prevalence appears anywhere above. The instrument that would have
+produced one loses part of the census it was calibrated against, and the
+loss is not a constant: it depends on how each package happens to move a
+level from its public signature to its ordering call. A rate carrying
+that error would be printed next to a count made by hand and would invite
+precisely the comparison the error rules out.
+
+The candidate counts are not an upper bound either. They over-generate,
+because most lines matching an ordering call resolve nothing, and they
+under-generate, for the four reasons anchored above.
+
+What would produce a prevalence is the same work the census did: one
+expression at a time, each ruled against the criterion and anchored, with
+a second reader asked to break the ruling. This probe measures the size
+of that job and does not do it.
