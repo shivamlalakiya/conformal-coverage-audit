@@ -11,6 +11,67 @@ inside a held-out array of scores, arrived at from a public entry point. That is
 the census's own wording and it is applied unchanged, which is the only reason
 the two populations can be spoken about together.
 
+========================================================================================================
+THE READING CORPUS -- what was downloaded and opened, and what became of it
+========================================================================================================
+The census reports ten libraries. This is the set those ten came out of, which
+no output carried before: the directories under ../cp-src, minus the literature
+folder, with every non-audited row opened again while this runs.
+
+--------------------------------------------------------------------------------------------------------
+AUDITED -- the census's ten   (10)
+--------------------------------------------------------------------------------------------------------
+  crepes, darts, mapie, neuralforecast, nonconformist, puncc, river, sktime, statsforecast, torchcp
+  (the same ten the census output names under 'P2 by library', checked here)
+
+--------------------------------------------------------------------------------------------------------
+TURNED AWAY BY THE CRITERION, AND IT STANDS   (2)
+--------------------------------------------------------------------------------------------------------
+uq360 0.2
+    uq360/uq360/algorithms/infinitesimal_jackknife/infinitesimal_jackknife.py:80
+        y_lower = np.quantile(y, q=0.5 * self.config['alpha'], axis=0)
+    the array it takes a percentile of is built at :76-79 by setting the model's parameters to each
+    perturbed draw and predicting again, so it is a percentile across a predictive distribution and
+    no rank or finite-sample coverage attaches to it. The same reasoning turns away the CV+ and
+    jackknife+ aggregation elsewhere, which quantile cross-fit prediction arrays rather than scores
+    anchor now: re-read, matches
+
+venn_abers 1.5.3
+    venn_abers/venn_abers-1.5.3/src/venn_abers.py:706
+        self.m_parameter = int(np.round(self.epsilon * (len(y_cal) + 1) / 2))
+    epsilon does reach an integer index, and the split really is withheld. What gets ordered at :710
+    is y_cal itself. Those positions serve only to clip what feeds the isotonic step, and what comes
+    back out are multiprobability bounds. There is no miscoverage target anywhere in the path
+    anchor now: re-read, matches
+
+--------------------------------------------------------------------------------------------------------
+TURNED AWAY ON A READING THAT RUNNING IT OVERTURNED   (1)
+--------------------------------------------------------------------------------------------------------
+conformal_tights 0.5.0
+    conformal_tights/conformal_tights/_xgboost_weighted_quantile.py:13
+        def _weighted_quantile(
+    set aside on this helper, where XGBoost emits the quantiles and nothing withheld gets ordered.
+    Right about the file, wrong about the distribution. Line 255 of the coherent-quantile module
+    puts the caller's own level onto level-2 scores from a third partition, and the criterion admits
+    that. Reading missed it; execution did not, and the out-of-census arm carries the numbers
+    anchor now: re-read, matches
+
+  packages downloaded and read   13
+  audited                        10
+  turned away, standing          2
+  turned away, overturned        1
+
+🛑 The overturned row is the one to read. conformal_tights was set aside on
+_xgboost_weighted_quantile.py, which is a gradient-boosted quantile helper and
+forms no order statistic of anything held out. That was true of the file and
+false of the distribution. Its conformal path puts the caller's own level onto
+scores from a third partition, and it took execution to see that -- which is the
+same failure of reading the audit reports in ten other packages, occurring here
+in the audit's own frame.
+
+========================================================================================================
+THE UNAUDITED SIDE -- a different population, and not a subset of the one above
+========================================================================================================
 population: 12 packages, read off probe_output_install_weight.txt
             (the two names PyPI could not answer for are not in it)
 
@@ -66,8 +127,8 @@ venn-abers 1.5.4
     src/venn_abers.py:708
         self.m_parameter = int(np.floor(self.epsilon * (len(y_cal) + 1) / 2))
     a level does become a whole-number position on a genuinely held-out split, but what gets sorted
-    is the calibration response labels; those order statistics trim the isotonic calibrators' input
-    and never surface as the endpoint
+    is the calibration response labels; those order statistics only clip what feeds the isotonic
+    step and are not what comes back out
     anchor now: held 1.5.3, read 1.5.4: differs at :708
     sdist sha256: a6bf5383e618ce42d0ecb2335bba0d6b104ecbe979041f10019b57572364bc69
 

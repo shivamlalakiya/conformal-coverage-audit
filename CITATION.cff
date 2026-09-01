@@ -59,7 +59,7 @@ repository-code: "https://github.com/shivamlalakiya/conformal-coverage-audit"
 # reviewer to the snapshot whose DISCLOSURE.md carries one row and an open TODO list,
 # and the write-up's disclosure claim was judged against that. Bump it in the commit
 # that gets tagged, not after -- a release naming the previous version is the same bug.
-version: v1.5.3
+version: v1.5.4
 # Zenodo stamped this record 2026-09-01; the tag and the GitHub release were created
 # on 2026-08-31 in the author's timezone. The published record is what a citation
 # resolves to, so its date is the one here.

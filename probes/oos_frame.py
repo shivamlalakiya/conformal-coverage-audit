@@ -100,7 +100,7 @@ MANIFEST = [
          expr="self.m_parameter = int(np.floor(self.epsilon * (len(y_cal) + 1) / 2))",
          why="a level does become a whole-number position on a genuinely held-out split, but "
              "what gets sorted is the calibration response labels; those order statistics "
-             "trim the isotonic calibrators' input and never surface as the endpoint",
+             "only clip what feeds the isotonic step and are not what comes back out",
          digest="a6bf5383e618ce42d0ecb2335bba0d6b104ecbe979041f10019b57572364bc69",
          held="venn_abers/venn_abers-1.5.3/src/venn_abers.py", held_version="1.5.3"),
 
@@ -145,6 +145,52 @@ MANIFEST = [
          held=None, held_version=None),
 ]
 
+# ---------------------------------------------------------------------------
+# The census side of the same question. The reading corpus under ../cp-src is
+# what "we downloaded and read N packages" refers to, and until now no output
+# carried N, which package each verdict belongs to, or where to look.
+#
+# `audited` is the census's ten. `excluded` is a package the criterion turns
+# away and the turning-away still stands. `corrected` is the one the criterion
+# turned away on a reading that a later pass overturned by running it -- kept
+# as its own verdict rather than quietly moved, because a corpus that hides
+# its corrections is the thing this work objects to.
+AUDITED, EXCLUDED, CORRECTED = "audited", "excluded", "corrected"
+
+CORPUS = [
+    dict(pkg="crepes", verdict=AUDITED), dict(pkg="darts", verdict=AUDITED),
+    dict(pkg="mapie", verdict=AUDITED), dict(pkg="neuralforecast", verdict=AUDITED),
+    dict(pkg="nonconformist", verdict=AUDITED), dict(pkg="puncc", verdict=AUDITED),
+    dict(pkg="river", verdict=AUDITED), dict(pkg="sktime", verdict=AUDITED),
+    dict(pkg="statsforecast", verdict=AUDITED), dict(pkg="torchcp", verdict=AUDITED),
+
+    dict(pkg="uq360", verdict=EXCLUDED, version="0.2",
+         held="uq360/uq360/algorithms/infinitesimal_jackknife/infinitesimal_jackknife.py",
+         line=80,
+         expr="y_lower = np.quantile(y, q=0.5 * self.config['alpha'], axis=0)",
+         why="the array it takes a percentile of is built at :76-79 by setting the model's "
+             "parameters to each perturbed draw and predicting again, so it is a percentile "
+             "across a predictive distribution and no rank or finite-sample coverage attaches "
+             "to it. The same reasoning turns away the CV+ and jackknife+ aggregation "
+             "elsewhere, which quantile cross-fit prediction arrays rather than scores"),
+    dict(pkg="venn_abers", verdict=EXCLUDED, version="1.5.3",
+         held="venn_abers/venn_abers-1.5.3/src/venn_abers.py", line=706,
+         expr="self.m_parameter = int(np.round(self.epsilon * (len(y_cal) + 1) / 2))",
+         why="epsilon does reach an integer index, and the split really is withheld. What "
+             "gets ordered at :710 is y_cal itself. Those positions serve only to clip what "
+             "feeds the isotonic step, and what comes back out are multiprobability bounds. "
+             "There is no miscoverage target anywhere in the path"),
+
+    dict(pkg="conformal_tights", verdict=CORRECTED, version="0.5.0",
+         held="conformal_tights/conformal_tights/_xgboost_weighted_quantile.py", line=13,
+         expr="def _weighted_quantile(",
+         why="set aside on this helper, where XGBoost emits the quantiles and nothing "
+             "withheld gets ordered. Right about the file, wrong about the distribution. "
+             "Line 255 of the coherent-quantile module puts the caller's own level onto "
+             "level-2 scores from a third partition, and the criterion admits that. Reading "
+             "missed it; execution did not, and the out-of-census arm carries the numbers"),
+]
+
 LINES = []
 
 
@@ -183,6 +229,39 @@ def executed_packages():
     return {e["pkg"] for e in MANIFEST if e["pkg"] in blob}
 
 
+def audited_from_census():
+    """The libraries the census output itself names under 'P2 by library'.
+
+    Parsed rather than restated. Audit one more package and this list grows while
+    CORPUS does not, which is the drift that has to be loud.
+    """
+    names, inside = [], False
+    for ln in _read("probe_output_helper_census.txt").splitlines():
+        if ln.strip() == "P2 by library:":
+            inside = True
+            continue
+        if inside:
+            m = re.match(r"^\s{6}([a-z0-9._-]+) \S+\s+\d+", ln)
+            if m:
+                names.append(m.group(1))
+            elif ln.strip() == "":
+                break
+    return names
+
+
+def check_corpus_anchor(e):
+    """Open the line. Every non-audited row is held under ../cp-src, so all verify."""
+    path = os.path.join(SRC, e["held"])
+    if not os.path.exists(path):
+        return "MISSING from ../cp-src"
+    with open(path, encoding="utf-8") as fh:
+        held = fh.read().splitlines()
+    if e["line"] > len(held):
+        return f"line {e['line']} past end of file"
+    return ("re-read, matches" if held[e["line"] - 1].strip() == e["expr"].strip()
+            else "RE-READ DIFFERS")
+
+
 def self_check():
     """Every way this file can go quietly wrong, made loud.
 
@@ -207,6 +286,35 @@ def self_check():
             f"{e['pkg']}: no file and line, so the finding rests on nothing a reader "
             f"can open")
         assert e["why"], f"{e['pkg']}: a verdict with no reason attached"
+
+    # ---- the census side ----------------------------------------------------
+    corpus = [e["pkg"] for e in CORPUS]
+    assert len(corpus) == len(set(corpus)), "a package is listed twice in CORPUS"
+    on_disk = sorted(d for d in os.listdir(SRC)
+                     if os.path.isdir(os.path.join(SRC, d)) and d != "literature")
+    assert sorted(corpus) == on_disk, (
+        "CORPUS and the reading corpus under ../cp-src disagree: only in CORPUS "
+        f"{sorted(set(corpus) - set(on_disk))}, only on disk "
+        f"{sorted(set(on_disk) - set(corpus))}")
+    audited = [e["pkg"] for e in CORPUS if e["verdict"] == AUDITED]
+    census = audited_from_census()
+    assert census, "the census output gave up no 'P2 by library' rows; the parser drifted"
+    assert sorted(audited) == sorted(census), (
+        "CORPUS's audited set is not the set the census output names: only here "
+        f"{sorted(set(audited) - set(census))}, only there "
+        f"{sorted(set(census) - set(audited))}")
+    for e in CORPUS:
+        if e["verdict"] == AUDITED:
+            continue
+        for need in ("version", "held", "line", "expr", "why"):
+            assert e.get(need), f"{e['pkg']}: a non-audited row with no {need}"
+    # The corrected row exists because a package the census turned away was later
+    # measured. If it is not in the out-of-census site set, the correction is a
+    # story with no measurement under it.
+    corrected = {e["pkg"].replace("_", "-") for e in CORPUS if e["verdict"] == CORRECTED}
+    assert corrected <= {e["pkg"] for e in MANIFEST if e["verdict"] == SITE}, (
+        f"{sorted(corrected)} is filed as a corrected exclusion but does not appear "
+        f"among the packages the out-of-census runs measured")
 
     claimed = {e["pkg"] for e in MANIFEST if e["verdict"] == SITE}
     ran = executed_packages()
@@ -250,7 +358,53 @@ def main():
     say("the two populations can be spoken about together.")
     say()
 
+    say("=" * 104)
+    say("THE READING CORPUS -- what was downloaded and opened, and what became of it")
+    say("=" * 104)
+    say("The census reports ten libraries. This is the set those ten came out of, which")
+    say("no output carried before: the directories under ../cp-src, minus the literature")
+    say("folder, with every non-audited row opened again while this runs.")
+    say()
+    counts_c = {}
+    for verdict, title in ((AUDITED, "AUDITED -- the census's ten"),
+                           (EXCLUDED, "TURNED AWAY BY THE CRITERION, AND IT STANDS"),
+                           (CORRECTED, "TURNED AWAY ON A READING THAT RUNNING IT OVERTURNED")):
+        rows = [e for e in CORPUS if e["verdict"] == verdict]
+        counts_c[verdict] = len(rows)
+        say("-" * 104)
+        say(f"{title}   ({len(rows)})")
+        say("-" * 104)
+        if verdict == AUDITED:
+            say("  " + ", ".join(e["pkg"] for e in rows))
+            say("  (the same ten the census output names under 'P2 by library', checked here)")
+            say()
+            continue
+        for e in rows:
+            say(f"{e['pkg']} {e['version']}")
+            say(f"    {e['held']}:{e['line']}")
+            say(f"        {e['expr']}")
+            for chunk in _wrap(e["why"], 96):
+                say(f"    {chunk}")
+            say(f"    anchor now: {check_corpus_anchor(e)}")
+            say()
+    say("  packages downloaded and read   %d" % len(CORPUS))
+    say("  audited                        %d" % counts_c[AUDITED])
+    say("  turned away, standing          %d" % counts_c[EXCLUDED])
+    say("  turned away, overturned        %d" % counts_c[CORRECTED])
+    say()
+    say("🛑 The overturned row is the one to read. conformal_tights was set aside on")
+    say("_xgboost_weighted_quantile.py, which is a gradient-boosted quantile helper and")
+    say("forms no order statistic of anything held out. That was true of the file and")
+    say("false of the distribution. Its conformal path puts the caller's own level onto")
+    say("scores from a third partition, and it took execution to see that -- which is the")
+    say("same failure of reading the audit reports in ten other packages, occurring here")
+    say("in the audit's own frame.")
+    say()
+
     frame = frame_from_download_denominator()
+    say("=" * 104)
+    say("THE UNAUDITED SIDE -- a different population, and not a subset of the one above")
+    say("=" * 104)
     say(f"population: {len(frame)} packages, read off probe_output_install_weight.txt")
     say("            (the two names PyPI could not answer for are not in it)")
     say()

@@ -195,9 +195,25 @@ claim about somebody else's code with nothing behind it.
   jackknife+ aggregation in other libraries, which quantile cross-fit prediction
   arrays rather than calibration scores.
 
-A note for a later pass rather than a finding: the copy of `venn_abers` read here is
-1.5.4, while the pinned local copy used elsewhere in this work is 1.5.3. Anchors taken
-from one do not transfer to the other without re-reading.
+- **venn_abers 1.5.3** (read 4 Aug 2026, re-opened 1 Sept). Excluded. `src/venn_abers.py:706`
+  turns `epsilon` into an integer index, and the split at `:710` really is withheld — but what
+  gets ordered there is `y_cal`, the calibration responses. Those positions only clip what feeds
+  the isotonic step, and the emitted bounds are multiprobability. No miscoverage target exists
+  anywhere on the path, so the criterion never gets something to admit.
+
+- **conformal_tights 0.5.0** (excluded 4 Aug 2026, **overturned 31 Aug**). Set aside on
+  `_xgboost_weighted_quantile.py:13`, where XGBoost emits the quantiles and nothing withheld is
+  ordered. That was right about the file and wrong about the distribution:
+  `_conformal_coherent_quantile_regressor.py:255` puts the caller's own level onto level-2
+  conformity scores from a third partition, which the criterion admits. Execution settled what a
+  read of one file could not. The out-of-census arm carries what it delivers. Filed here as an
+  overturned exclusion rather than folded quietly into the census, which is pinned to the
+  releases it enumerates while this distribution needs an environment of its own.
+
+A note for a later pass rather than a finding: the copy of `venn_abers` read for the
+out-of-census pass is 1.5.4, where the expression is `int(np.floor(...))` at `:708`, while the
+pinned local copy is 1.5.3, where it is `int(np.round(...))` at `:706`. Anchors taken from one do
+not transfer to the other without re-reading. The exclusion does not turn on the difference.
 
 ## 11a. A warning for anyone extending this to a literature census
 
