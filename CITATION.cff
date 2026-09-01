@@ -53,8 +53,8 @@ repository-code: "https://github.com/shivamlalakiya/conformal-coverage-audit"
 # reviewer to the snapshot whose DISCLOSURE.md carries one row and an open TODO list,
 # and the write-up's disclosure claim was judged against that. Bump it in the commit
 # that gets tagged, not after -- a release naming the previous version is the same bug.
-version: v1.5.1
-date-released: "2026-08-25"
+version: v1.5.2
+date-released: "2026-08-31"
 abstract: >-
   Measurement harnesses used to audit how Python conformal-prediction
   implementations resolve the conformal quantile at finite sample sizes. Each
