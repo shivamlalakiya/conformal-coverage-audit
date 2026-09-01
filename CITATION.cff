@@ -47,6 +47,9 @@ identifiers:
   - type: doi
     value: 10.5281/zenodo.22100841
     description: "Version v1.5.1 -- the 24 Aug disclosure re-query"
+  - type: doi
+    value: 10.5281/zenodo.22221539
+    description: "Version v1.5.2 -- the 31 Aug re-query and the out-of-census arm"
 # verified against the live remote
 repository-code: "https://github.com/shivamlalakiya/conformal-coverage-audit"
 # This is what GitHub's cite widget and the indexers read. Left at v1.1.0 it sent a
@@ -54,7 +57,10 @@ repository-code: "https://github.com/shivamlalakiya/conformal-coverage-audit"
 # and the write-up's disclosure claim was judged against that. Bump it in the commit
 # that gets tagged, not after -- a release naming the previous version is the same bug.
 version: v1.5.2
-date-released: "2026-08-31"
+# Zenodo stamped this record 2026-09-01; the tag and the GitHub release were created
+# on 2026-08-31 in the author's timezone. The published record is what a citation
+# resolves to, so its date is the one here.
+date-released: "2026-09-01"
 abstract: >-
   Measurement harnesses used to audit how Python conformal-prediction
   implementations resolve the conformal quantile at finite sample sizes. Each
