@@ -541,8 +541,8 @@ def _dist_version(dist, module):
 # ten packages at pinned versions. `--oos` writes its own output and the default
 # run is byte-identical to what it was before this function existed.
 #
-# Every package here was located by reading the released sdist and anchored to a
-# file and a line before an adapter was written for it. The classic crepes-weighted
+# Every package here was found by reading its released sdist, and its site was
+# pinned to a path plus a line number before any adapter existed for it. The classic crepes-weighted
 # branch is included ONLY as a control: its expression is inherited verbatim from
 # `crepes 0.9.1`, which the census already counts, so it must not be counted again.
 # What is new in that fork is the weighted branch.
