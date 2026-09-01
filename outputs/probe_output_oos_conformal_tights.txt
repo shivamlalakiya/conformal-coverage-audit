@@ -1,0 +1,88 @@
+========================================================================================================
+OUT OF CENSUS: conformal-tights, the level-2 conformal bias
+========================================================================================================
+conformal-tights 0.5.0, numpy 2.5.2
+
+self_check() passed: the reconstruction reproduces the library's own stored
+bias to 2.88e-08 (float32 prediction path), and dropping one level-2
+example makes it disagree, so it is that array and not a lookalike.
+
+The site is `np.quantile(y_cqr_l2 - dy_calib_l2_quantiles[:, j], quantile)` at
+_conformal_coherent_quantile_regressor.py:255. The requested level goes in
+unchanged: no (n+1) correction, numpy's linear default, and the position it
+lands on is the virtual index below. Line 256 then clips the result to the
+coherence interval, and line 242 skips the whole block below 128 examples.
+
+--------------------------------------------------------------------------------------------------------
+generator: well-specified linear
+--------------------------------------------------------------------------------------------------------
+ rows   target  n_l2  level   virtual  req   side  under?    resolved     clip lo     clip hi      stored  clip?
+ 1000       Δŷ    90   below the 128-example floor: the block is skipped and the bias stays zero (True)
+ 1000     Δŷ/ŷ    90   below the 128-example floor: the block is skipped and the bias stays zero (True)
+ 1500       Δŷ   135  0.025     4.350    3    low     YES   -0.113489        -inf   +0.000000   -0.113489     no
+ 1500       Δŷ   135  0.500    68.000    -    med       -   -0.051581   +0.025765   +0.091067   +0.025765    YES
+ 1500       Δŷ   135  0.975   131.650  133     up     YES   -0.030327   -0.441685        +inf   -0.030327     no
+ 1500     Δŷ/ŷ   135  0.025     4.350    3    low     YES   -0.945647        -inf   -0.804879   -0.945647     no
+ 1500     Δŷ/ŷ   135  0.500    68.000    -    med       -   -0.010496   +0.000000   +0.000000   +0.000000    YES
+ 1500     Δŷ/ŷ   135  0.975   131.650  133     up     YES   +2.113230   -0.000000        +inf   +2.113230     no
+ 3000       Δŷ   270  0.025     7.725    6    low     YES   +0.000146        -inf   +0.029138   +0.000146     no
+ 3000       Δŷ   270  0.500   135.500    -    med       -   -0.035324   -0.143567   +0.000000   -0.035324     no
+ 3000       Δŷ   270  0.975   263.275  265     up     YES   -0.035600   -0.000000        +inf   -0.000000    YES
+ 3000     Δŷ/ŷ   270  0.025     7.725    6    low     YES   -1.846490        -inf   -0.055288   -1.846490     no
+ 3000     Δŷ/ŷ   270  0.500   135.500    -    med       -   -0.026289   -0.010741   +0.000000   -0.010741    YES
+ 3000     Δŷ/ŷ   270  0.975   263.275  265     up     YES   -0.578135   +0.000000        +inf   +0.000000    YES
+ 4500       Δŷ   405  0.025    11.100   10    low     YES   +0.123921        -inf   +0.208015   +0.123921     no
+ 4500       Δŷ   405  0.500   203.000    -    med       -   +0.071117   -0.093223   -0.000000   -0.000000    YES
+ 4500       Δŷ   405  0.975   394.900  396     up     YES   +0.154307   +0.000000        +inf   +0.154307     no
+ 4500     Δŷ/ŷ   405  0.025    11.100   10    low     YES   +0.417481        -inf   -0.000000   -0.000000    YES
+ 4500     Δŷ/ŷ   405  0.500   203.000    -    med       -   +0.040188   -0.033906   -0.000000   -0.000000    YES
+ 4500     Δŷ/ŷ   405  0.975   394.900  396     up     YES   +1.123823   -0.000000        +inf   +1.123823     no
+
+--------------------------------------------------------------------------------------------------------
+generator: heteroscedastic, misspecified mean
+--------------------------------------------------------------------------------------------------------
+ rows   target  n_l2  level   virtual  req   side  under?    resolved     clip lo     clip hi      stored  clip?
+ 1000       Δŷ    90   below the 128-example floor: the block is skipped and the bias stays zero (True)
+ 1000     Δŷ/ŷ    90   below the 128-example floor: the block is skipped and the bias stays zero (True)
+ 1500       Δŷ   135  0.025     4.350    3    low     YES   -0.287177        -inf   +0.000000   -0.287177     no
+ 1500       Δŷ   135  0.500    68.000    -    med       -   +0.083816   -0.035932   +0.000000   +0.000000    YES
+ 1500       Δŷ   135  0.975   131.650  133     up     YES   +0.594178   -0.151755        +inf   +0.594178     no
+ 1500     Δŷ/ŷ   135  0.025     4.350    3    low     YES   +1.150056        -inf   -0.539690   -0.539690    YES
+ 1500     Δŷ/ŷ   135  0.500    68.000    -    med       -   +0.097881   +0.000000   +0.000000   +0.000000    YES
+ 1500     Δŷ/ŷ   135  0.975   131.650  133     up     YES   +1.611687   +0.821526        +inf   +1.611687     no
+ 3000       Δŷ   270  0.025     7.725    6    low     YES   +0.239674        -inf   +0.124843   +0.124843    YES
+ 3000       Δŷ   270  0.500   135.500    -    med       -   -0.093020   -0.042569   +0.036845   -0.042569    YES
+ 3000       Δŷ   270  0.975   263.275  265     up     YES   -0.322162   -0.255018        +inf   -0.255018    YES
+ 3000     Δŷ/ŷ   270  0.025     7.725    6    low     YES   +0.029007        -inf   -0.000000   -0.000000    YES
+ 3000     Δŷ/ŷ   270  0.500   135.500    -    med       -   -0.048190   +0.000000   +0.000000   +0.000000    YES
+ 3000     Δŷ/ŷ   270  0.975   263.275  265     up     YES   -0.992145   +0.042367        +inf   +0.042367    YES
+ 4500       Δŷ   405  0.025    11.100   10    low     YES   -0.119072        -inf   +0.166443   -0.119072     no
+ 4500       Δŷ   405  0.500   203.000    -    med       -   +0.042566   -0.028170   +0.000000   +0.000000    YES
+ 4500       Δŷ   405  0.975   394.900  396     up     YES   +0.052173   -0.092772        +inf   +0.052173     no
+ 4500     Δŷ/ŷ   405  0.025    11.100   10    low     YES   -0.371325        -inf   -1.302235   -1.302235    YES
+ 4500     Δŷ/ŷ   405  0.500   203.000    -    med       -   +0.032467   +0.000000   +0.000000   +0.000000    YES
+ 4500     Δŷ/ŷ   405  0.975   394.900  396     up     YES   +0.472473   +0.062017        +inf   +0.472473     no
+
+========================================================================================================
+WHAT THIS SETTLES AND WHAT IT DOES NOT
+========================================================================================================
+cells where the block fired: 36
+cells carrying a one-sided claim (the median carries none): 24
+cells where the landed position undercovers, in that cell's own direction: 24
+cells where the coherence clip overrode the resolved value: 20
+cells where the position undercovers AND the clip did not override it, so
+the resolved value is what the library keeps: 15
+
+The site resolves a level the way the audit describes: the level goes to
+numpy unchanged and lands between order statistics, short of the rank a
+one-sided guarantee at that level requires. What does NOT follow is a
+coverage consequence. Where the clip binds, the value the library keeps is a
+coherence bound and not the quantile, so the rank decided nothing, and a
+probe that reported only realised coverage here would read as 'no defect'
+while the resolution is still wrong. Both columns are printed for that
+reason. Below 128 level-2 examples the block never runs, and the default
+calibration sizes put a 1000-row dataset there.
+
+Not measured here: delivered interval coverage on real data, and whether the
+clip binds under a caller-supplied estimator other than the default XGBoost
+pair. Two generators and four dataset sizes are a sweep, not a census.

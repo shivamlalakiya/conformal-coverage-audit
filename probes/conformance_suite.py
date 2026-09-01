@@ -581,6 +581,39 @@ def oos_adapters():
         skipped.append(("crepes-weighted", type(exc).__name__))
 
     try:
+        import fortuna
+        import jax.numpy as jnp
+        from fortuna.conformal import QuantileConformalRegressor
+
+        def fortuna_qcr(s, lv):
+            """`conformal/regression/quantile.py:90`, through the documented path.
+
+            The method takes validation bounds and targets and computes its own
+            scores as max(lower - y, y - upper). With y = 0 and the upper bound at
+            0, that is the supplied score set exactly, so nothing is arranged past
+            what the public signature accepts. It then resolves the level as
+            `jnp.quantile(scores, jnp.ceil((n + 1) * (1 - error)) / n)`: the correct
+            rank, divided by n and handed back as a level.
+
+            `onedim_uncertainty.py:90` is byte-identical and reached by a second
+            regressor class, so it is the same expression and gets no row of its own.
+            """
+            s = np.asarray(s, dtype=float)
+            n = len(s)
+            return float(QuantileConformalRegressor().quantile(
+                val_lower_bounds=jnp.asarray(s),
+                val_upper_bounds=jnp.zeros(n),
+                val_targets=jnp.zeros((n, 1)),
+                error=1.0 - lv))
+
+        import jax
+        out.append((f"fortuna QuantileConformalRegressor.quantile "
+                    f"[{_dist_version('aws-fortuna', fortuna)}, jax {jax.__version__}]",
+                    fortuna_qcr))
+    except Exception as exc:
+        skipped.append(("fortuna QuantileConformalRegressor", type(exc).__name__))
+
+    try:
         import pandas as pd
         import skforecast
         from skforecast.preprocessing import ConformalIntervalCalibrator

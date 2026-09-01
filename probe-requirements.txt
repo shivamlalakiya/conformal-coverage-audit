@@ -15,10 +15,13 @@
 #                     puncc pins numpy 1.26.x
 #                     probes: run_real_data_tabular,
 #                             conformance_suite (tabular run)
-#   [4] out-of-census crepes-weighted, skforecast. Packages the census does NOT
-#                     cover, classified to test the suite outside the set it was
-#                     built on.
-#                     probes: conformance_suite --oos
+#   [4] out-of-census crepes-weighted, skforecast, conformal-tights. Packages the
+#                     census does NOT cover, classified to test the suite outside
+#                     the set it was built on.
+#                     probes: conformance_suite --oos, oos_conformal_tights
+#   [5] fortuna       aws-fortuna caps Python at <3.12 and pins jax, so it cannot
+#                     share [4]. Python 3.11.
+#                     probes: conformance_suite --oos (fortuna row only)
 #
 # helper_census reads source text only, so it runs under any of the three; it
 # reports which packages it could not locate rather than skipping them silently.
@@ -126,3 +129,25 @@ utilsforecast==0.2.16
 # scipy==1.18.1
 # joblib==1.6.0
 # threadpoolctl==3.6.0
+# conformal-tights arrived after the three rows above and brings xgboost with it. It
+# co-installs with crepes-weighted and skforecast, but pulls pandas 3.0.5 where those
+# two resolved 2.3.3, so the conformance --oos output and the conformal-tights output
+# were produced in separate environments and each names its own versions.
+# conformal-tights==0.5.0
+# xgboost==3.4.1
+# pandas==3.0.5
+
+# ---------------------------------------------------------------------- [5] fortuna
+# uv python install 3.11 && uv venv --python 3.11 .venv-fortuna
+# uv pip install --python .venv-fortuna/bin/python aws-fortuna==0.2.0
+# aws-fortuna 0.2.0 requires >=3.9,<3.12, and no interpreter in that range was on this
+# machine: uv fetched a user-scoped 3.11.15 rather than touching the system Python.
+# Its pyproject asks for jax ~0.4.30, and the resolver landed on 0.4.38, which is what
+# the row prints -- the boundary behaviour below is a property of that jax, not of a
+# version read off a pyproject.
+# aws-fortuna==0.2.0
+# jax==0.4.38
+# jaxlib==0.4.38
+# flax==0.8.5
+# optax==0.1.9
+# numpy==1.24.3

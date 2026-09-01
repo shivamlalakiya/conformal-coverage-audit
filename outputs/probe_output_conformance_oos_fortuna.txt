@@ -20,9 +20,7 @@ reference b                                            b      8.000     38.000  
 reference c                                            c       +inf     37.000     0.9000      9      -
 reference d                                            d      7.300     36.100        nan  >2000      -
 reference g                                            g      1.310      2.700        nan  >2000      -
-crepes-weighted classic branch [0.1.3; module declares 0.1.1] (CONTROL: expression inherited from crepes 0.9.1)   c       +inf     37.000     0.9091     10  warns
-crepes-weighted weighted branch [0.1.3; module declares 0.1.1], ratios=1   c       +inf     38.000     0.9524     20  warns
-skforecast ConformalIntervalCalibrator [0.24.0], symmetric   d      7.300     36.100        nan  >2000      -
+fortuna QuantileConformalRegressor.quantile [0.2.0, jax 0.4.38]   b      8.000     37.075     0.9000      9      -
 
 These rows are NOT a census count. The census criterion counts one
 resolution site per distinct expression reachable from a public entry
@@ -31,7 +29,7 @@ does not make: crepes-weighted's classic branch is the same expression
 as an already-counted crepes 0.9.1 site, and skforecast ships the same
 line in several forecasters. The rows report what each helper delivers.
 
-rows: 3   no site count is printed here, on purpose
+rows: 1   no site count is printed here, on purpose
 
 Evidence per helper
 --------------------------------------------------------------------------------------------------------
@@ -50,18 +48,13 @@ Evidence per helper
   g
       branch (g): silent at the boundary: no warning emitted at n=8; NO candidate rule fits: closest is 'raw linear, 1-sided', off by 102.7 ranks over 6 interior n. Read this as either an approximate estimator (river's P-squared is the real case) OR a rule this suite's candidate set does not yet name -- check the second before reporting the first
       never delivers 0.90 for any n <= 2000
-  crepes-weighted classic branch [0.1.3; module declares 0.1.1] (CONTROL: expression inherited from crepes 0.9.1)
-      branch (c): WARNS at the boundary: "the no. of calibration examples is too smallfor the chosen confidence level; the interva"; rule fitted over 6 interior n: raw order-stat, 1-sided (max deviation 0.000 ranks); corrects, then returns +inf at n=8
-      first delivers 0.90 at n=10, as 10/11 = 0.9091
-  crepes-weighted weighted branch [0.1.3; module declares 0.1.1], ratios=1
-      branch (c): WARNS at the boundary: "the no. of calibration examples is too smallfor the chosen confidence level; the interva"; rule fitted over 6 interior n: corrected higher, 1-sided (max deviation 0.000 ranks); corrects, then returns +inf at n=8
-      first delivers 0.90 at n=20, as 20/21 = 0.9524
-  skforecast ConformalIntervalCalibrator [0.24.0], symmetric
-      branch (d): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: raw linear, 1-sided (max deviation 0.000 ranks); no (n+1)/n correction applied, so the feasibility boundary is never encountered and no branch decision occurs; threshold lands BETWEEN order statistics, so no exchangeability bound applies to it directly
-      never delivers 0.90 for any n <= 2000
+  fortuna QuantileConformalRegressor.quantile [0.2.0, jax 0.4.38]
+      branch (b): silent at the boundary: no warning emitted at n=8; rule fitted over 6 interior n: corrected linear, 1-sided (max deviation 0.000 ranks); corrects, then returns max(scores) at n=8 where the corrected level exceeds 1 -- the clamp; threshold lands BETWEEN order statistics, so no exchangeability bound applies to it directly
+      first delivers 0.90 at n=9, as 9/10 = 0.9000
 
-adapters not loaded here (1) -- reported, not dropped:
-      fortuna QuantileConformalRegressor           ModuleNotFoundError
+adapters not loaded here (2) -- reported, not dropped:
+      crepes-weighted                              ModuleNotFoundError
+      skforecast ConformalIntervalCalibrator       ModuleNotFoundError
       run this file again in the other probe venv to cover them
 
 ========================================================================================================
