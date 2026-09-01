@@ -50,6 +50,9 @@ identifiers:
   - type: doi
     value: 10.5281/zenodo.22221539
     description: "Version v1.5.2 -- the 31 Aug re-query and the out-of-census arm"
+  - type: doi
+    value: 10.5281/zenodo.22233673
+    description: "Version v1.5.3 -- the population behind the out-of-census rows"
 # verified against the live remote
 repository-code: "https://github.com/shivamlalakiya/conformal-coverage-audit"
 # This is what GitHub's cite widget and the indexers read. Left at v1.1.0 it sent a
