@@ -16,8 +16,8 @@
 #                     probes: run_real_data_tabular,
 #                             conformance_suite (tabular run)
 #   [4] out-of-census crepes-weighted, skforecast, conformal-tights. Packages the
-#                     census does NOT cover, classified to test the suite outside
-#                     the set it was built on.
+#                     census does NOT cover, classified so the suite meets code it
+#                     was not written against.
 #                     probes: conformance_suite --oos, oos_conformal_tights
 #   [5] fortuna       aws-fortuna caps Python at <3.12 and pins jax, so it cannot
 #                     share [4]. Python 3.11.

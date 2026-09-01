@@ -209,6 +209,7 @@ def main():
     say("")
 
     clip_bound = fired = short = comparable = decisive = 0
+    skipped_n, head = None, None
     for gen_label, gen in generators():
         say("-" * 104)
         say(f"generator: {gen_label}")
@@ -220,6 +221,8 @@ def main():
             clf, qs = fit(gen, n_rows)
             for r in cells(clf, qs):
                 if r["skipped"]:
+                    if skipped_n is None:
+                        skipped_n = r["n"]
                     say(f"{n_rows:>5} {r['target']:>8} {r['n']:>5}   "
                         f"below the 128-example floor: the block is skipped and the "
                         f"bias stays zero ({r['bias_all_zero']})")
@@ -229,6 +232,8 @@ def main():
                 short += bool(r["undercovers"])
                 comparable += r["undercovers"] is not None
                 decisive += bool(r["undercovers"]) and not r["clipped"]
+                if head is None and r["q"] > 0.5:
+                    head = r
                 side = ("up" if r["q"] > 0.5 else
                         "low" if r["q"] < 0.5 else "med")
                 under = ("-" if r["undercovers"] is None
@@ -243,13 +248,25 @@ def main():
     say("=" * 104)
     say("WHAT THIS SETTLES AND WHAT IT DOES NOT")
     say("=" * 104)
-    say(f"cells where the block fired: {fired}")
-    say(f"cells carrying a one-sided claim (the median carries none): {comparable}")
-    say(f"cells where the landed position undercovers, in that cell's own "
-        f"direction: {short}")
-    say(f"cells where the coherence clip overrode the resolved value: {clip_bound}")
-    say(f"cells where the position undercovers AND the clip did not override it, so")
-    say(f"the resolved value is what the library keeps: {decisive}")
+    # One key per line, fixed prefixes: a macro is read off these, and a summary
+    # spread over two lines cannot be parsed without guessing.
+    for key, value in (("cells fired", fired),
+                       ("cells carrying a one-sided claim", comparable),
+                       ("cells undercovering in their own direction", short),
+                       ("cells where the clip overrode the resolved value", clip_bound),
+                       ("cells undercovering with no clip override", decisive),
+                       ("level-2 examples the block requires", 128),
+                       ("level-2 examples at 1000 rows", skipped_n),
+                       ("headline cell level-2 size", head["n"]),
+                       ("headline cell level", head["q"]),
+                       ("headline cell virtual index", f"{head['virtual']:.3f}"),
+                       ("headline cell required rank", head["required"]),
+                       ("reconstruction residual, worst", f"{worst:.3e}")):
+        say(f"  {key:<50}: {value}")
+    say("")
+    say("The headline cell is the upper quantile at the smallest level-2 size that")
+    say("clears the floor. It is one cell of the table above and is named here so a")
+    say("reader quoting it does not have to pick one.")
     say("")
     say("The site resolves a level the way the audit describes: the level goes to")
     say("numpy unchanged and lands between order statistics, short of the rank a")

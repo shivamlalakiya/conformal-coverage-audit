@@ -66,12 +66,22 @@ generator: heteroscedastic, misspecified mean
 ========================================================================================================
 WHAT THIS SETTLES AND WHAT IT DOES NOT
 ========================================================================================================
-cells where the block fired: 36
-cells carrying a one-sided claim (the median carries none): 24
-cells where the landed position undercovers, in that cell's own direction: 24
-cells where the coherence clip overrode the resolved value: 20
-cells where the position undercovers AND the clip did not override it, so
-the resolved value is what the library keeps: 15
+  cells fired                                       : 36
+  cells carrying a one-sided claim                  : 24
+  cells undercovering in their own direction        : 24
+  cells where the clip overrode the resolved value  : 20
+  cells undercovering with no clip override         : 15
+  level-2 examples the block requires               : 128
+  level-2 examples at 1000 rows                     : 90
+  headline cell level-2 size                        : 135
+  headline cell level                               : 0.975
+  headline cell virtual index                       : 131.650
+  headline cell required rank                       : 133
+  reconstruction residual, worst                    : 2.882e-08
+
+The headline cell is the upper quantile at the smallest level-2 size that
+clears the floor. It is one cell of the table above and is named here so a
+reader quoting it does not have to pick one.
 
 The site resolves a level the way the audit describes: the level goes to
 numpy unchanged and lands between order statistics, short of the rank a

@@ -697,6 +697,15 @@ def main():
     say(f"probe at n={feasibility_floor(level) - 1} (infeasible) and "
         f"n={max(feasibility_floor(level) + 20, 40)} (interior)")
     say("")
+    if args.oos:
+        # Printed only on the out-of-census run, and deliberately: adding a header
+        # line to the two censused outputs would change files whose fixtures are
+        # gated and whose tabular run needs an environment this machine does not
+        # carry. The prose that quotes an out-of-census row needs the rank to read
+        # it against, and a probe that makes a reader compute one has not finished.
+        say(f"required rank at n={max(feasibility_floor(level) + 20, 40)}: "
+            f"{required_rank(max(feasibility_floor(level) + 20, 40), level)}")
+        say("")
     say("Scores are 1..n with no ties; threshold values therefore identify")
     say("their selected rank -- a non-integer value means the helper interpolated between")
     say("two order statistics.")

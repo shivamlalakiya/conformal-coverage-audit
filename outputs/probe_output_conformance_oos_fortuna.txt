@@ -9,6 +9,8 @@ requested coverage: 0.90
 feasibility floor:  n >= 9  (below it, ceil((n+1)*0.90) exceeds n and NO finite bound is valid)
 probe at n=8 (infeasible) and n=40 (interior)
 
+required rank at n=40: 37
+
 Scores are 1..n with no ties; threshold values therefore identify
 their selected rank -- a non-integer value means the helper interpolated between
 two order statistics.
