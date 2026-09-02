@@ -5,8 +5,8 @@ What was missing
 ----------------
 The residue table counts deliveries by enumeration -- one size in ten for
 inverted_cdf at 9/10, one in five for higher, one in seven at 5/7 -- and the
-periodicity argument establishes that the delivering sizes form a residue class
-without pinning its size. So the claim that more data will not fix a lossy index map
+periodicity argument establishes that those sizes recur on a fixed residue class
+without pinning how large that class is. So the claim that more data will not fix a lossy index map
 rested on a sweep: periodic, yes, but the proportion of honest sizes was a measured
 figure rather than a derived one.
 
