@@ -1,0 +1,43 @@
+# Environment [2] `darts` -- darts 0.46.1, which pins pandas 3.x where
+# environment [1] holds pandas 2.x. That conflict is the reason the audit
+# needs more than one environment, and the two files beside each other are
+# the evidence for it: pandas==2.3.3 there, pandas==3.0.5 here.
+# `pip freeze --all`, taken 2026-09-01 on Python 3.14.4.
+certifi==2026.7.22
+charset-normalizer==3.4.9
+cloudpickle==3.1.2
+contourpy==1.3.3
+cycler==0.12.1
+darts==0.46.1
+fonttools==4.63.0
+holidays==0.102
+idna==3.18
+joblib==1.5.3
+kiwisolver==1.5.0
+llvmlite==0.48.0
+matplotlib==3.11.1
+narwhals==2.24.0
+nfoursid==1.0.2
+numba==0.66.0
+numpy==2.4.6
+packaging==26.3
+pandas==3.0.5
+patsy==1.0.2
+pillow==12.3.0
+pip==26.0.1
+pyod==3.6.4
+pyparsing==3.3.2
+pypdf==6.16.2
+python-dateutil==2.9.0.post0
+requests==2.34.2
+scikit-learn==1.9.0
+scipy==1.18.0
+shap==0.52.0
+six==1.17.0
+slicer==0.0.8
+statsmodels==0.14.6
+threadpoolctl==3.6.0
+tqdm==4.70.0
+typing_extensions==4.16.0
+urllib3==2.7.0
+xarray==2026.7.0
