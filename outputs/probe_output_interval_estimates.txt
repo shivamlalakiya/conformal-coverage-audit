@@ -1,0 +1,37 @@
+================================================================================================
+WILSON 95% INTERVALS ON THE PAIRED DIFFERENCES
+================================================================================================
+self_check() passed at import (Wilson, not Wald: asymmetry near 0 asserted)
+
+Read from each arm's own committed output. The paired difference is
+(gains - losses)/units on integer counts; every arm below is nested, so
+losses is 0 and the difference is the binomial proportion gains/units.
+The printed delta is re-derived from the counts and asserted, never used
+as an input. z = 1.959963984540054.
+
+arm                               units  gains     delta  wilson lo  wilson hi     s.e.
+------------------------------------------------------------------------------------------------
+sktime empirical w=20 (m1)          250      9    0.0360     0.0191     0.0670   0.0118
+sktime empirical w=40 (m1)          250     16    0.0640     0.0398     0.1014   0.0155
+statsforecast m=10 (m1)             250     27    0.1080     0.0753     0.1526   0.0197
+statsforecast m=20 (m1)             250     10    0.0400     0.0219     0.0721   0.0124
+statsforecast m=50 (m1)             250      3    0.0120     0.0041     0.0347   0.0069
+darts cal=15 (m1)                   250     14    0.0560     0.0336     0.0918   0.0146
+darts cal=35 (m1)                   250      9    0.0360     0.0191     0.0670   0.0118
+darts cal=55 (m1)                   250      7    0.0280     0.0136     0.0567   0.0105
+------------------------------------------------------------------------------------------------
+8 arms
+
+intervals excluding zero: 8 of 8
+A lower end sitting above zero says the arm's difference is not
+attributable to sampling. It says nothing about the MECHANISM, which is
+what the predicted-delta column beside each cell is for.
+
+  sktime empirical w=20 (m1)       delta 0.0360  95% CI [0.0191, 0.0670]
+  sktime empirical w=40 (m1)       delta 0.0640  95% CI [0.0398, 0.1014]
+  statsforecast m=10 (m1)          delta 0.1080  95% CI [0.0753, 0.1526]
+  statsforecast m=20 (m1)          delta 0.0400  95% CI [0.0219, 0.0721]
+  statsforecast m=50 (m1)          delta 0.0120  95% CI [0.0041, 0.0347]
+  darts cal=15 (m1)                delta 0.0560  95% CI [0.0336, 0.0918]
+  darts cal=35 (m1)                delta 0.0360  95% CI [0.0191, 0.0670]
+  darts cal=55 (m1)                delta 0.0280  95% CI [0.0136, 0.0567]

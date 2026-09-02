@@ -77,7 +77,7 @@ model, the delta is meaningless — see §8.
 | Domain | Source | Rule |
 |---|---|---|
 | Forecasting | Monash Time Series Forecasting Archive — **M1 monthly and M3 monthly, 250 series each** | Selection rule stated before running; minimum series length fixed by the largest calibration window. Two independent collections, so archive-specific selection cannot explain a result |
-| Tabular | **OpenML-CC18** (classification) and **OpenML-CTR23** (regression) | ≤ 5000 rows, ≤ 100 features after one-hot encoding, no missing values, first *N* by dataset id. Every skipped dataset is reported with its reason |
+| Tabular | **OpenML-CC18** (classification) and **OpenML-CTR23** (regression) | Caps of 5000 instances and, once categorical columns are expanded, 100 columns; anything with a gap in it is dropped, and what survives is taken in dataset-id order. Every skipped dataset is reported with its reason |
 | Synthetic | iid draws | Retained deliberately: where the guarantee *should* hold exactly, any miss is unambiguous |
 
 ## 7. Reporting standard proposed by this work
