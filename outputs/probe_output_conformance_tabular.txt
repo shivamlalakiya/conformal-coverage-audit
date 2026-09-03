@@ -28,7 +28,7 @@ crepes ConformalRegressor.predict_int                  c       +inf     37.000  
 puncc BaseCalibrator.compute_quantile                  a     raises     37.000     0.9091     10      -
 torchcp calculate_conformal_value                      c       +inf     37.000     0.9000      9  warns
 mapie LAC quantiles [prefit/mean -> delegates]         a     raises     37.000     0.9000      9      -
-mapie LAC quantiles [cv=5/crossval -> count scale]     count      8.100     36.900     0.9000      9      -
+mapie LAC quantiles [cv=5/crossval -> count scale]   count      8.100     36.900     0.9000      9      -
 mapie _beta_optimize + get_quantile (composed)         b      8.000     37.000     0.9000      9      -
 crepes ConformalPredictiveSystem.predict_int           c       +inf     39.000     0.9500     19  warns
 puncc api/utils.py quantile (shared utility)           d      8.000     36.000     0.9000      9      -
