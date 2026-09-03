@@ -198,33 +198,45 @@ def holm(pvals):
 # (B) the index arithmetic, re-implemented in R
 # ---------------------------------------------------------------------------
 R_CODE = r'''
-required_rank <- function(n, cov) {
-  k <- ceiling((n + 1) * cov)
+# The level crosses this boundary as a RATIONAL, p and d, and every ceiling and
+# floor below is integer arithmetic. It used to cross as a printed decimal and
+# each side re-derived a rational from it, which made the two disagree at 2/3 and
+# 5/7 about arithmetic neither of them got wrong: 21 * 5/7 is 15 exactly, and it
+# is 15.000000000000002 in one language's doubles and 15 in the other's. Seven
+# such cells were reported as disagreements and one survived a first fix.
+ceil_div <- function(a, b) (a + b - 1) %/% b
+required_rank <- function(n, p, d) {
+  k <- ceil_div((n + 1) * p, d)
   if (k <= n) k else NA_integer_
 }
-required_span <- function(n, cov) {
-  k <- ceiling((n + 1) * cov); m <- n + 1 - k; a <- m %/% 2
+required_span <- function(n, p, d) {
+  k <- ceil_div((n + 1) * p, d); m <- n + 1 - k; a <- m %/% 2
   c(a, a + k, k)
 }
-h_linear  <- function(n, q) 1 + q * (n - 1)
-h_weibull <- function(n, q) q * (n + 1)
-h_invcdf  <- function(n, q) ceiling(q * n)
-h_higher  <- function(n, q) ceiling(q * (n - 1)) + 1
-delivers  <- function(hf, n, cov) floor(hf(n, cov)) >= ceiling((n + 1) * cov)
+h_linear  <- function(n, p, d) 1 + (p / d) * (n - 1)
+h_weibull <- function(n, p, d) (p / d) * (n + 1)
+h_invcdf  <- function(n, p, d) ceil_div(n * p, d)
+h_higher  <- function(n, p, d) ceil_div((n - 1) * p, d) + 1
+# floor(h) >= k, with the floors taken in integers rather than off a double
+floor_lin <- function(n, p, d) 1 + ((n - 1) * p) %/% d
+floor_wei <- function(n, p, d) ((n + 1) * p) %/% d
 
 out <- c()
 for (n in c(2, 3, 7, 9, 10, 19, 20, 29, 47, 50, 99, 100, 200, 501)) {
-  for (cov in c(0.90, 0.95, 2/3, 5/7)) {
-    rr <- required_rank(n, cov)
-    sp <- required_span(n, cov)
-    out <- c(out, sprintf("%d %.10f %s %d %d %d %.10f %.10f %d %d %d %d %d %d",
-      n, cov, ifelse(is.na(rr), "NA", as.character(rr)),
+  for (pd in list(c(9, 10), c(19, 20), c(2, 3), c(5, 7))) {
+    p <- pd[1]; d <- pd[2]
+    k <- ceil_div((n + 1) * p, d)
+    rr <- required_rank(n, p, d)
+    sp <- required_span(n, p, d)
+    out <- c(out, sprintf("%d %d %d %s %d %d %d %.10f %.10f %d %d %d %d %d %d",
+      n, p, d, ifelse(is.na(rr), "NA", as.character(rr)),
       sp[1], sp[2], sp[3],
-      h_linear(n, cov), h_weibull(n, cov), h_invcdf(n, cov), h_higher(n, cov),
-      as.integer(delivers(h_linear, n, cov)),
-      as.integer(delivers(h_weibull, n, cov)),
-      as.integer(delivers(h_invcdf, n, cov)),
-      as.integer(delivers(h_higher, n, cov))))
+      h_linear(n, p, d), h_weibull(n, p, d),
+      h_invcdf(n, p, d), h_higher(n, p, d),
+      as.integer(floor_lin(n, p, d) >= k),
+      as.integer(floor_wei(n, p, d) >= k),
+      as.integer(h_invcdf(n, p, d) >= k),
+      as.integer(h_higher(n, p, d) >= k)))
   }
 }
 cat(out, sep = "\n")
@@ -267,10 +279,17 @@ def run_r():
     rows = {}
     for ln in p.stdout.strip().splitlines():
         f = ln.split()
-        if len(f) != 14:
+        if len(f) != 15:
             continue
-        n, cov = int(f[0]), float(f[1])
+        n, cov = int(f[0]), F(int(f[1]), int(f[2]))
+        f = [f[0], ""] + f[3:]   # keep slot 1, so the offsets below do not move
+        # The KEY is rounded so two runs of the same cell land in one slot; the
+        # ROW keeps the level R actually computed with. Passing the key back into
+        # the Python side is re-deriving from a rounded number, and it reported
+        # seven disagreements at cov = 2/3 and 5/7 that were the rounding and not
+        # the arithmetic under test.
         rows[(n, round(cov, 10))] = {
+            "cov": cov,
             "rr": None if f[2] == "NA" else int(f[2]),
             "a": int(f[3]), "b": int(f[4]), "k": int(f[5]),
             "h_lin": float(f[6]), "h_wei": float(f[7]),
@@ -445,7 +464,8 @@ def main():
         fields = ["rr", "a", "b", "k", "h_inv", "h_hig",
                   "d_lin", "d_wei", "d_inv", "d_hig"]
         checked, disagree = 0, []
-        for (n, cov), rr in sorted(rrows.items()):
+        for (n, _key), rr in sorted(rrows.items()):
+            cov = rr["cov"]
             py = py_reference(n, cov)
             for f in fields:
                 checked += 1
@@ -478,7 +498,15 @@ def main():
     say("risk report or alerting summary, the stated rate is 1 - coverage; the same miss becomes")
     say("a larger rate multiplier at tighter requested levels.")
     say("")
-    say(f"{'n':>6} {'level':>7} {'abs miss':>10} {'rate asked':>11} "
+    say("The denominator of that multiplier is what k* itself still fails to cover,")
+    say("(n+1-k*)/(n+1), and not the requested alpha: k* is an integer, so the")
+    say("attainable rate is at or below alpha and the two differ. The column below is")
+    say("headed 'rate at k*' for that reason -- it was headed 'rate asked', which named")
+    org = "alpha and reported the attainable rate, and the manuscript's figure caption"
+    say(org)
+    say("repeated the error until a referee reproduced the plotted multiples.")
+    say("")
+    say(f"{'n':>6} {'level':>7} {'abs miss':>10} {'rate at k*':>11} "
         f"{'rate got':>10} {'factor':>8}")
     say("-" * 104)
     worst = None

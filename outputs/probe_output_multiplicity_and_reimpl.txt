@@ -68,7 +68,7 @@ cells: 56   field comparisons: 672   disagreements: 0
 
 Two implementations written against the same definitions in two
 languages agree on the needed rank, the interval span, both
-virtual coordinates and all four delivery decisions, at every cell.
+virtual indices and all four delivery decisions, at every cell.
 That is the independence the fixture audit cannot supply: checks 2
 and 4 re-derive through the layer they check, and check 5's oracle
 is reviewed by the builder author.
@@ -77,11 +77,18 @@ is reviewed by the builder author.
 (C) THE SAME ONE-RANK MISS, ABSOLUTELY AND AS AN EXCEEDANCE RATE
 --------------------------------------------------------------------------------------------------------
 A helper one rank short delivers (k*-1)/(n+1) rather than k*/(n+1). The
-one-rank coverage change is 1/(n+1) at every level. Risk and alerting
-reports usually print 1 - coverage; there, that same miss becomes
+one-rank coverage change is 1/(n+1) at every level. In a
+risk report or alerting summary, the stated rate is 1 - coverage; the same miss becomes
 a larger rate multiplier at tighter requested levels.
 
-     n   level   abs miss  rate asked   rate got   factor
+The denominator of that multiplier is what k* itself still fails to cover,
+(n+1-k*)/(n+1), and not the requested alpha: k* is an integer, so the
+attainable rate is at or below alpha and the two differ. The column below is
+headed 'rate at k*' for that reason -- it was headed 'rate asked', which named
+alpha and reported the attainable rate, and the manuscript's figure caption
+repeated the error until a referee reproduced the plotted multiples.
+
+     n   level   abs miss  rate at k*   rate got   factor
 --------------------------------------------------------------------------------------------------------
     50   0.900    0.01961     0.09804    0.11765     1.20x
     50   0.950    0.01961     0.03922    0.05882     1.50x
