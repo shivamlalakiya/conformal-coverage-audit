@@ -36,7 +36,8 @@ import sys
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from paired_report import format_cell, summarize  # noqa: E402
+from paired_report import (exceedance_multiple, format_cell,  # noqa: E402
+                           summarize)
 from run_real_data import rank_of, required_rank  # noqa: E402
 
 LEVELS = (90, 95)
@@ -179,6 +180,14 @@ def main():
                 s = summarize(recs)
                 for ln in format_cell(f"n_windows={nw:<3}", s):
                     say(ln)
+                # The same shortfall as the exceedance multiple a risk report
+                # carries, off the unrounded mean coverage. The manuscript prints
+                # this beside the absolute pair and may not divide two of its own
+                # rounded macros to get it.
+                if s is not None:
+                    say(f"      exceedance multiple    "
+                        f"{exceedance_multiple(s['a_cov'], level / 100.0):.2f}x"
+                        f"   (1 - A) / (1 - nominal)")
 
     say("")
     say("A positive delta means the required rank covers more than the shipped call.")

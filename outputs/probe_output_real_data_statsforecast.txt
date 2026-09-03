@@ -28,6 +28,7 @@ method=conformal_distribution   nominal 0.90
       ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
         not the level->rank map. 1 - A is the shortfall against a level no finite
         interval can deliver at this n.
+      exceedance multiple    4.16x   (1 - A) / (1 - nominal)
   n_windows=5     series=250  median n=5
       arm A (shipped)        coverage 0.7200   lands on median rank 5 of 5
       arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
@@ -37,6 +38,7 @@ method=conformal_distribution   nominal 0.90
       ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
         not the level->rank map. 1 - A is the shortfall against a level no finite
         interval can deliver at this n.
+      exceedance multiple    2.80x   (1 - A) / (1 - nominal)
   n_windows=10    series=250  median n=10
       arm A (shipped)        coverage 0.7800   lands on median rank 10 of 10
       arm B (required rank)  coverage 0.8880   median required rank 10 of 10
@@ -44,6 +46,7 @@ method=conformal_distribution   nominal 0.90
       predicted delta        +0.0007
       status changed in 27 of 250 units: gains=27 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 1.416e+04   B 1.805e+04
+      exceedance multiple    2.20x   (1 - A) / (1 - nominal)
   n_windows=20    series=250  median n=20
       arm A (shipped)        coverage 0.8640   lands on median rank 19 of 20
       arm B (required rank)  coverage 0.9040   median required rank 19 of 20
@@ -51,6 +54,7 @@ method=conformal_distribution   nominal 0.90
       predicted delta        +0.0019
       status changed in 10 of 250 units: gains=10 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 1.708e+04   B 1.92e+04
+      exceedance multiple    1.36x   (1 - A) / (1 - nominal)
   n_windows=50    series=250  median n=50
       arm A (shipped)        coverage 0.8760   lands on median rank 46 of 50
       arm B (required rank)  coverage 0.8880   median required rank 46 of 50
@@ -58,6 +62,7 @@ method=conformal_distribution   nominal 0.90
       predicted delta        +0.0008
       status changed in 3 of 250 units: gains=3 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 1.731e+04   B 1.896e+04
+      exceedance multiple    1.24x   (1 - A) / (1 - nominal)
 
 method=conformal_distribution   nominal 0.95
   n_windows=2     series=250  median n=2
@@ -69,6 +74,7 @@ method=conformal_distribution   nominal 0.95
       ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
         not the level->rank map. 1 - A is the shortfall against a level no finite
         interval can deliver at this n.
+      exceedance multiple    7.84x   (1 - A) / (1 - nominal)
   n_windows=5     series=250  median n=5
       arm A (shipped)        coverage 0.7520   lands on median rank 5 of 5
       arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
@@ -78,6 +84,7 @@ method=conformal_distribution   nominal 0.95
       ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
         not the level->rank map. 1 - A is the shortfall against a level no finite
         interval can deliver at this n.
+      exceedance multiple    4.96x   (1 - A) / (1 - nominal)
   n_windows=10    series=250  median n=10
       arm A (shipped)        coverage 0.8520   lands on median rank 10 of 10
       arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
@@ -87,6 +94,7 @@ method=conformal_distribution   nominal 0.95
       ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
         not the level->rank map. 1 - A is the shortfall against a level no finite
         interval can deliver at this n.
+      exceedance multiple    2.96x   (1 - A) / (1 - nominal)
   n_windows=20    series=250  median n=20
       arm A (shipped)        coverage 0.9040   lands on median rank 20 of 20
       arm B (required rank)  coverage 0.9560   median required rank 20 of 20
@@ -94,6 +102,7 @@ method=conformal_distribution   nominal 0.95
       predicted delta        +0.0000
       status changed in 13 of 250 units: gains=13 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 1.934e+04   B 2.493e+04
+      exceedance multiple    1.92x   (1 - A) / (1 - nominal)
   n_windows=50    series=250  median n=50
       arm A (shipped)        coverage 0.9280   lands on median rank 48 of 50
       arm B (required rank)  coverage 0.9520   median required rank 49 of 50
@@ -101,6 +110,7 @@ method=conformal_distribution   nominal 0.95
       predicted delta        +0.0202
       status changed in 6 of 250 units: gains=6 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 2.154e+04   B 2.545e+04
+      exceedance multiple    1.44x   (1 - A) / (1 - nominal)
 
 method=conformal_error   nominal 0.90
   n_windows=2     series=250  median n=2
@@ -112,6 +122,7 @@ method=conformal_error   nominal 0.90
       ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
         not the level->rank map. 1 - A is the shortfall against a level no finite
         interval can deliver at this n.
+      exceedance multiple    3.96x   (1 - A) / (1 - nominal)
   n_windows=5     series=250  median n=5
       arm A (shipped)        coverage 0.7280   lands on median rank 5 of 5
       arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
@@ -121,6 +132,7 @@ method=conformal_error   nominal 0.90
       ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
         not the level->rank map. 1 - A is the shortfall against a level no finite
         interval can deliver at this n.
+      exceedance multiple    2.72x   (1 - A) / (1 - nominal)
   n_windows=10    series=250  median n=10
       arm A (shipped)        coverage 0.7840   lands on median rank 10 of 10
       arm B (required rank)  coverage 0.8880   median required rank 10 of 10
@@ -128,6 +140,7 @@ method=conformal_error   nominal 0.90
       predicted delta        +0.0007
       status changed in 26 of 250 units: gains=26 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 1.437e+04   B 1.805e+04
+      exceedance multiple    2.16x   (1 - A) / (1 - nominal)
   n_windows=20    series=250  median n=20
       arm A (shipped)        coverage 0.8680   lands on median rank 19 of 20
       arm B (required rank)  coverage 0.9040   median required rank 19 of 20
@@ -135,6 +148,7 @@ method=conformal_error   nominal 0.90
       predicted delta        +0.0019
       status changed in 9 of 250 units: gains=9 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 1.719e+04   B 1.92e+04
+      exceedance multiple    1.32x   (1 - A) / (1 - nominal)
   n_windows=50    series=250  median n=50
       arm A (shipped)        coverage 0.8760   lands on median rank 46 of 50
       arm B (required rank)  coverage 0.8880   median required rank 46 of 50
@@ -142,6 +156,7 @@ method=conformal_error   nominal 0.90
       predicted delta        +0.0008
       status changed in 3 of 250 units: gains=3 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 1.74e+04   B 1.896e+04
+      exceedance multiple    1.24x   (1 - A) / (1 - nominal)
 
 method=conformal_error   nominal 0.95
   n_windows=2     series=250  median n=2
@@ -153,6 +168,7 @@ method=conformal_error   nominal 0.95
       ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
         not the level->rank map. 1 - A is the shortfall against a level no finite
         interval can deliver at this n.
+      exceedance multiple    7.84x   (1 - A) / (1 - nominal)
   n_windows=5     series=250  median n=5
       arm A (shipped)        coverage 0.7520   lands on median rank 5 of 5
       arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
@@ -162,6 +178,7 @@ method=conformal_error   nominal 0.95
       ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
         not the level->rank map. 1 - A is the shortfall against a level no finite
         interval can deliver at this n.
+      exceedance multiple    4.96x   (1 - A) / (1 - nominal)
   n_windows=10    series=250  median n=10
       arm A (shipped)        coverage 0.8520   lands on median rank 10 of 10
       arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
@@ -171,6 +188,7 @@ method=conformal_error   nominal 0.95
       ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
         not the level->rank map. 1 - A is the shortfall against a level no finite
         interval can deliver at this n.
+      exceedance multiple    2.96x   (1 - A) / (1 - nominal)
   n_windows=20    series=250  median n=20
       arm A (shipped)        coverage 0.9040   lands on median rank 20 of 20
       arm B (required rank)  coverage 0.9560   median required rank 20 of 20
@@ -178,6 +196,7 @@ method=conformal_error   nominal 0.95
       predicted delta        +0.0000
       status changed in 13 of 250 units: gains=13 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 1.949e+04   B 2.493e+04
+      exceedance multiple    1.92x   (1 - A) / (1 - nominal)
   n_windows=50    series=250  median n=50
       arm A (shipped)        coverage 0.9280   lands on median rank 48 of 50
       arm B (required rank)  coverage 0.9520   median required rank 49 of 50
@@ -185,6 +204,7 @@ method=conformal_error   nominal 0.95
       predicted delta        +0.0202
       status changed in 6 of 250 units: gains=6 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 2.157e+04   B 2.545e+04
+      exceedance multiple    1.44x   (1 - A) / (1 - nominal)
 
 A positive delta means the required rank covers more than the shipped call.
 Raw archive series do not support assigning an absolute miss to the
@@ -193,5 +213,3 @@ convention on its own -- the paired delta is what carries the claim.
 The n_windows=2 rows are the default configuration. Where arm B reads
 +inf-infeasible there, a two-element score set has no index supporting
 0.90 or 0.95 bound, and arm A still returns a finite interval.
-
-written -> outputs/probe_output_real_data_statsforecast.txt

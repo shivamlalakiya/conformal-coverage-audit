@@ -32,7 +32,7 @@ self_check() passed at import (the clip window is derived, not assumed)
 (iii) DELIVERED COVERAGE on the flagged path, over the whole infeasible window.
       Scores are tie-free 1..n, so the returned threshold identifies its landed rank
       on. Where the required rank exceeds n the flagged path lands on rank n, so
-      the delivered coverage is n over n plus one independent of level
+      the delivered coverage is n/(n+1), independent of the requested level
       that was asked for. Exact arithmetic; the last row is the feasible control.
 --------------------------------------------------------------------------------------------
   level    n  req rank  feasible  rank got  delivered  nominal  shortfall
@@ -67,6 +67,7 @@ self_check() passed at import (the clip window is derived, not assumed)
     worst infeasible cell: n = 2 at nominal 0.95 delivers 0.6667, shortfall 0.2833
     the deficit here is a whole missing rank, not the O(1/n) one-rank deficit:
     no rank inside the sample attains the requested level at these sizes.
+    exceedance multiple at n = 10, level 0.95: 1.82x  (1 - delivered) / (1 - level)
 
 --------------------------------------------------------------------------------------------
 (iv) THE SAME COVERAGE, MEASURED through predict_interval(allow_infinite_bounds=True)
@@ -104,11 +105,12 @@ self_check() passed at import (the clip window is derived, not assumed)
      Any class this probe cannot construct is REPORTED, never dropped.
 --------------------------------------------------------------------------------------------
     SplitConformalRegressor            default -> ValueError   flagged -> finite (width 1.9179)   REACHES THE CLIP
-    CrossConformalRegressor            default -> ValueError   flagged -> finite (width 4.6722)   REACHES THE CLIP
-    JackknifeAfterBootstrapRegressor   default -> ValueError   flagged -> finite (width 5.7316)   REACHES THE CLIP
+    CrossConformalRegressor            default -> ValueError   flagged -> finite (width 4.6307)   REACHES THE CLIP
+    JackknifeAfterBootstrapRegressor   default -> ValueError   flagged -> finite (width 3.5535)   REACHES THE CLIP
 
     3 of 3 public regressor classes exercised here fail on the default route and produce a finite interval on the flagged route.
-    So the path is not a single entry point. it is the common bound builder and every public class routing through it inherits the behaviour.
+    So the path is not a single entry point. Each of these classes calls one
+    bound builder, and what the builder does there is what they all do.
 
 --------------------------------------------------------------------------------------------
 VERDICT

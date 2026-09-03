@@ -109,6 +109,26 @@ def summarize(records):
     return out
 
 
+def exceedance_multiple(delivered, nominal):
+    """The delivered exceedance rate as a multiple of the requested one.
+
+    A risk or alerting report states 1 - coverage, so a shortfall in coverage is
+    read there as a multiple: 0.5840 against a requested 0.90 is not "0.316 low",
+    it is 4.16 times the exceedance the caller asked for. The article's Figure 1
+    argues that this is the number such a report carries, and then prints only the
+    absolute pair beside it.
+
+    Computed here from the unrounded mean coverage, and printed by the probe, for
+    the reason the whole build exists: (1 - 0.5840) / (1 - 0.90) off two printed
+    fields is 4.16 and off the unrounded values it can differ in the last digit,
+    and the manuscript may not do arithmetic on parsed values.
+    """
+    room = 1.0 - nominal
+    if room <= 0:
+        return float("inf")
+    return (1.0 - delivered) / room
+
+
 def format_cell(header, s):
     """Return the lines for one summarized cell."""
     if s is None:

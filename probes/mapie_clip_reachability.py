@@ -86,6 +86,9 @@ def CLASSES_UNDER_TEST():
 
 LINES = []
 SEED = 20260806
+# The size the manuscript quotes for this path, so the probe prints the multiple
+# for that cell rather than leaving the reader to divide two rounded fields.
+HEADLINE_N = 10
 REPS = 50000
 
 
@@ -232,6 +235,14 @@ def main():
         f"delivers {float(worst[2]):.4f}, shortfall {float(worst[3]):.4f}")
     say("    the deficit here is a whole missing rank, not the O(1/n) one-rank deficit:")
     say("    no rank inside the sample attains the requested level at these sizes.")
+    # The same shortfall as the exceedance multiple a risk report states, from the
+    # exact rational rather than from the two rounded fields printed above. The
+    # manuscript prints this beside the absolute pair and may not derive it.
+    hl = [(lv, n, d) for lv, n, d in
+          [(Fraction(95, 100), HEADLINE_N, Fraction(HEADLINE_N, HEADLINE_N + 1))]]
+    for lv, n, d in hl:
+        say(f"    exceedance multiple at n = {n}, level {float(lv):.2f}: "
+            f"{float((1 - d) / (1 - lv)):.2f}x  (1 - delivered) / (1 - level)")
     say("")
 
     # -- and the same number, measured end to end rather than derived --------
@@ -350,8 +361,8 @@ def main():
     say("")
     say(f"    {len(reached)} of {len(tried)} public regressor classes exercised here "
         f"fail on the default route and produce a finite interval on the flagged route.")
-    say("    So the path is not a single entry point. It is the shared bound-construction")
-    say("    layer, and every public class routing through it inherits the behaviour.")
+    say("    So the path is not a single entry point. Each of these classes calls one")
+    say("    bound builder, and what the builder does there is what they all do.")
     say("")
 
     say("-" * 92)
