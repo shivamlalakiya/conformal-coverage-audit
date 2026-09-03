@@ -1,0 +1,167 @@
+========================================================================================================
+REPOSITORY-SIDE FIXTURE CENSUS: calibration sizes the projects' own tests fix
+========================================================================================================
+self_check() passed at import: a float keyword does not read as an integer,
+a bool is not a size, and a sequence built by a computation has no literal
+length. Each of those is an input that makes a wrong parser print a number.
+
+Read from the projects' own repositories at the versions the census table
+pins, not from the wheels. Nothing is installed and no test is run: the
+value a fixture fixes is in its source, and installing a test runner would
+move the dependency set the rest of this audit is measured against.
+
+scored against the discriminating power over 50 sizes at nominal 0.90:
+  best 6 of 11 classes, worst 3, median 5
+
+--------------------------------------------------------------------------------------------------------
+package               tag        test files  sizes fixed  distinct   state
+--------------------------------------------------------------------------------------------------------
+crepes 0.9.1          v0.9.1              0            0         0   NO TEST SUITE IN THE REPOSITORY
+mapie 1.4.1           v1.4.1             40            2         2   tests present
+puncc 0.9.3           v0.9.3             24            0         0   tests present
+sktime 1.1.0          v1.1.0            513            0         0   tests present
+statsforecast 2.1.1   v2.1.1             29           40         4   tests present
+nonconformist 2.1.0   2.1.0               0            0         0   NO TEST SUITE IN THE REPOSITORY
+darts 0.46.1          0.46.1            122            1         1   tests present
+neuralforecast 3.2.1  v3.2.1             73            7         2   tests present
+river 0.25.0          0.25.0             60            0         0   tests present
+torchcp 1.2.1         v1.2.1             90            3         3   tests present
+
+--------------------------------------------------------------------------------------------------------
+EACH SCORED PIN, tied back to where the project itself writes it down
+--------------------------------------------------------------------------------------------------------
+package               rule what                                       n  power  of   verdict
+mapie 1.4.1           B    _check_alpha_and_n_samples(arg 1)         30      4  11   partial: 2 classes short of the best size
+                      mapie/tests/test_utils.py:718
+mapie 1.4.1           B    _check_alpha_and_n_samples(arg 1)         10      3  11   BLIND: worst possible power
+                      mapie/tests/test_utils.py:733
+sktime 1.1.0          -    ConformalIntervals(initial_window)        15    --- ---   not a calibration size: a TRAINING window: the calibration count is what remains of the series after it, so the test does not fix it
+                      sktime/forecasting/tests/test_conformal.py:104
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              4      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_core.py:460
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_core.py:626
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_core.py:763
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)             10      3  11   BLIND: worst possible power
+                      tests/test_models.py:134
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:148
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:303
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:343
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:399
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:452
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:489
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:533
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:568
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:623
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:645
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:693
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:737
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:798
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:805
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:831
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:838
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:890
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:978
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:1024
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:1174
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:1206
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:1240
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:1280
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:1309
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:1342
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:1377
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:1408
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:1705
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:1784
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:1789
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:1824
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              5      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:1882
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              5      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:1937
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              5      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:1979
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:2016
+statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models.py:2063
+darts 0.46.1          A    ConformalNaiveModel(cal_length)            0      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      darts/tests/models/forecasting/test_conformal_model.py:181
+neuralforecast 3.2.1  A    PredictionIntervals(n_windows)             2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_categorical.py:349
+neuralforecast 3.2.1  A    PredictionIntervals(n_windows)             2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_categorical.py:725
+neuralforecast 3.2.1  A    PredictionIntervals(n_windows)             2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_core.py:190
+neuralforecast 3.2.1  A    PredictionIntervals(n_windows)             2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_core.py:2233
+neuralforecast 3.2.1  A    PredictionIntervals(n_windows)             3      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models/test_dummy_univariate.py:160
+neuralforecast 3.2.1  A    PredictionIntervals(n_windows)             3      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_models/test_dummy_univariate.py:169
+neuralforecast 3.2.1  A    PredictionIntervals(n_windows)             2      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/test_simulate.py:139
+torchcp 1.2.1         C    calculate_conformal_value(score set)       5      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/utils/test_common.py:61
+torchcp 1.2.1         C    calculate_conformal_value(score set)       0      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/utils/test_common.py:75
+torchcp 1.2.1         C    calculate_conformal_value(score set)       1      0  11   below the feasibility floor, so no rank carries 0.90 there
+                      tests/utils/test_common.py:79
+
+========================================================================================================
+SUMMARY
+========================================================================================================
+repositories read: 10
+repositories shipping a test suite: 8
+repositories shipping NO test suite at all: 2 -- crepes 0.9.1, nonconformist 2.1.0
+repositories contributing a scorable calibration size: 5
+scored fixtures: 53
+distinct calibration sizes fixed: 8  [0, 1, 2, 3, 4, 5, 10, 30]
+pins under the 0.90 deterministic bound: 50
+fixtures in range at less than maximal power: 3 of 3
+fixtures at the worst power available: 2
+fixtures at maximal power: 0
+
+SCOPE OF THE CLAIM. Settled: which counts these projects write into their
+own conformal tests, under three declared rules whose symbols were verified
+against each checkout. Not settled: coverage of a suite overall. Some count
+absent from this list could still arise from generated inputs, and a project
+adding no row is not shown to be untested by that alone. Only one direction
+survives: where a count IS written down and its separating strength falls
+short of the ceiling, no rule class can be told apart at it, irrespective of
+whatever else surrounds that test.
+
+Sharper still: two checkouts hold no tests whatever. That reports on those
+two trees at those two revisions, and it reports on nothing further.

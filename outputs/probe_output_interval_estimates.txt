@@ -35,3 +35,44 @@ what the predicted-delta column beside each cell is for.
   darts cal=15 (m1)                delta 0.0560  95% CI [0.0336, 0.0918]
   darts cal=35 (m1)                delta 0.0360  95% CI [0.0191, 0.0670]
   darts cal=55 (m1)                delta 0.0280  95% CI [0.0136, 0.0567]
+
+================================================================================================
+EVERY CELL THAT REACHES A TYPESET TABLE
+================================================================================================
+The eight arms above are the family a correction is applied across. The
+rows below are the cells a reader sees in a table, which is a larger set:
+it adds the two archives' vacuous cells, where the difference is one minus
+arm A's coverage and the interval is an interval on infeasibility, and the
+coincidence cells, where gains is zero and a proper score interval still
+has width. Same arithmetic on both, from the same integer counts.
+
+A cell is picked by three selectors and never by position: the archive's
+own output file, the nominal level, the method where one output carries
+more than one, and the block line. Machine-readable, one line per cell.
+
+CELL arch=m1 lib=sktime cell=20 units=250 gains=9 delta=+0.0360 lo=0.0191 hi=0.0670 se=0.0118
+CELL arch=m1 lib=sktime cell=40 units=250 gains=16 delta=+0.0640 lo=0.0398 hi=0.1014 se=0.0155
+CELL arch=m3 lib=sktime cell=20 units=250 gains=9 delta=+0.0360 lo=0.0191 hi=0.0670 se=0.0118
+CELL arch=m3 lib=sktime cell=40 units=250 gains=21 delta=+0.0840 lo=0.0556 hi=0.1250 se=0.0176
+CELL arch=m1 lib=statsforecast cell=2 units=250 gains=104 delta=+0.4160 lo=0.3566 hi=0.4779 se=0.0312
+CELL arch=m1 lib=statsforecast cell=5 units=250 gains=70 delta=+0.2800 lo=0.2280 hi=0.3387 se=0.0285
+CELL arch=m1 lib=statsforecast cell=10 units=250 gains=27 delta=+0.1080 lo=0.0753 hi=0.1526 se=0.0197
+CELL arch=m1 lib=statsforecast cell=20 units=250 gains=10 delta=+0.0400 lo=0.0219 hi=0.0721 se=0.0124
+CELL arch=m1 lib=statsforecast cell=50 units=250 gains=3 delta=+0.0120 lo=0.0041 hi=0.0347 se=0.0069
+CELL arch=m3 lib=statsforecast cell=2 units=250 gains=97 delta=+0.3880 lo=0.3297 hi=0.4497 se=0.0309
+CELL arch=m3 lib=statsforecast cell=10 units=250 gains=18 delta=+0.0720 lo=0.0460 hi=0.1109 se=0.0164
+CELL arch=m1 lib=darts cell=10 units=250 gains=0 delta=+0.0000 lo=0.0000 hi=0.0151 se=0.0000
+CELL arch=m1 lib=darts cell=15 units=250 gains=14 delta=+0.0560 lo=0.0336 hi=0.0918 se=0.0146
+CELL arch=m1 lib=darts cell=30 units=250 gains=0 delta=+0.0000 lo=0.0000 hi=0.0151 se=0.0000
+CELL arch=m1 lib=darts cell=35 units=250 gains=9 delta=+0.0360 lo=0.0191 hi=0.0670 se=0.0118
+CELL arch=m1 lib=darts cell=50 units=250 gains=0 delta=+0.0000 lo=0.0000 hi=0.0151 se=0.0000
+CELL arch=m1 lib=darts cell=55 units=250 gains=7 delta=+0.0280 lo=0.0136 hi=0.0567 se=0.0105
+CELL arch=m3 lib=darts cell=15 units=250 gains=16 delta=+0.0640 lo=0.0398 hi=0.1014 se=0.0155
+CELL arch=m3 lib=darts cell=30 units=250 gains=0 delta=+0.0000 lo=0.0000 hi=0.0151 se=0.0000
+
+19 cells; 4 with a discordant count of zero, whose
+interval starts at zero because the difference is zero by arithmetic.
+
+Every interval above contains its own cell's paired difference, asserted
+per row. A row whose interval did not would be an interval read off a
+neighbouring block, which is the failure the three selectors exist for.

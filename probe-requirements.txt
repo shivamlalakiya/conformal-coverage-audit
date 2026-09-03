@@ -104,6 +104,9 @@ utilsforecast==0.2.16
 # nonconformist==2.1.0
 # numpy==1.26.4
 # pandas==3.0.5
+# 2 Sept 2026: environments/tabular.lock.txt reconstructs this block on CPython 3.12.13
+#   and environments/README.md records which committed outputs it reproduces byte for
+#   byte. numpy 1.26.4 needs Python <= 3.12, which this block did not say.
 # scipy: NOT PINNED, and the earlier `scipy==1.18.0` line here was wrong -- scipy
 #   1.18.0 requires numpy>=2.0.0,<2.8, so it cannot be co-installed with the
 #   numpy==1.26.4 above. No tabular probe imports scipy; it arrives transitively,

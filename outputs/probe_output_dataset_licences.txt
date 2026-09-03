@@ -1,0 +1,58 @@
+================================================================================================
+DATASET LICENCES -- what each dataset's own record states, read on the date below
+================================================================================================
+queried 2026-09-02 UTC; Zenodo REST API for the Monash records, OpenML JSON API v1 for the suites
+
+MONASH TIME SERIES FORECASTING ARCHIVE (loaded through sktime.datasets.load_forecastingdata)
+dataset                  zenodo record  title                               license id    doi
+m1_monthly_dataset             4656159  M1 Monthly Dataset                  cc-by-4.0     10.5281/zenodo.4656159
+m1_quarterly_dataset           4656154  M1 Quarterly Dataset                cc-by-4.0     10.5281/zenodo.4656154
+m3_monthly_dataset             4656298  M3 Monthly Dataset                  cc-by-4.0     10.5281/zenodo.4656298
+m3_quarterly_dataset           4656262  M3 Quarterly Dataset                cc-by-4.0     10.5281/zenodo.4656262
+m4_daily_dataset               4656548  M4 Daily Dataset                    cc-by-4.0     10.5281/zenodo.4656548
+
+OPENML (the datasets the tabular arm kept; ids and names read from its committed output)
+kind                  id  name                             version  licence
+classification         3  kr-vs-kp                               1  Public
+classification        11  balance-scale                          1  Public
+classification        14  mfeat-fourier                          1  Public
+classification        16  mfeat-karhunen                         1  Public
+classification        18  mfeat-morphological                    1  Public
+classification        22  mfeat-zernike                          1  Public
+classification        23  cmc                                    1  Public
+classification        31  credit-g                               1  Public
+classification        37  diabetes                               1  Public
+classification        44  spambase                               1  Public
+classification        50  tic-tac-toe                            1  Public
+classification        54  vehicle                                1  Public
+classification       307  vowel                                  2  Public
+classification       458  analcatdata_authorship                 1  Public
+classification       469  analcatdata_dmft                       1  Public
+regression         44956  abalone                               15  CC BY 4.0
+regression         44957  airfoil_self_noise                     8  CC BY 4.0
+regression         44958  auction_verification                   7  CC BY 4.0
+regression         44959  concrete_compressive_strength          7  CC BY 4.0
+regression         44960  energy_efficiency                      9  CC BY 4.0
+regression         44962  forest_fires                           9  CC BY 4.0
+regression         44966  solar_flare                            7  CC BY 4.0
+regression         44967  student_performance_por                8  CC BY 4.0
+regression         44970  QSAR_fish_toxicity                     7  CC BY 4.0
+regression         44971  white_wine                             7  CC BY 4.0
+regression         44972  red_wine                              11  CC BY 4.0
+regression         44987  socmob                                 4  Non-commercial scholarly and teaching purposes.
+regression         44994  cars                                   4  Public
+regression         45402  space_ga                               5  Public
+
+SUMMARY (counts of the rows above)
+monash records                 5
+monash records cc-by-4.0       5
+openml datasets                29
+openml classification          15
+openml regression              14
+openml licence CC BY 4.0                                       11
+openml licence Non-commercial scholarly and teaching purposes. 1
+openml licence Public                                          17
+
+OpenML's `Public` is the platform's own label for a dataset its uploader marked
+freely usable; it names no licence text, and the statement reports it as the label
+it is rather than as a licence. Every value above is the record's, not a reading of it.

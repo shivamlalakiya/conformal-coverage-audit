@@ -150,8 +150,8 @@ and what has *not* been established.
 
 ## Running the probes
 
-Three environments are needed: the packages under audit pin incompatible numpy and pandas releases.
-`probe-requirements.txt` documents all three and names which probe needs which.
+Three pinned environments cover the census and coverage arms, and each out-of-census package runs in one of its own: the packages under audit pin incompatible numpy and pandas releases. `environments/README.md` lists all four; three are recorded as `pip freeze` output, two taken from the interpreters that ran them and one rebuilt from its pins and checked by reproduction.
+`probe-requirements.txt` documents all four and names which probe needs which.
 
 ```bash
 # [1] forecasting: sktime, statsforecast, river

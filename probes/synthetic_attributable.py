@@ -5,15 +5,16 @@ The gap this closes
 -------------------
 Every real-data number in the audit is a PAIRED difference, because raw series do not supply the
 exchangeability needed to assign an absolute miss to the index convention. The limitation section says so. A referee reads that as: the one
-setting where absolute coverage is attributable is the tabular arm, and the tabular
-arm is a null -- so the headline quantity was never measured where it could be
+setting where absolute coverage is attributable is the tabular arm, where the paired
+difference reads zero throughout -- so the headline quantity was never measured where it could be
 believed.
 
 This probe measures it. Two generators, both keeping the parts of a real series
 that matter and replacing the part that breaks attribution:
 
-  (a) PARAMETRIC BOOTSTRAP. Fit a model to each real series, then resample its
-      standardised residuals i.i.d. to generate a synthetic series. The synthetic
+  (a) PARAMETRIC BOOTSTRAP. Fit a model to each real series. Draw from the fitted
+      residuals with replacement, after standardising them, and run the draws
+      through the fit to make a synthetic series. The synthetic
       series carries the fitted dynamics, the real scale and the real residual
       SHAPE -- and its innovations are i.i.d. BY CONSTRUCTION, so a correctly
       specified one-step forecaster puts calibration and test residuals under

@@ -12,13 +12,15 @@ that standard error.
 
 The prediction is exact, not fitted: darts passes an uncorrected level to
 np.quantile with method="higher", which lands on 1-based rank ceil(c*(n-1)) + 1,
-and a bound built on rank r covers with probability exactly r/(n+1).
+and a bound built on rank r has coverage r/(n+1) exactly.
 
 The prediction column was WRONG in the first version of this file, and is fixed
 --------------------------------------------------------------------------------
 It modelled the interval as two independent uncorrected rails, one at level 0.05
-and one at 0.95, spanning ranks [r_lo, r_hi]. The measurement falsified that by
-up to 27 standard errors. `darts_scoring_path.py` read the source and
+and one at 0.95, spanning ranks [r_lo, r_hi]. The table below falsifies that: at
+cal_length=10 the dead model wants 0.7273 where the run measures 0.9065. Read the
+two columns; the distance between them in standard errors is not printed and was
+once carried around as a hand-computed figure. `darts_scoring_path.py` read the source and
 instrumented it: with `symmetric=True` (the default) darts uses ABSOLUTE-error
 scores, applies ONE uncorrected level `interval_range_sym` = 0.90, and returns
 centre +/- that single threshold. The corrected column below uses that model,

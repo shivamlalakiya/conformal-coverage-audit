@@ -1,8 +1,8 @@
 # Disclosure manifest
 
 Every defect this audit reports as a defect, as filed upstream, with the date filed.
-The manuscript is **anonymised for review**, so it cites this file rather than inlining
-the numbers — a public issue identifies its author. The camera-ready inlines them.
+The manuscript inlines these identifiers in its own disclosure table; this file is the
+dated record beside it, and the build fails if the two disagree.
 
 This file is the timestamped record. Each row's date is verifiable upstream, which is what
 makes the ordering — report first, publish second — a checkable fact rather than an

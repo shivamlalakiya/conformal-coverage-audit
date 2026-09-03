@@ -36,12 +36,82 @@ tabular asymmetric configuration and keep their standard errors.
 
 import math
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from multiplicity_and_reimpl import FAMILY, read_cell        # noqa: E402
 
 Z95 = 1.959963984540054          # the two-sided normal quantile, not a measurement
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# The cells that reach a typeset table, named by the file that measured each and
+# by the selectors that pick one block out of it. Selectors, not measurements:
+# every number comes back from read_block, which asserts it found exactly the
+# block asked for. The Holm family above is a subset of this list; it is kept
+# separate because it answers a different question and its membership is fixed by
+# what the permutation test can run on, not by what a table prints.
+#
+# Two kinds of cell appear here that the family excludes on purpose, and both get
+# an interval because the arithmetic applies to them unchanged. A cell whose arm B
+# is vacuous everywhere has a difference that is one minus arm A's coverage --
+# still a count of units over units, so still a binomial proportion, and the
+# interval is an interval on infeasibility rather than on the level-to-rank map.
+# A coincidence cell has gains of zero, and the interval that comes back starts at
+# zero and has width, which is the correct statement about a difference that is
+# zero by arithmetic rather than zero by measurement.
+TABLE_CELLS = [
+    # archive, library, cell, path, nominal, method-line, block-line
+    ("m1", "sktime", "20", "outputs/probe_output_real_data.txt",
+     "0.90", None, "empirical  nominal 0.90  initial_window=20"),
+    ("m1", "sktime", "40", "outputs/probe_output_real_data.txt",
+     "0.90", None, "empirical  nominal 0.90  initial_window=40"),
+    ("m3", "sktime", "20", "outputs/probe_output_real_data_m3_monthly.txt",
+     "0.90", None, "empirical  nominal 0.90  initial_window=20"),
+    ("m3", "sktime", "40", "outputs/probe_output_real_data_m3_monthly.txt",
+     "0.90", None, "empirical  nominal 0.90  initial_window=40"),
+
+    ("m1", "statsforecast", "2", "outputs/probe_output_real_data_statsforecast.txt",
+     "0.90", "conformal_distribution", "n_windows=2 "),
+    ("m1", "statsforecast", "5", "outputs/probe_output_real_data_statsforecast.txt",
+     "0.90", "conformal_distribution", "n_windows=5 "),
+    ("m1", "statsforecast", "10", "outputs/probe_output_real_data_statsforecast.txt",
+     "0.90", "conformal_distribution", "n_windows=10 "),
+    ("m1", "statsforecast", "20", "outputs/probe_output_real_data_statsforecast.txt",
+     "0.90", "conformal_distribution", "n_windows=20 "),
+    ("m1", "statsforecast", "50", "outputs/probe_output_real_data_statsforecast.txt",
+     "0.90", "conformal_distribution", "n_windows=50 "),
+    ("m3", "statsforecast", "2",
+     "outputs/probe_output_real_data_statsforecast_m3_monthly.txt",
+     "0.90", "conformal_distribution", "n_windows=2 "),
+    ("m3", "statsforecast", "10",
+     "outputs/probe_output_real_data_statsforecast_m3_monthly.txt",
+     "0.90", "conformal_distribution", "n_windows=10 "),
+
+    ("m1", "darts", "10", "outputs/probe_output_real_data_darts.txt",
+     "0.90", None, "cal_length=10 "),
+    ("m1", "darts", "15", "outputs/probe_output_real_data_darts.txt",
+     "0.90", None, "cal_length=15 "),
+    ("m1", "darts", "30", "outputs/probe_output_real_data_darts.txt",
+     "0.90", None, "cal_length=30 "),
+    ("m1", "darts", "35", "outputs/probe_output_real_data_darts.txt",
+     "0.90", None, "cal_length=35 "),
+    ("m1", "darts", "50", "outputs/probe_output_real_data_darts.txt",
+     "0.90", None, "cal_length=50 "),
+    ("m1", "darts", "55", "outputs/probe_output_real_data_darts.txt",
+     "0.90", None, "cal_length=55 "),
+    ("m3", "darts", "15", "outputs/probe_output_real_data_darts_m3_monthly.txt",
+     "0.90", None, "cal_length=15 "),
+    ("m3", "darts", "30", "outputs/probe_output_real_data_darts_m3_monthly.txt",
+     "0.90", None, "cal_length=30 "),
+]
+
+_NOMINAL = re.compile(r"nominal (\d\.\d+)")
+_METHOD = re.compile(r"method=(conformal_\w+)")
+_DELTA = re.compile(r"paired delta \(B - A\)\s+([-+][\d.]+)\s+\(s\.e\. ([\d.]+)\)")
+_COUNTS = re.compile(
+    r"status changed in \d+ of (\d+) units: gains=(\d+) losses=(\d+)")
 
 LINES = []
 
@@ -59,6 +129,53 @@ def wilson(successes, n, z=Z95):
     centre = (p + z * z / (2 * n)) / denom
     half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / denom
     return max(0.0, centre - half), min(1.0, centre + half)
+
+
+def read_block(path, nominal, method, blockline):
+    """One cell's units, gains, losses, delta and s.e., by three selectors.
+
+    read_cell in the multiplicity probe tracks the nominal level and nothing else,
+    which is enough for the eight arms it was written for. It is not enough here:
+    one statsforecast output carries two methods at the same nominal level, and a
+    block line naming only the window count matches the first of them whichever it
+    is. So the method is tracked as well and asserted, and the block line has to
+    match after both selectors already hold. A file that stops carrying the block
+    this asks for raises rather than returning the neighbouring one.
+    """
+    with open(os.path.join(ROOT, path)) as fh:
+        lines = fh.read().splitlines()
+    cur_nom = cur_meth = None
+    for idx, ln in enumerate(lines):
+        n = _NOMINAL.search(ln)
+        if n:
+            cur_nom = n.group(1)
+        mm = _METHOD.search(ln)
+        if mm:
+            cur_meth = mm.group(1)
+        if cur_nom != nominal:
+            continue
+        if method is not None and cur_meth != method:
+            continue
+        if blockline not in ln:
+            continue
+        delta = se = counts = None
+        for nxt in lines[idx:idx + 12]:
+            d = _DELTA.search(nxt)
+            if d and delta is None:
+                delta, se = float(d.group(1)), float(d.group(2))
+            c = _COUNTS.search(nxt)
+            if c and counts is None:
+                counts = tuple(int(x) for x in c.groups())
+        assert counts is not None and delta is not None, (path, blockline, nominal)
+        units, gains, losses = counts
+        assert abs(delta - (gains - losses) / units) < 5e-5, (
+            f"{path} {blockline}: printed delta {delta} is not "
+            f"(gains-losses)/units; this block is not one point per unit")
+        return {"units": units, "gains": gains, "losses": losses,
+                "delta": delta, "se": se}
+    raise AssertionError(
+        f"no {nominal} block matching {blockline!r} in {path}"
+        + (f" under method={method}" if method else ""))
 
 
 def _self_check():
@@ -82,6 +199,24 @@ def _self_check():
     assert lo0 < 1e-12 and hi0 > 0.0, (lo0, hi0)
     # and it narrows as n grows, which a constant would not
     assert (wilson(90, 2500)[1] - wilson(90, 2500)[0]) < (hi - lo)
+
+    # The method selector has to be load-bearing or it is decoration. One
+    # statsforecast output carries the same window count under two methods at the
+    # same nominal level, and the two disagree; if they ever stop disagreeing this
+    # check fails and says so, rather than letting the selector quietly stop
+    # mattering. This is the failing input for read_block's third selector.
+    sf = "outputs/probe_output_real_data_statsforecast.txt"
+    a = read_block(sf, "0.90", "conformal_distribution", "n_windows=10 ")
+    b = read_block(sf, "0.90", "conformal_error", "n_windows=10 ")
+    assert a["gains"] != b["gains"], (
+        "the two statsforecast methods return the same discordant count at "
+        "n_windows=10, so the method selector no longer distinguishes them")
+    try:
+        read_block(sf, "0.90", "conformal_distribution", "n_windows=7 ")
+    except AssertionError:
+        pass
+    else:                                            # pragma: no cover
+        raise AssertionError("read_block returned a block that is not in the file")
 
 
 _self_check()
@@ -129,6 +264,51 @@ def main():
     for name, lo, hi, delta in rows:
         say(f"  {name:<32} delta {delta:.4f}  95% CI [{lo:.4f}, {hi:.4f}]"
             + ("" if lo > 0 else "   <- includes zero"))
+
+    say()
+    say("=" * 96)
+    say("EVERY CELL THAT REACHES A TYPESET TABLE")
+    say("=" * 96)
+    say("The eight arms above are the family a correction is applied across. The")
+    say("rows below are the cells a reader sees in a table, which is a larger set:")
+    say("it adds the two archives' vacuous cells, where the difference is one minus")
+    say("arm A's coverage and the interval is an interval on infeasibility, and the")
+    say("coincidence cells, where gains is zero and a proper score interval still")
+    say("has width. Same arithmetic on both, from the same integer counts.")
+    say()
+    say("A cell is picked by three selectors and never by position: the archive's")
+    say("own output file, the nominal level, the method where one output carries")
+    say("more than one, and the block line. Machine-readable, one line per cell.")
+    say()
+    n_zero = 0
+    for arch, lib, cell, path, nominal, method, blockline in TABLE_CELLS:
+        c = read_block(path, nominal, method, blockline)
+        assert c["losses"] == 0, (
+            f"{arch} {lib} {cell}: losses={c['losses']}, so the arms are not "
+            f"nested here and a binomial interval on the difference does not "
+            f"apply. This probe refuses rather than printing one")
+        lo, hi = wilson(c["gains"], c["units"])
+        delta = (c["gains"] - c["losses"]) / c["units"]
+        assert abs(delta - c["delta"]) < 5e-5, (arch, lib, cell, delta, c["delta"])
+        # The containment check needs a tolerance at exactly one end, and the
+        # reason is arithmetic rather than statistics: at zero discordant units
+        # the centre and the half-width agree to the last bit instead of exactly,
+        # so the lower end lands a few times 1e-19 above the zero it should be and
+        # a bare `lo <= delta` fails on a cell whose interval is right. The
+        # self_check above pins the same behaviour at the boundary.
+        assert lo - 1e-12 <= delta <= hi + 1e-12, (arch, lib, cell, lo, delta, hi)
+        if c["gains"] == 0:
+            n_zero += 1
+        say(f"CELL arch={arch} lib={lib} cell={cell} units={c['units']} "
+            f"gains={c['gains']} delta={delta:+.4f} lo={lo:.4f} hi={hi:.4f} "
+            f"se={c['se']:.4f}")
+    say()
+    say(f"{len(TABLE_CELLS)} cells; {n_zero} with a discordant count of zero, whose")
+    say("interval starts at zero because the difference is zero by arithmetic.")
+    say()
+    say("Every interval above contains its own cell's paired difference, asserted")
+    say("per row. A row whose interval did not would be an interval read off a")
+    say("neighbouring block, which is the failure the three selectors exist for.")
     return 0
 
 
