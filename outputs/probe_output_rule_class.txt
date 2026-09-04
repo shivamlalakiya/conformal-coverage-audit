@@ -578,6 +578,240 @@ exact-rational reduction, confirming section (6)'s table rather than
 merely repeating it.
 
 ====================================================================================================
+(7) THE OTHER PUBLISHED CORRECTION: THE CEILING TAKEN BEFORE THE DIVISION
+====================================================================================================
+Sections (1) to (6) correct by dividing: q = L(n+1)/n. A second correction
+is in circulation and it rounds up before dividing: ceil(L(n+1))/n.
+angelopoulos2023 print that one and hand it to method='higher'. These are
+two levels, not two spellings of one, and nothing measured above this line
+was measured at the second of them.
+
+Why execution here, and not THE REDUCTION. Dividing leaves an L b0 / n
+term behind, and section (4) bounds that away once n clears a prefix.
+Rounding up first leaves k*/n behind instead, which stays O(1) forever, so
+no prefix disposes of it. numpy does the scoring: it takes the level, and
+the floor of its return is compared with k*. Scores are 1..n, so whatever
+comes back names its own rank.
+
+Six levels: section (6)'s five, plus 5/8 for a denominator gap wider than
+any of them (d - p = 3, against 5/7's 2 and one for the unit fractions).
+
+  level   sizes   first n   last n   level has no exact double
+----------------------------------------------------------------------------------------------------
+   9/10     392         9      400                         373
+  19/20     382        19      400                         356
+    5/7     398         3      400                         377
+    2/3     399         2      400                         387
+    1/2     399         2      400                         391
+    5/8     399         2      400                         389
+
+A ratio of two integers almost never has an exact double, and the last
+column counts the sizes where it does not. That column is where every
+departure below sits, apart from higher's, which is structural.
+
+definition                   level      form   exact    over   short
+----------------------------------------------------------------------------------------------------
+inverted_cdf                  9/10  unceiled     392       0       0
+inverted_cdf                  9/10    ceiled     392       0       0
+inverted_cdf                 19/20  unceiled     382       0       0
+inverted_cdf                 19/20    ceiled     382       0       0
+inverted_cdf                   5/7  unceiled     397       1       0
+inverted_cdf                   5/7    ceiled     389       9       0
+inverted_cdf                   2/3  unceiled     394       5       0
+inverted_cdf                   2/3    ceiled     383      16       0
+inverted_cdf                   1/2  unceiled     384      15       0
+inverted_cdf                   1/2    ceiled     373      26       0
+inverted_cdf                   5/8  unceiled     393       6       0
+inverted_cdf                   5/8    ceiled     378      21       0
+
+weibull                       9/10  unceiled     392       0       0
+weibull                       9/10    ceiled     392       0       0
+weibull                      19/20  unceiled     382       0       0
+weibull                      19/20    ceiled     382       0       0
+weibull                        5/7  unceiled     342       0      56
+weibull                        5/7    ceiled     398       0       0
+weibull                        2/3  unceiled     399       0       0
+weibull                        2/3    ceiled     399       0       0
+weibull                        1/2  unceiled     399       0       0
+weibull                        1/2    ceiled     399       0       0
+weibull                        5/8  unceiled     300       0      99
+weibull                        5/8    ceiled     399       0       0
+
+linear                        9/10  unceiled      40       0     352
+linear                        9/10    ceiled     392       0       0
+linear                       19/20  unceiled      20       0     362
+linear                       19/20    ceiled     382       0       0
+linear                         5/7  unceiled     113       0     285
+linear                         5/7    ceiled     398       0       0
+linear                         2/3  unceiled     133       0     266
+linear                         2/3    ceiled     399       0       0
+linear                         1/2  unceiled     199       0     200
+linear                         1/2    ceiled     399       0       0
+linear                         5/8  unceiled     149       0     250
+linear                         5/8    ceiled     399       0       0
+
+hazen                         9/10  unceiled     236       0     156
+hazen                         9/10    ceiled     392       0       0
+hazen                        19/20  unceiled     211       0     171
+hazen                        19/20    ceiled     382       0       0
+hazen                          5/7  unceiled     228       0     170
+hazen                          5/7    ceiled     398       0       0
+hazen                          2/3  unceiled     266       0     133
+hazen                          2/3    ceiled     399       0       0
+hazen                          1/2  unceiled     378       0      21
+hazen                          1/2    ceiled     399       0       0
+hazen                          5/8  unceiled     244       0     155
+hazen                          5/8    ceiled     399       0       0
+
+median_unbiased               9/10  unceiled     275       0     117
+median_unbiased               9/10    ceiled     392       0       0
+median_unbiased              19/20  unceiled     268       0     114
+median_unbiased              19/20    ceiled     382       0       0
+median_unbiased                5/7  unceiled     285       0     113
+median_unbiased                5/7    ceiled     398       0       0
+median_unbiased                2/3  unceiled     266       0     133
+median_unbiased                2/3    ceiled     399       0       0
+median_unbiased                1/2  unceiled     399       0       0
+median_unbiased                1/2    ceiled     399       0       0
+median_unbiased                5/8  unceiled     250       0     149
+median_unbiased                5/8    ceiled     399       0       0
+
+normal_unbiased               9/10  unceiled     275       0     117
+normal_unbiased               9/10    ceiled     392       0       0
+normal_unbiased              19/20  unceiled     249       0     133
+normal_unbiased              19/20    ceiled     382       0       0
+normal_unbiased                5/7  unceiled     229       0     169
+normal_unbiased                5/7    ceiled     398       0       0
+normal_unbiased                2/3  unceiled     266       0     133
+normal_unbiased                2/3    ceiled     399       0       0
+normal_unbiased                1/2  unceiled     399       0       0
+normal_unbiased                1/2    ceiled     399       0       0
+normal_unbiased                5/8  unceiled     250       0     149
+normal_unbiased                5/8    ceiled     399       0       0
+
+higher                        9/10  unceiled     353      39       0
+higher                        9/10    ceiled      10     382       0
+higher                       19/20  unceiled     363      19       0
+higher                       19/20    ceiled      20     362       0
+higher                         5/7  unceiled     285     113       0
+higher                         5/7    ceiled       3     395       0
+higher                         2/3  unceiled     267     132       0
+higher                         2/3    ceiled       3     396       0
+higher                         1/2  unceiled     200     199       0
+higher                         1/2    ceiled       1     398       0
+higher                         5/8  unceiled     251     148       0
+higher                         5/8    ceiled       3     396       0
+
+nearest                       9/10  unceiled     236       0     156
+nearest                       9/10    ceiled     392       0       0
+nearest                      19/20  unceiled     211       0     171
+nearest                      19/20    ceiled     382       0       0
+nearest                        5/7  unceiled     341       0      57
+nearest                        5/7    ceiled     398       0       0
+nearest                        2/3  unceiled     398       0       1
+nearest                        2/3    ceiled     399       0       0
+nearest                        1/2  unceiled     399       0       0
+nearest                        1/2    ceiled     399       0       0
+nearest                        5/8  unceiled     349       0      50
+nearest                        5/8    ceiled     399       0       0
+
+averaged_inverted_cdf         9/10  unceiled     392       0       0
+averaged_inverted_cdf         9/10    ceiled     392       0       0
+averaged_inverted_cdf        19/20  unceiled     382       0       0
+averaged_inverted_cdf        19/20    ceiled     382       0       0
+averaged_inverted_cdf          5/7  unceiled     397       1       0
+averaged_inverted_cdf          5/7    ceiled     389       9       0
+averaged_inverted_cdf          2/3  unceiled     394       5       0
+averaged_inverted_cdf          2/3    ceiled     383      16       0
+averaged_inverted_cdf          1/2  unceiled     384      15       0
+averaged_inverted_cdf          1/2    ceiled     373      26       0
+averaged_inverted_cdf          5/8  unceiled     393       6       0
+averaged_inverted_cdf          5/8    ceiled     378      21       0
+
+interpolated_inverted_cdf     9/10  unceiled      39       0     353
+interpolated_inverted_cdf     9/10    ceiled     389       0       3
+interpolated_inverted_cdf    19/20  unceiled      20       0     362
+interpolated_inverted_cdf    19/20    ceiled     381       0       1
+interpolated_inverted_cdf      5/7  unceiled      55       0     343
+interpolated_inverted_cdf      5/7    ceiled     389       0       9
+interpolated_inverted_cdf      2/3  unceiled     122       0     277
+interpolated_inverted_cdf      2/3    ceiled     368       0      31
+interpolated_inverted_cdf      1/2  unceiled     176       0     223
+interpolated_inverted_cdf      1/2    ceiled     359       0      40
+interpolated_inverted_cdf      5/8  unceiled      47       0     352
+interpolated_inverted_cdf      5/8    ceiled     376       0      23
+
+lower                         9/10  unceiled      40       0     352
+lower                         9/10    ceiled     392       0       0
+lower                        19/20  unceiled      20       0     362
+lower                        19/20    ceiled     382       0       0
+lower                          5/7  unceiled     113       0     285
+lower                          5/7    ceiled     398       0       0
+lower                          2/3  unceiled     133       0     266
+lower                          2/3    ceiled     399       0       0
+lower                          1/2  unceiled     199       0     200
+lower                          1/2    ceiled     399       0       0
+lower                          5/8  unceiled     149       0     250
+lower                          5/8    ceiled     399       0       0
+
+midpoint                      9/10  unceiled      40       0     352
+midpoint                      9/10    ceiled     392       0       0
+midpoint                     19/20  unceiled      20       0     362
+midpoint                     19/20    ceiled     382       0       0
+midpoint                       5/7  unceiled     113       0     285
+midpoint                       5/7    ceiled     398       0       0
+midpoint                       2/3  unceiled     133       0     266
+midpoint                       2/3    ceiled     399       0       0
+midpoint                       1/2  unceiled     199       0     200
+midpoint                       1/2    ceiled     399       0       0
+midpoint                       5/8  unceiled     149       0     250
+midpoint                       5/8    ceiled     399       0       0
+
+closest_observation           9/10  unceiled     217       0     175
+closest_observation           9/10    ceiled     392       0       0
+closest_observation          19/20  unceiled     201       0     181
+closest_observation          19/20    ceiled     382       0       0
+closest_observation            5/7  unceiled     228       0     170
+closest_observation            5/7    ceiled     398       0       0
+closest_observation            2/3  unceiled     266       0     133
+closest_observation            2/3    ceiled     399       0       0
+closest_observation            1/2  unceiled     293       0     106
+closest_observation            1/2    ceiled     399       0       0
+closest_observation            5/8  unceiled     223       0     176
+closest_observation            5/8    ceiled     399       0       0
+
+  level   never short   always exact
+----------------------------------------------------------------------------------------------------
+   9/10            12             11
+  19/20            12             11
+    5/7            12              9
+    2/3            12              9
+    1/2            12              9
+    5/8            12              9
+
+Of the 13 definitions, 12 never land short of k*
+at any of the 6 levels, and 9 land on it at every feasible size of
+every level:
+  never short: averaged_inverted_cdf, closest_observation, hazen, higher, inverted_cdf, linear, lower, median_unbiased, midpoint, nearest, normal_unbiased, weibull
+  always exact: closest_observation, hazen, linear, lower, median_unbiased, midpoint, nearest, normal_unbiased, weibull
+  short somewhere: interpolated_inverted_cdf
+MACHINE ceiled_defs=13 ceiled_levels=6 ceiled_valid=12 ceiled_exact=9
+
+So rounding up first is the arithmetic that behaves. What crosses is k*
+over n, and twelve of the thirteen give k* back or better at every level
+tried. At nine tenths eleven give it back on the nose, at all 392 sizes.
+higher is one of the two exceptions there and costs only width: it sits a
+rank above k* whenever k* < n, and never below k*.
+
+The other exception is binary rather than algebraic. An integer over n
+seldom has a double to sit in, the stored value misses by parts in 10^16,
+and a convention taking the floor of an integral position turns that miss
+into a whole rank -- interpolated_inverted_cdf puts h at qn, which exact
+rationals make k*, and floor() hands back one less. Conventions taking a
+ceiling turn the same miss into a rank of spare width. Section (5) met one
+half of this; both halves live at the sizes counted above.
+
+====================================================================================================
 WHAT THIS DOES NOT SETTLE
 ====================================================================================================
 Linear in the level, linear in the size: that is the whole class. An index

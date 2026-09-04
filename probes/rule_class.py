@@ -946,6 +946,130 @@ def main():
     say("merely repeating it.")
     say("")
 
+    # -------------------------------------------------------------------
+    say("=" * 100)
+    say("(7) THE OTHER PUBLISHED CORRECTION: THE CEILING TAKEN BEFORE THE DIVISION")
+    say("=" * 100)
+    say("Sections (1) to (6) correct by dividing: q = L(n+1)/n. A second correction")
+    say("is in circulation and it rounds up before dividing: ceil(L(n+1))/n.")
+    say("angelopoulos2023 print that one and hand it to method='higher'. These are")
+    say("two levels, not two spellings of one, and nothing measured above this line")
+    say("was measured at the second of them.")
+    say("")
+    say("Why execution here, and not THE REDUCTION. Dividing leaves an L b0 / n")
+    say("term behind, and section (4) bounds that away once n clears a prefix.")
+    say("Rounding up first leaves k*/n behind instead, which stays O(1) forever, so")
+    say("no prefix disposes of it. numpy does the scoring: it takes the level, and")
+    say("the floor of its return is compared with k*. Scores are 1..n, so whatever")
+    say("comes back names its own rank.")
+    say("")
+    ceil_levels = survey_levels + [F(5, 8)]
+    say("Six levels: section (6)'s five, plus 5/8 for a denominator gap wider than")
+    say("any of them (d - p = 3, against 5/7's 2 and one for the unit fractions).")
+    say("")
+    say(f"{'level':>7} {'sizes':>7} {'first n':>9} {'last n':>8} "
+        f"{'level has no exact double':>27}")
+    say("-" * 100)
+    ceil_sizes, ceil_inexact = {}, {}
+    for L in ceil_levels:
+        S = [n for n in range(2, 401) if required_rank(n, L) <= n]
+        bad = [n for n in S if F(required_rank(n, L) / n) != F(required_rank(n, L), n)]
+        ceil_sizes[L], ceil_inexact[L] = S, bad
+        say(f"{str(L):>7} {len(S):>7} {S[0]:>9} {S[-1]:>8} {len(bad):>27}")
+    say("")
+    say("A ratio of two integers almost never has an exact double, and the last")
+    say("column counts the sizes where it does not. That column is where every")
+    say("departure below sits, apart from higher's, which is structural.")
+    say("")
+    say(f"{'definition':<26} {'level':>7} {'form':>9} {'exact':>7} {'over':>7} "
+        f"{'short':>7}")
+    say("-" * 100)
+    ceil_rows = []
+    for name, a0, a1, b0, b1, pol in HF:
+        for L in ceil_levels:
+            for form in ("unceiled", "ceiled"):
+                tally, depart = [0, 0, 0], []
+                for n in ceil_sizes[L]:
+                    k = required_rank(n, L)
+                    q = (min(1.0, float(L) * (n + 1) / n) if form == "unceiled"
+                         else min(1.0, k / n))
+                    got = math.floor(np.quantile(np.arange(1, n + 1, dtype=float),
+                                                 q, method=name))
+                    tally[0 if got == k else (1 if got > k else 2)] += 1
+                    if got != k:
+                        depart.append(n)
+                say(f"{name:<26} {str(L):>7} {form:>9} {tally[0]:>7} "
+                    f"{tally[1]:>7} {tally[2]:>7}")
+                ceil_rows.append({"name": name, "L": L, "form": form,
+                                  "tally": tally, "depart": depart})
+        say("")
+    per_def = {}
+    for r in ceil_rows:
+        if r["form"] == "ceiled":
+            per_def.setdefault(r["name"], []).append(r)
+    ceil_valid = sorted(n for n, rs in per_def.items()
+                        if all(r["tally"][2] == 0 for r in rs))
+    ceil_exact = sorted(n for n, rs in per_def.items()
+                        if all(r["tally"][0] == sum(r["tally"]) for r in rs))
+    ceil_short = sorted(n for n, rs in per_def.items()
+                        if any(r["tally"][2] > 0 for r in rs))
+    say(f"{'level':>7} {'never short':>13} {'always exact':>14}")
+    say("-" * 100)
+    for L in ceil_levels:
+        at = [r for r in ceil_rows if r["form"] == "ceiled" and r["L"] == L]
+        say(f"{str(L):>7} {sum(1 for r in at if r['tally'][2] == 0):>13} "
+            f"{sum(1 for r in at if r['tally'][0] == sum(r['tally'])):>14}")
+    say("")
+    say(f"Of the {len(per_def)} definitions, {len(ceil_valid)} never land short of k*")
+    say(f"at any of the {len(ceil_levels)} levels, and {len(ceil_exact)} land on it at "
+        "every feasible size of")
+    say("every level:")
+    say(f"  never short: {', '.join(ceil_valid)}")
+    say(f"  always exact: {', '.join(ceil_exact)}")
+    say(f"  short somewhere: {', '.join(ceil_short) or '(none)'}")
+    say("MACHINE ceiled_defs=%d ceiled_levels=%d ceiled_valid=%d ceiled_exact=%d" %
+        (len(per_def), len(ceil_levels), len(ceil_valid), len(ceil_exact)))
+    say("")
+    say("So rounding up first is the arithmetic that behaves. What crosses is k*")
+    say("over n, and twelve of the thirteen give k* back or better at every level")
+    say("tried. At nine tenths eleven give it back on the nose, at all 392 sizes.")
+    say("higher is one of the two exceptions there and costs only width: it sits a")
+    say("rank above k* whenever k* < n, and never below k*.")
+    say("")
+    say("The other exception is binary rather than algebraic. An integer over n")
+    say("seldom has a double to sit in, the stored value misses by parts in 10^16,")
+    say("and a convention taking the floor of an integral position turns that miss")
+    say("into a whole rank -- interpolated_inverted_cdf puts h at qn, which exact")
+    say("rationals make k*, and floor() hands back one less. Conventions taking a")
+    say("ceiling turn the same miss into a rank of spare width. Section (5) met one")
+    say("half of this; both halves live at the sizes counted above.")
+    say("")
+    for r in ceil_rows:
+        if r["form"] != "ceiled":
+            continue
+        if r["name"] == "higher":
+            over = [n for n in ceil_sizes[r["L"]]
+                    if required_rank(n, r["L"]) < n]
+            assert r["tally"][1] == len(over) and r["tally"][2] == 0, (
+                f"higher at the ceiled level does not land one rank wide at exactly "
+                f"the sizes with k* < n: L = {r['L']}, {r['tally']} against "
+                f"{len(over)}")
+            continue
+        stray = [n for n in r["depart"] if n not in ceil_inexact[r["L"]]]
+        assert not stray, (
+            f"{r['name']} departs from k* at the ceiled level at sizes whose level "
+            f"HAS an exact double: L = {r['L']}, {stray[:5]}. The departure is then "
+            f"structural, not a representation artefact, and the paragraph above "
+            f"must not be printed as it stands")
+    assert ceil_short == ["interpolated_inverted_cdf"], (
+        "the set of definitions landing short under the ceiled correction is no "
+        f"longer {{interpolated_inverted_cdf}}: {ceil_short}")
+    assert "higher" not in ceil_exact and "higher" in ceil_valid, (
+        "higher is exact or invalid under the ceiled form, and it is measured as "
+        "neither", ceil_exact, ceil_valid)
+    for r in ceil_rows:
+        assert sum(r["tally"]) == len(ceil_sizes[r["L"]]), r
+
     say("=" * 100)
     say("WHAT THIS DOES NOT SETTLE")
     say("=" * 100)
