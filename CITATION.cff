@@ -59,6 +59,9 @@ identifiers:
   - type: doi
     value: 10.5281/zenodo.22238025
     description: "Version v1.5.5 -- the index sweep, the prevalence calibration, and the second-coder instrument"
+  - type: doi
+    value: 10.5281/zenodo.22697612
+    description: "Version v1.5.6 -- the public-route probe and the interpolated predicted arm"
 # verified against the live remote
 repository-code: "https://github.com/shivamlalakiya/conformal-coverage-audit"
 # This is what GitHub's cite widget and the indexers read. Left at v1.1.0 it sent a
@@ -66,11 +69,13 @@ repository-code: "https://github.com/shivamlalakiya/conformal-coverage-audit"
 # and the write-up's disclosure claim was judged against that. Bump it in the commit
 # that gets tagged, not after -- a release naming the previous version is the same bug.
 version: v1.5.6
-# Reconciled: record 22238025 carries publication_date 2026-09-01, which is the tag
-# date, so this line needed no correction. It was written as a tag date and labelled as
-# one, because the version field has to be right in the commit that gets tagged and the
-# Zenodo stamp only exists after the push. Check it again next release rather than
-# assuming the two dates coincide -- v1.5.4's did not.
+# Reconciled again at v1.5.6: record 22697612 carries publication_date 2026-09-10, the
+# tag date, so this line needed no correction. It is written as a tag date and labelled
+# as one, because the version field has to be right in the commit that gets tagged and
+# the Zenodo stamp only exists after the push. v1.5.6 is the second record whose label
+# matches its contents, and it is the first one where that came from bumping the field
+# before tagging rather than from the dates happening to coincide. Check it again next
+# release rather than assuming they do -- v1.5.4's did not.
 date-released: "2026-09-10"
 abstract: >-
   Measurement harnesses used to audit how Python conformal-prediction
