@@ -812,6 +812,63 @@ ceiling turn the same miss into a rank of spare width. Section (5) met one
 half of this; both halves live at the sizes counted above.
 
 ====================================================================================================
+(8) THIS MODULE'S TIE-BREAK AGAINST numpy's, FOR nearest
+====================================================================================================
+half_even here settles a tie on the parity of the whole integer part of h,
+which this module indexes from 1. numpy's `nearest` settles it on the
+0-based index, so in this module's indexing numpy rounds half to ODD. The
+two therefore disagree exactly on the ties and by exactly one rank. Nothing
+printed above this line moves, and that is asserted below rather than
+claimed. What could move is a statement about WHICH sizes nearest lands on,
+which is what the certificate's residue sets are, so the size of the
+disagreement is measured here rather than described.
+
+(a) EXECUTED. The rule as this module writes it, against numpy, over both
+    grids at section (6)'s five levels.
+
+      form   level   sizes  disagree   level has an exact double  0-based fixes
+----------------------------------------------------------------------------------------------------
+       raw    9/10     392        39                           0             39
+       raw   19/20     382        19                           0             19
+       raw     5/7     398         0                           0              0
+       raw     2/3     399         0                           0              0
+       raw     1/2     399       200                         200            200
+  unceiled    9/10     392         0                           0              0
+  unceiled   19/20     382         0                           0              0
+  unceiled     5/7     398         0                           0              0
+  unceiled     2/3     399         1                           0              1
+  unceiled     1/2     399         0                           0              0
+
+Over both grids and 5 levels: 259 disagreements,
+200 of them at a size whose level has an exact double, so structural
+rather than the representation effect sections (5) and (7) measure. Reading
+the parity 0-based accounts for 259 of the 259, which is
+what says the indexing base is the whole of the difference.
+MACHINE tie_disagreements=259 tie_structural=200 tie_zero_based_fixes=259
+
+(b) DIRECTION OF HARM. Section (6)'s own (valid, max D) cells for nearest,
+    recomputed through the reduction under both tie-breaks.
+
+      corr    level  valid here  max D here  valid numpy  max D numpy
+----------------------------------------------------------------------------------------------------
+       raw     9/10          NO          -1           NO           -1
+       raw    19/20          NO          -1           NO           -1
+       raw      5/7          NO           0           NO            0
+       raw      2/3          NO           0           NO            0
+       raw      1/2          NO           0           NO            0
+ corrected     9/10          NO           0           NO            0
+ corrected    19/20          NO           0           NO            0
+ corrected      5/7          NO           0           NO            0
+ corrected      2/3         yes           0          yes            0
+ corrected      1/2         yes           0          yes            0
+
+10 of the 10 cells are identical under both tie-breaks, so no
+number section (6) prints for nearest moves. The residue SETS do move, at
+the sizes counted in (a), and a claim about which sizes nearest lands on is
+the claim this section exists to fence.
+MACHINE tie_cells_same=10 tie_cells=10
+
+====================================================================================================
 WHAT THIS DOES NOT SETTLE
 ====================================================================================================
 Linear in the level, linear in the size: that is the whole class. An index

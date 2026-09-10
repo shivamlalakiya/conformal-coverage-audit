@@ -34,8 +34,9 @@ applies is stated per site in the next section.
 | 2026-08-04 | `statsforecast` | `ConformalSeasonalPool`: documented sufficiency rule covers the lower rail only, and its worked example is off by one | [Nixtla/statsforecast#1202](https://github.com/Nixtla/statsforecast/issues/1202) | open |
 | 2026-08-04 | `torchcp` | `calculate_conformal_value` docstring names a threshold the code no longer computes | [ml-stat-Sustech/torchcp#122](https://github.com/ml-stat-Sustech/torchcp/pull/122) (PR) | merged 2026-08-05 |
 | 2026-08-06 | `mapie` | `allow_infinite_bounds=True` skips the calibration-size guard entirely, so the clip returns a finite bound where no valid finite deterministic bound exists | [scikit-learn-contrib/MAPIE#980](https://github.com/scikit-learn-contrib/MAPIE/issues/980) | open |
+| 2026-08-18 | `mapie` | `OnlineMartingaleTest.compute_p_value` leaves the +1 outside the tie term, so the online exchangeability p-value departs from the algorithm its own docstring cites | [scikit-learn-contrib/MAPIE#984](https://github.com/scikit-learn-contrib/MAPIE/issues/984), fix in [#985](https://github.com/scikit-learn-contrib/MAPIE/pull/985) (PR, 2026-08-18) | issue closed 2026-09-08; PR merged 2026-09-08 |
 
-Filing window: **2026-08-02 to 2026-08-06**, other than the #958 review, which is
+Filing window: **2026-08-02 to 2026-08-18**, other than the #958 review, which is
 2026-07-10 and is a set of findings raised on someone else's pull request rather than a
 report filed by us.
 
@@ -111,8 +112,8 @@ is #980 in the table above.
 
 ### MAPIE#980 — what was reported, and the retraction it withdraws
 
-Filed 2026-08-06, after the rest. It is the last row above and the only one filed later
-than the others, so the sequence is worth stating plainly rather than leaving to the dates:
+Filed 2026-08-06, after the first fourteen and before #984, so the sequence is worth
+stating plainly rather than leaving to the dates:
 the audit found it while preparing a revision, wrote it up, and filed it before publishing.
 
 `mapie` 1.4.1, the `np.clip` on the corrected level. `regression/regression.py:1714` makes

@@ -41,7 +41,7 @@ scipy mstats.mquantiles alphap=betap=0.5 (= hazen)    0.5000  50.000   45.500   
     self_check), so a scipy caller gets a
     fourteenth convention with its own corrected level. The rank map is a
     map of the nine definitions; the space of SHIPPED conventions is larger.
-    The fractional-rank result covers it anyway, because it is stated with
+    The fractional-rank result covers it anyway, because it is stated in
     virtual-index coordinates instead of a named definition -- which is
     the argument for stating it that way.
 
@@ -49,7 +49,7 @@ scipy mstats.mquantiles alphap=betap=0.5 (= hazen)    0.5000  50.000   45.500   
 (iii) EXTERNAL INTERPRETERS, EXECUTED. Every value below was returned by
       the interpreter named, on the same ordered score grid. The `predicted`
       column is this probe's predicted value for that (alpha, beta) pair;
-      self_check asserts the two agree to 1e-9 on two n values crossed with two
+      self_check asserts agreement across four checked cells, so a
       disagreement would fail the build rather than be reported.
 --------------------------------------------------------------------------------------------------------------
       R: 4.6.1
@@ -82,8 +82,8 @@ convention                                       h  predicted  delivered  defaul
       default h = 45.500, delivering 0.8922  -- matches method(s) [2, 5]
 
     OUT OF SCOPE, not unmeasured: pyspark's approxQuantile needs a JVM,
-    which is absent here. It is outside this convention audit: it
-    is a streaming sketch with a tolerance parameter,
+    which is absent here. It is also not a convention in this sense -- it is
+    a streaming sketch with a tolerance parameter,
     which is branch (g) of the taxonomy and is already represented there by
     river's P-squared estimator. So it is a different question, not a gap.
 
@@ -99,13 +99,26 @@ convention                                       h  predicted  delivered  defaul
       h = 45.9000  (2): numpy.quantile method='weibull' | scipy mstats.mquantiles alphap=betap=0 (= weibull)
       h = 46.0000  (2): numpy.quantile method='higher' | pandas.Series.quantile interpolation='higher'
 
-    THE DEFAULTS DISAGREE ACROSS THE ECOSYSTEM. This is what a user calling `the` quantile function gets:
-      numpy.quantile method='linear'                         delivers 0.8843
-      pandas.Series.quantile interpolation='linear'          delivers 0.8843
-      scipy mstats.mquantiles DEFAULT (alphap=betap=0.4)     delivers 0.8937
-      R quantile() [type=7]                                  delivers 0.8843
-      Julia Statistics.quantile()                            delivers 0.8843
-      Octave quantile() [method 5]                           delivers 0.8922
+    THE DEFAULTS DISAGREE ACROSS THE ECOSYSTEM. This is what a caller who
+    reaches for `the` quantile function actually gets:
+      default entry point                                    guaranteed  predicted  definition               HF type
+      numpy.quantile method='linear'                             0.8824     0.8843  linear                         7
+      pandas.Series.quantile interpolation='linear'              0.8824     0.8843  linear                         7
+      scipy mstats.mquantiles DEFAULT (alphap=betap=0.4)         0.8824     0.8937  ---                          ---
+      R quantile() [type=7]                                      0.8824     0.8843  linear                         7
+      Julia Statistics.quantile()                                0.8824     0.8843  linear                         7
+      Octave quantile() [method 5]                               0.8824     0.8922  hazen                          5
+
+    The definition column is identified over 8 cells, sizes 50, 51, 53, 57
+    crossed with levels 0.9 and 0.95, against every type R ships and every
+    spelling numpy exposes, each executed here. At the single size 50
+    alone, hazen and averaged_inverted_cdf are observationally identical at every
+    level whose qn is a half-integer, and Octave's default would be unnamed.
+    6 default entry points, 2 distinct definitions named,
+    1 outside the Hyndman-Fan taxonomy.
+      hazen                    is the definition of 1 of the 6 defaults
+      linear                   is the definition of 4 of the 6 defaults
+
 
     6 default entry points, 3 DISTINCT delivered
     coverages: 0.8843, 0.8922, 0.8937, against a

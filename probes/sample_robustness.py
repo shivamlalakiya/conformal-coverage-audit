@@ -194,6 +194,7 @@ def fold(per_series_cells, key):
     """Collapse one cell across series into the reported record."""
     deltas, preds, a_cov, b_cov, ns, a_rank, req, infeas, points = (
         [], [], [], [], [], [], [], 0, 0)
+    pred_as = []
     for cells in per_series_cells:
         recs = cells.get(key, [])
         if not recs:
@@ -202,13 +203,18 @@ def fold(per_series_cells, key):
         deltas.append(float(np.mean(d)))
         # Per-series mean of the index prediction, then mean across series -- same
         # clustering level as the measured delta. Feasible origins only.
+        # `landed_frac` and not `a_rank`: an interpolating helper's threshold sits
+        # between two scores, so the rank credits it with a gap it has not crossed.
+        # See paired_report's subtlety 5.
         p = [
-            (r["required_rank"] - r["a_rank"]) / (r["n"] + 1)
+            (r["required_rank"] - r["landed_frac"]) / (r["n"] + 1)
             for r in recs
             if r["feasible"] and r.get("required_rank") is not None
         ]
         if p:
             preds.append(float(np.mean(p)))
+        pred_as.append(float(np.mean(
+            [r["landed_frac"] / (r["n"] + 1) for r in recs])))
         points += len(recs)
         for r in recs:
             a_cov.append(float(r["a_covered"]))
@@ -245,6 +251,7 @@ def fold(per_series_cells, key):
         "a_cov": float(np.mean(a_cov)), "b_cov": float(np.mean(b_cov)),
         "delta": mean, "se": se, "se_naive": float(se_naive),
         "pred_delta": float(np.mean(preds)) if preds else float("nan"),
+        "pred_a": float(np.mean(pred_as)),
         "a_rank_med": int(np.median(a_rank)),
         "req_med": int(np.median(req)) if req else 0,
         "gains": gains, "losses": losses, "changed": gains + losses,
@@ -262,6 +269,7 @@ def cell_line(prefix, r):
     ratio = (r["se"] / r["se_naive"]) if r["se_naive"] > 0 else 0
     pred = (f"pred_delta={r['pred_delta']:+.4f}"
             if not math.isnan(r["pred_delta"]) else "pred_delta=nan")
+    pred = f"{pred} pred_a={r['pred_a']:.4f}"
     return (f"{prefix} series={r['series']} points={r['points']} n_med={r['n_med']} "
             f"a_cov={r['a_cov']:.4f} b_cov={r['b_cov']:.4f} "
             f"delta={r['delta']:+.4f} se={r['se']:.4f} se_naive={r['se_naive']:.4f} "

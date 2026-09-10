@@ -37,7 +37,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from paired_report import (exceedance_multiple, format_cell,  # noqa: E402
-                           summarize)
+                           landed, summarize)
 from run_real_data import rank_of, required_rank  # noqa: E402
 
 LEVELS = (90, 95)
@@ -115,6 +115,7 @@ def run_cell(series, n_windows, level, method):
     hi_a = float(np.asarray(res[f"hi-{level}"]).ravel()[0])
     half_a = (hi_a - lo_a) / 2.0
 
+    a_rank, a_frac = landed(half_a, scores)
     k = required_rank(m, coverage)
     if k is None:
         half_b, feasible = math.inf, False
@@ -127,7 +128,14 @@ def run_cell(series, n_windows, level, method):
         "feasible": feasible,
         "a_covered": bool(lo_a <= y_test <= hi_a),
         "a_width": hi_a - lo_a,
-        "a_rank": rank_of(half_a, scores),
+        "a_rank": a_rank,
+        "landed_frac": a_frac,
+        # The smallest rank AT OR ABOVE the half-width, which is not the rank the
+        # threshold reaches and is not used for any prediction here. It is the
+        # figure synthetic_attributable.py screens on: a value above n there means
+        # the shipped threshold left the score set entirely, and the rank arm A
+        # reaches is clamped at n and cannot say so.
+        "a_rank_above": rank_of(half_a, scores),
         "b_covered": bool(abs(y_test - centre) <= half_b),
         "b_width": 2 * half_b if math.isfinite(half_b) else math.inf,
     }

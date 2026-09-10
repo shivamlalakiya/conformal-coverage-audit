@@ -93,6 +93,9 @@ OUT = os.path.join(HERE, "..", "outputs", "probe_output_fractional_rank.txt")
 
 REPS = 400_000
 SEED = 20260805
+# A second, independent stream, used by block (iii)'s ceiled column and by
+# nothing else. See main() for why it is not drawn from SEED's stream.
+SEED_CEIL = 20260905
 
 # the six continuous definitions numpy exposes, with the Hyndman-Fan (alpha,beta)
 # the SELF-CHECK compares against -- the probe itself never uses these numbers,
@@ -175,6 +178,20 @@ def q_needed(n, alpha, method):
 
 def q_folklore(n, alpha):
     return min((1.0 - alpha) * (n + 1) / n, 1.0)
+
+
+def q_ceiled(n, alpha):
+    """The other published correction: ceil((1-alpha)(n+1))/n.
+
+    q_folklore divides and leaves a fraction behind; this one rounds up to a whole
+    rank first and then divides. angelopoulos2023 print this form and hand it to
+    method='higher'. They are two levels, not two spellings of one, and the sweep
+    below is the only place a reader can see what each returns from the same
+    definition on the same samples. The ceiling is taken in floating point because
+    that is what the published line does; an exact rational here would measure a
+    level nobody computes.
+    """
+    return min(math.ceil((1.0 - alpha) * (n + 1)) / n, 1.0)
 
 
 # ---------------------------------------------------------------------------
@@ -262,6 +279,18 @@ def self_check():
         assert required_rank(first - 1, 1 - alpha) is None
         assert required_rank(first, 1 - alpha) is not None
 
+    # (7) the two published corrections are two levels, on block (iii)'s own grid.
+    #     The first assertion fires if a later edit collapses q_ceiled into
+    #     q_folklore, or if a grid cell is added at which (1-alpha)(n+1) is whole.
+    #     The second is the one that matters: ceil((1-alpha)(n+1)) can exceed n,
+    #     and then the level saturates at 1 and the column silently measures the
+    #     SAMPLE MAXIMUM instead of the correction. It fires at n=8, alpha=1/10.
+    for n, alpha in ((20, 0.10), (50, 0.10), (200, 0.10), (50, 0.05), (100, 0.05)):
+        assert q_ceiled(n, alpha) > q_folklore(n, alpha) + 1e-12, (n, alpha)
+        assert math.ceil((1.0 - alpha) * (n + 1)) <= n, (
+            f"the ceiled correction saturates at n={n}, alpha={alpha}: the column "
+            f"would report the sample maximum, not the correction")
+
 
 self_check()
 
@@ -292,6 +321,13 @@ def measure(sampler, n, q, method, reps=REPS):
 def main():
     rng = np.random.default_rng(SEED)
     S = samplers(rng)
+    # The ceiled column of block (iii) draws here instead. Taking those 25 cells
+    # from `rng` would advance the shared stream and move every measured number
+    # printed below them -- blocks (iii) to (vi), none of which is about the
+    # ceiled form. A column added to a table should add cells, not rewrite the
+    # file, and this way every other number in this output reproduces byte for
+    # byte across the change, which is a check on the change itself.
+    Sc = samplers(np.random.default_rng(SEED_CEIL))
 
     say("=" * 104)
     say("W9  FRACTIONAL RANK -- what an interpolated threshold delivers")
@@ -351,8 +387,13 @@ def main():
     say(f"    interior cells (q <= 0.95, n >= 50):  max |err/s.e.| = "
         f"{max(abs(r['z']) for r in interior):.2f} over {len(interior)} cells, "
         f"max |err| = {max(abs(r['got'] - r['pred']) for r in interior):.5f}")
+    # The tail line reported the departure in standard errors alone. A z of 20.59
+    # at 400000 reps is a coverage error of half a percentage point, and a reader
+    # who is handed only the z cannot tell which. Printed here so the manuscript
+    # quotes both from the same line rather than converting one into the other.
     say(f"    extreme-tail cells (n=50, q=0.99):    err/s.e. from "
         f"{min(r['z'] for r in tail):+.2f} to {max(r['z'] for r in tail):+.2f}, "
+        f"max |err| = {max(abs(r['got'] - r['pred']) for r in tail):.5f}, "
         f"all {'POSITIVE' if all(r['z'] > 0 for r in tail) else 'MIXED'}"
         f" -- the predicted direction: a decreasing density puts most of the gap's"
         f" mass below T, so pi > gamma.")
@@ -361,27 +402,35 @@ def main():
     # ---------------- (iii) the corollary that matters ---------------------
     say("-" * 104)
     say("(iii) COROLLARY -- the level that makes 'linear' deliver 1-alpha")
-    say("      q_folk = (1-alpha)(n+1)/n  is correct for a ROUNDING definition.")
-    say("      q_dag  = ((1-alpha)(n+1) - A)/B  is the interpolating one.")
-    say("      DF floor is what q_dag still GUARANTEES distribution-free.")
+    say("      q_folk = (1-alpha)(n+1)/n        divides, leaving a fraction behind.")
+    say("      q_ceil = ceil((1-alpha)(n+1))/n  rounds up to a whole rank first.")
+    say("      Both are published. q_dag = ((1-alpha)(n+1) - A)/B is the")
+    say("      interpolating one. DF floor is what q_dag still GUARANTEES")
+    say("      distribution-free.")
     say("-" * 104)
     say(f"{'dist':<13}{'n':>5}{'1-a':>6}{'q_raw':>8}{'cov':>9}{'q_folk':>8}{'cov':>9}"
-        f"{'q_dag':>8}{'cov':>9}{'DF floor':>10}")
+        f"{'q_ceil':>8}{'cov':>9}{'q_dag':>8}{'cov':>9}{'DF floor':>10}")
     corr = []
     for dist, f in S.items():
+        fc = Sc[dist]
         for n, alpha in [(20, 0.10), (50, 0.10), (200, 0.10), (50, 0.05), (100, 0.05)]:
             qraw, qf = 1 - alpha, q_folklore(n, alpha)
+            qc = q_ceiled(n, alpha)
             qd = q_needed(n, alpha, "linear")
             cr, _ = measure(f, n, qraw, "linear")
             cf, _ = measure(f, n, qf, "linear")
+            cc, _ = measure(fc, n, qc, "linear")
             cd, sd = measure(f, n, qd, "linear")
             floor = math.floor(virtual_index(n, qd, "linear")) / (n + 1)
             corr.append({"dist": dist, "n": n, "alpha": alpha, "raw": cr,
-                         "folk": cf, "dag": cd, "se": sd, "floor": floor})
+                         "folk": cf, "ceil": cc, "dag": cd, "se": sd,
+                         "floor": floor})
             say(f"{dist:<13}{n:>5}{1 - alpha:>6.2f}{qraw:>8.4f}{cr:>9.4f}"
-                f"{qf:>8.4f}{cf:>9.4f}{qd:>8.4f}{cd:>9.4f}{floor:>10.4f}")
+                f"{qf:>8.4f}{cf:>9.4f}{qc:>8.4f}{cc:>9.4f}"
+                f"{qd:>8.4f}{cd:>9.4f}{floor:>10.4f}")
     say("")
-    for label, key in (("uncorrected", "raw"), ("folklore", "folk"), ("q_dagger", "dag")):
+    for label, key in (("uncorrected", "raw"), ("folklore", "folk"),
+                       ("ceiled", "ceil"), ("q_dagger", "dag")):
         err = [abs(r[key] - (1 - r["alpha"])) for r in corr]
         say(f"    {label:<12} mean |coverage - nominal| = {sum(err) / len(err):.5f}"
             f"   worst = {max(err):.5f}")
@@ -416,29 +465,37 @@ def main():
     say("(v) ALL THIRTEEN DEFINITIONS at n=50, requested 0.90 -- delivered coverage")
     say("    under the raw level, and the corrected level each one needs.")
     say("    'guarantee' is distribution-free; 'delivered' is the h/(n+1) prediction")
-    say("    with the measured normal-sample coverage beside it.")
+    say("    with the measured normal-sample coverage beside it. 'floor at q' is the")
+    say("    distribution-free floor floor(h(q needed))/(n+1) that survives AT the")
+    say("    corrected level, which is the guarantee a caller who applies the")
+    say("    correction still holds and is not the same number as 'guarantee'.")
     say("-" * 104)
     n, alpha = 50, 0.10
     say(f"{'method':<28}{'h(raw)':>9}{'guarantee':>11}{'delivered':>11}"
-        f"{'measured':>10}{'q needed':>10}{'exact?':>8}")
+        f"{'measured':>10}{'q needed':>10}{'floor at q':>12}{'exact?':>8}")
     for method in list(HF) + list(ROUNDING):
         h = virtual_index(n, 1 - alpha, method)
         got, _ = measure(S["normal"], n, 1 - alpha, method, reps=100_000)
         qd = q_needed(n, alpha, method)
         integer = abs(h - round(h)) < 1e-12
         qs = "---" if qd is None else f"{qd:.4f}"
+        if qd is None:
+            fq = "---"
+        else:
+            fq = f"{math.floor(virtual_index(n, qd, method)) / (n + 1):.4f}"
         if integer and qd is not None:
             hq = virtual_index(n, qd, method)
             integer_at_q = abs(hq - round(hq)) < 1e-12
         else:
             integer_at_q = False
         say(f"{method:<28}{h:>9.3f}{math.floor(h) / (n + 1):>11.4f}"
-            f"{h / (n + 1):>11.4f}{got:>10.4f}{qs:>10}"
+            f"{h / (n + 1):>11.4f}{got:>10.4f}{qs:>10}{fq:>12}"
             f"{'yes' if integer_at_q else 'no':>8}")
     say("")
     say("    'exact? yes' marks a corrected level arriving at a whole rank, which")
     say("    makes what comes out a finite-sample PROMISE rather than a limit. That")
-    say("    column carries this probe's practical advice.")
+    say("    column carries this probe's practical advice. Where it says no, the")
+    say("    'floor at q' column is what the caller is left with.")
     say("")
 
     # ---------------- (vi) n_min is not a threshold ------------------------

@@ -84,7 +84,7 @@ import numpy as np
 from fractions import Fraction as F
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from paired_report import format_cell, summarize  # noqa: E402
+from paired_report import format_cell, landed, summarize  # noqa: E402
 from run_real_data import bracket_indices, required_rank, required_span  # noqa: E402
 
 MAX_ROWS = 5000
@@ -269,16 +269,6 @@ def classifier():
     return make_pipeline(StandardScaler(), LogisticRegression(max_iter=1000))
 
 
-def rank_at(threshold, scores):
-    """Smallest 1-based rank whose score is >= threshold, tolerant of the float
-    drift that averaging identical half-widths introduces."""
-    if not math.isfinite(threshold):
-        return scores.size + 1
-    s = np.sort(np.asarray(scores, dtype=float))
-    tol = 1e-9 * max(1.0, abs(threshold))
-    return int(np.searchsorted(s, threshold - tol, side="left") + 1)
-
-
 def split(n, n_cal, rng):
     """train / calibration / test, disjoint, sizes fixed by n_cal."""
     idx = rng.permutation(n)
@@ -329,6 +319,7 @@ def cell_mapie_classifier(X, y, n_cal, coverage, rng):
     hit_a = sets_a[np.arange(len(truth)), truth]
 
     n = scores.size
+    a_rank, a_frac = landed(q_a, scores)
     k = required_rank(n, coverage)
     if k is None:
         hit_b, size_b, feasible = np.ones_like(hit_a, bool), len(classes), False
@@ -344,7 +335,8 @@ def cell_mapie_classifier(X, y, n_cal, coverage, rng):
         "feasible": feasible,
         "a_covered": float(hit_a.mean()),
         "a_width": float(sets_a.sum(1).mean()),
-        "a_rank": rank_at(q_a, scores),
+        "a_rank": a_rank,
+        "landed_frac": a_frac,
         "b_covered": float(hit_b.mean()),
         "b_width": size_b,
         "clipped": math.isclose(q_a, scores.max(), rel_tol=1e-9),
@@ -457,6 +449,8 @@ def _finish_regression(scores, centre, y_true, lo_a, hi_a, coverage, clipped,
         off_lo, off_hi = lo_a - centre, hi_a - centre
         assert np.ptp(off_lo) < 1e-6 and np.ptp(off_hi) < 1e-6, "rails are not offsets"
         j_lo, j_hi = bracket_indices(float(off_lo[0]), float(off_hi[0]), s)
+        _, pos_lo = landed(float(off_lo[0]), s)
+        _, pos_hi = landed(float(off_hi[0]), s)
         nests = bool(np.all(lo_b <= lo_a + 1e-9) and np.all(hi_b >= hi_a - 1e-9))
         return {
             "n": n,
@@ -467,6 +461,7 @@ def _finish_regression(scores, centre, y_true, lo_a, hi_a, coverage, clipped,
             "a_covered": a_covered,
             "a_width": a_width,
             "a_rank": j_hi - j_lo - 1,
+            "landed_frac": pos_hi - pos_lo,
             "b_covered": float(np.mean((lo_b <= y_true) & (y_true <= hi_b))),
             "b_width": float(np.mean(hi_b - lo_b)) if feasible else math.inf,
             "clipped": clipped,
@@ -478,6 +473,7 @@ def _finish_regression(scores, centre, y_true, lo_a, hi_a, coverage, clipped,
     else:
         half_b, feasible = float(np.sort(scores)[k - 1]), True
     half_a = float(np.mean((hi_a - lo_a) / 2.0))
+    a_rank, a_frac = landed(half_a, scores)
     return {
         "n": n,
         "required_rank": k if k is not None else n + 1,
@@ -489,7 +485,8 @@ def _finish_regression(scores, centre, y_true, lo_a, hi_a, coverage, clipped,
         "feasible": feasible,
         "a_covered": a_covered,
         "a_width": a_width,
-        "a_rank": rank_at(half_a, scores),
+        "a_rank": a_rank,
+        "landed_frac": a_frac,
         "b_covered": float(np.mean(np.abs(y_true - centre) <= half_b)),
         "b_width": 2 * half_b if math.isfinite(half_b) else math.inf,
         "clipped": clipped,

@@ -1,0 +1,26 @@
+====================================================================================================
+PUBLIC ROUTES TO THE BELOW-FLOOR BEHAVIOUR, ONE ROW AT A TIME
+====================================================================================================
+self_check() passed at import: the feasibility floor is found by search,
+and the outcome classifier separates finite, +inf and raises, and
+separates a warning from silence.
+
+arm: forecasting
+requested coverage: 0.90
+feasibility floor:  n >= 9; every route below is called at n=8
+
+A verdict is about the routes tried, printed below it. `raises` says the
+guard sits above the helper on every route tried here, not that no route
+exists anywhere.
+
+helper row                                              route  warns
+----------------------------------------------------------------------------------------------------
+statsforecast _oriented_index                          finite      -
+
+rows with a public route returning a finite number in silence: 1 of 1 on this arm
+      statsforecast _oriented_index
+
+Routes tried, per row
+----------------------------------------------------------------------------------------------------
+  statsforecast _oriented_index
+      finite  silent  statsforecast.models.ConformalSeasonalPool(n_samples=8).forecast(level=[90])

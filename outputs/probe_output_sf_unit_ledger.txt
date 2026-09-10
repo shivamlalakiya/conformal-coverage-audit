@@ -1,0 +1,234 @@
+====================================================================================================
+PR1-17 -- per-unit ledger, statsforecast conformal_distribution
+====================================================================================================
+self_check() passed at import
+
+----------------------------------------------------------------------------------------------------
+(1) THE EXPRESSION, read from the installed file
+----------------------------------------------------------------------------------------------------
+statsforecast 2.1.1
+file: /Users/lalakiya/Desktop/Opensource/Research/conformal-coverage-audit/.venv-real/lib/python3.14/site-packages/statsforecast/models.py
+stack line: 130   quantile line: 131
+    116  def _add_conformal_distribution_intervals(
+    117      fcst: Dict,
+    118      cs: np.ndarray,
+    119      level: List[Union[int, float]],
+    120  ) -> Dict:
+    121      r"""
+    122      Adds conformal intervals to the `fcst` dict based on conformal scores `cs`.
+    123      `level` should be already sorted. This strategy creates forecasts paths
+    124      based on errors and calculate quantiles using those paths.
+    125      """
+    126      alphas = [100 - lv for lv in level]
+    127      cuts = [alpha / 200 for alpha in reversed(alphas)]
+    128      cuts.extend(1 - alpha / 200 for alpha in alphas)
+    129      mean = fcst["mean"].reshape(1, -1)
+    130      scores = np.vstack([mean - cs, mean + cs])
+    131      quantiles = np.quantile(
+    132          scores,
+    133          cuts,
+    134          axis=0,
+    135      )
+    136      quantiles = quantiles.reshape(len(cuts), -1)
+    137      lo_cols = [f"lo-{lv}" for lv in reversed(level)]
+    138      hi_cols = [f"hi-{lv}" for lv in level]
+    139      out_cols = lo_cols + hi_cols
+    140      for i, col in enumerate(out_cols):
+    141          fcst[col] = quantiles[i]
+    142      return fcst
+
+cs is already absolute -- _conformity_scores ends in np.abs(fcst - y_test).
+So the stacked array is mean +- the n absolute scores: 2n rows, symmetric
+about mean, and above row n it is mean plus the ascending scores.
+interpolation is the np.quantile default, 'linear'. No (n + 1) appears.
+
+----------------------------------------------------------------------------------------------------
+(2) WHERE THE CUT LANDS, at level 90, by executing the same call
+----------------------------------------------------------------------------------------------------
+    n   pos in 2n stacked   pos in n scores   floor   k* = ceil((n+1)*0.90)   short by
+    2              3.8500            1.8500       1                     n/a   infeasible
+    5              9.5500            4.5500       4                     n/a   infeasible
+   10             19.0500            9.0500       9                      10          1
+   20             38.0500           18.0500      18                      19          1
+   50             95.0500           45.0500      45                      46          1
+
+
+CUT n=2 level=90 stacked_pos=3.850000 pos=1.850000 floor=1 kstar=n/a short=infeasible
+CUT n=5 level=90 stacked_pos=9.550000 pos=4.550000 floor=4 kstar=n/a short=infeasible
+CUT n=10 level=90 stacked_pos=19.050000 pos=9.050000 floor=9 kstar=10 short=1
+CUT n=20 level=90 stacked_pos=38.050000 pos=18.050000 floor=18 kstar=19 short=1
+CUT n=50 level=90 stacked_pos=95.050000 pos=45.050000 floor=45 kstar=46 short=1
+
+The floor of the landed position is 0.9n for every n divisible by 10 and
+k* is 0.9n + 1 there, so the shipped threshold reaches one rank fewer than
+the level asks for, at every such n. The 0.05 remainder is where in the
+gap above that position the threshold sits, not a rank it reaches.
+
+Swept rather than asserted from five cells, because a shortfall true at
+the sizes this probe runs is not a shortfall true at every size:
+    feasible sizes to n=400   392
+    short by 1:   80 sizes   first 9   last 400
+    short by 2:  312 sizes   first 11   last 398
+    every n divisible by 10 is short by exactly 1: 40 sizes,
+    10 to 400. Those are the mildest feasible sizes there
+    are, and they are the three the archive arm runs.
+SWEEP max_short=2 min_short=1 feasible=392 to_n=400 tens=40 tens_first=10 tens_last=400 n_short1=80 n_short2=312
+
+----------------------------------------------------------------------------------------------------
+(3) THE LEDGER
+----------------------------------------------------------------------------------------------------
+dataset: m1_monthly_dataset   series: 250   cap: 250   frequency: monthly
+model: Naive   method: conformal_distribution   nominal 0.90
+
+  n_windows=2     series=250  median n=2
+      arm A (shipped)        coverage 0.5840   lands on median rank 1 of 2
+      arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
+      paired delta (B - A)   +0.4160  (s.e. 0.0312)  13.3 s.e.  <- >=2 s.e.
+      predicted arm A        0.6169   (rank floor 0.3347)
+      predicted delta        n/a (no feasible unit)
+      status changed in 104 of 250 units: gains=104 losses=0   [arm B contains arm A: losses must be 0]
+      ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
+        not the level->rank map. 1 - A is the shortfall against a level no finite
+        interval can deliver at this n.
+      units in the gap (T_A, T_B]   104 of 250   = +0.4160
+      landed position (mean)        1.8506 of 2.0   floor 1.0040
+      pred arm A, floor rank        0.3347
+      pred arm A, interpolated      0.6169
+      arm A s.e.                    0.0312
+      |arm A - pred A| / s.e., floor          7.98
+      |arm A - pred A| / s.e., interpolated   1.05
+      pred delta                    n/a   (required rank exceeds n in 250 of 250 units)
+CELL n_windows=2 level=90 method=conformal_distribution units=250 feasible=0 gap=104 n_med=2 a_cov=0.584000 a_se=0.031236 b_cov=1.000000 delta=0.416000 se=0.031236 pos_mean=1.850600 floor_mean=1.004000 pred_a_floor=0.334667 pred_a_frac=0.616867 z_a_floor=7.982279 z_a_frac=1.052210
+
+  n_windows=5     series=250  median n=5
+      arm A (shipped)        coverage 0.7200   lands on median rank 4 of 5
+      arm B (required rank)  coverage 1.0000   required rank exceeds n in every cell   [250/250 infeasible -> +inf]
+      paired delta (B - A)   +0.2800  (s.e. 0.0285)  9.8 s.e.  <- >=2 s.e.
+      predicted arm A        0.7583   (rank floor 0.6667)
+      predicted delta        n/a (no feasible unit)
+      status changed in 70 of 250 units: gains=70 losses=0   [arm B contains arm A: losses must be 0]
+      ^ arm B is vacuous (+inf) in every cell: this delta measures infeasibility,
+        not the level->rank map. 1 - A is the shortfall against a level no finite
+        interval can deliver at this n.
+      units in the gap (T_A, T_B]   70 of 250   = +0.2800
+      landed position (mean)        4.5500 of 5.0   floor 4.0000
+      pred arm A, floor rank        0.6667
+      pred arm A, interpolated      0.7583
+      arm A s.e.                    0.0285
+      |arm A - pred A| / s.e., floor          1.87
+      |arm A - pred A| / s.e., interpolated   1.35
+      pred delta                    n/a   (required rank exceeds n in 250 of 250 units)
+CELL n_windows=5 level=90 method=conformal_distribution units=250 feasible=0 gap=70 n_med=5 a_cov=0.720000 a_se=0.028454 b_cov=1.000000 delta=0.280000 se=0.028454 pos_mean=4.550000 floor_mean=4.000000 pred_a_floor=0.666667 pred_a_frac=0.758333 z_a_floor=1.874361 z_a_frac=1.347197
+
+  first 15 units at n_windows=10, one row each:
+      unit    n        T_A        T_B   landed  floor   k*   |test score|  in gap   A   B
+         1   10 725795.8000 861509.0000   9.0500      9   10    143049.0000      no   Y   Y
+         2   10    28.4980    35.1100   9.0500      9   10         6.8000      no   Y   Y
+         3   10   504.9500   599.0000   9.0500      9   10         3.0000      no   Y   Y
+         4   10  1071.8000  1543.0000   9.0500      9   10       295.0000      no   Y   Y
+         5   10     6.1540     7.5600   9.0500      9   10         0.6400      no   Y   Y
+         6   10  1734.8000  1902.0000   9.0500      9   10        63.0000      no   Y   Y
+         7   10 52246.9000 59769.0000   9.0500      9   10     19855.0000      no   Y   Y
+         8   10   206.5500   350.0000   9.0500      9   10       304.0000     yes   n   Y
+         9   10  4307.5000  6521.0000   9.0500      9   10       119.0000      no   Y   Y
+        10   10  1668.2500  2851.0000   9.0500      9   10      2080.0000     yes   n   Y
+        11   10   884.2500  1079.0000   9.0500      9   10       698.0000      no   Y   Y
+        12   10     8.8800    10.4000   9.0500      9   10         7.9000      no   Y   Y
+        13   10     4.3550     5.4000   9.0500      9   10        11.5000      no   n   n
+        14   10   668.3500   998.0000   9.0500      9   10       529.0000      no   Y   Y
+        15   10  3208.5000  7407.5000   9.0500      9   10      4472.5000     yes   n   Y
+
+  n_windows=10    series=250  median n=10
+      arm A (shipped)        coverage 0.7800   lands on median rank 9 of 10
+      arm B (required rank)  coverage 0.8880   median required rank 10 of 10
+      paired delta (B - A)   +0.1080  (s.e. 0.0197)  5.5 s.e.  <- >=2 s.e.
+      predicted arm A        0.8234   (rank floor 0.8189)
+      predicted delta        +0.0857   (rank floor +0.0902)
+      status changed in 27 of 250 units: gains=27 losses=0   [arm B contains arm A: losses must be 0]
+      widths:  A 1.416e+04   B 1.805e+04
+      units in the gap (T_A, T_B]   27 of 250   = +0.1080
+      landed position (mean)        9.0576 of 10.0   floor 9.0080   at-or-above 9.9920
+      pred arm A, floor rank        0.8189
+      pred arm A, interpolated      0.8234
+      arm A s.e.                    0.0263
+      |arm A - pred A| / s.e., floor          1.48
+      |arm A - pred A| / s.e., interpolated   1.65
+      pred arm B, required rank     0.9091
+      pred delta, floor rank        +0.0902
+      pred delta, interpolated      +0.0857
+      measured delta above the floor bound   yes
+      pred delta, at-or-above rank  +0.0007   (the figure Table 4 printed)
+      |measured - pred| / s.e., floor         0.91
+      |measured - pred| / s.e., interpolated  1.14
+      |measured - pred| / s.e., at-or-above   5.45
+CELL n_windows=10 level=90 method=conformal_distribution units=250 feasible=250 gap=27 n_med=10 a_cov=0.780000 a_se=0.026252 b_cov=0.888000 delta=0.108000 se=0.019670 pos_mean=9.057600 floor_mean=9.008000 req_mean=10.000000 pred_a_floor=0.818909 pred_a_frac=0.823418 pred_b=0.909091 pred_d_floor=0.090182 pred_d_frac=0.085673 pred_d_above=0.000727 z_d_floor=0.905876 z_d_frac=1.135118 z_d_above=5.453743 z_a_floor=1.482150 z_a_frac=1.653913 over_floor=1
+
+  n_windows=20    series=250  median n=20
+      arm A (shipped)        coverage 0.8640   lands on median rank 18 of 20
+      arm B (required rank)  coverage 0.9040   median required rank 19 of 20
+      paired delta (B - A)   +0.0400  (s.e. 0.0124)  3.2 s.e.  <- >=2 s.e.
+      predicted arm A        0.8613   (rank floor 0.8590)
+      predicted delta        +0.0434   (rank floor +0.0457)
+      status changed in 10 of 250 units: gains=10 losses=0   [arm B contains arm A: losses must be 0]
+      widths:  A 1.708e+04   B 1.92e+04
+      units in the gap (T_A, T_B]   10 of 250   = +0.0400
+      landed position (mean)        18.0880 of 20.0   floor 18.0400   at-or-above 18.9600
+      pred arm A, floor rank        0.8590
+      pred arm A, interpolated      0.8613
+      arm A s.e.                    0.0217
+      |arm A - pred A| / s.e., floor          0.23
+      |arm A - pred A| / s.e., interpolated   0.12
+      pred arm B, required rank     0.9048
+      pred delta, floor rank        +0.0457
+      pred delta, interpolated      +0.0434
+      measured delta above the floor bound    no
+      pred delta, at-or-above rank  +0.0019   (the figure Table 4 printed)
+      |measured - pred| / s.e., floor         0.46
+      |measured - pred| / s.e., interpolated  0.28
+      |measured - pred| / s.e., at-or-above   3.07
+CELL n_windows=20 level=90 method=conformal_distribution units=250 feasible=250 gap=10 n_med=20 a_cov=0.864000 a_se=0.021723 b_cov=0.904000 delta=0.040000 se=0.012418 pos_mean=18.088000 floor_mean=18.040000 req_mean=19.000000 pred_a_floor=0.859048 pred_a_frac=0.861333 pred_b=0.904762 pred_d_floor=0.045714 pred_d_frac=0.043429 pred_d_above=0.001905 z_d_floor=0.460146 z_d_frac=0.276088 z_d_above=3.067643 z_a_floor=0.227975 z_a_frac=0.122756 over_floor=0
+
+  n_windows=50    series=250  median n=50
+      arm A (shipped)        coverage 0.8760   lands on median rank 45 of 50
+      arm B (required rank)  coverage 0.8880   median required rank 46 of 50
+      paired delta (B - A)   +0.0120  (s.e. 0.0069)  1.7 s.e.
+      predicted arm A        0.8842   (rank floor 0.8832)
+      predicted delta        +0.0178   (rank floor +0.0187)
+      status changed in 3 of 250 units: gains=3 losses=0   [arm B contains arm A: losses must be 0]
+      widths:  A 1.731e+04   B 1.896e+04
+      units in the gap (T_A, T_B]   3 of 250   = +0.0120
+      landed position (mean)        45.0920 of 50.0   floor 45.0440   at-or-above 45.9600
+      pred arm A, floor rank        0.8832
+      pred arm A, interpolated      0.8842
+      arm A s.e.                    0.0209
+      |arm A - pred A| / s.e., floor          0.35
+      |arm A - pred A| / s.e., interpolated   0.39
+      pred arm B, required rank     0.9020
+      pred delta, floor rank        +0.0187
+      pred delta, interpolated      +0.0178
+      measured delta above the floor bound    no
+      pred delta, at-or-above rank  +0.0008   (the figure Table 4 printed)
+      |measured - pred| / s.e., floor         0.98
+      |measured - pred| / s.e., interpolated  0.84
+      |measured - pred| / s.e., at-or-above   1.63
+CELL n_windows=50 level=90 method=conformal_distribution units=250 feasible=250 gap=3 n_med=50 a_cov=0.876000 a_se=0.020886 b_cov=0.888000 delta=0.012000 se=0.006900 pos_mean=45.092000 floor_mean=45.044000 req_mean=46.000000 pred_a_floor=0.883216 pred_a_frac=0.884157 pred_b=0.901961 pred_d_floor=0.018745 pred_d_frac=0.017804 pred_d_above=0.000784 z_d_floor=0.977505 z_d_frac=0.841109 z_d_above=1.625386 z_a_floor=0.345473 z_a_frac=0.390535 over_floor=0
+
+The worst feasible cell for each prediction form, in standard errors of
+the measurement, and for arm A over every cell including the infeasible:
+    pred delta at h            1.14  at n=10
+WORST z_d_frac=1.135118 at_n=10
+    pred delta at floor(h)     0.98  at n=50
+WORST z_d_floor=0.977505 at_n=50
+    pred delta at ceil(h)      5.45  at n=10
+WORST z_d_above=5.453743 at_n=10
+    pred arm A at h            1.65  at n=10
+WORST z_a_frac=1.653913 at_n=10
+    pred arm A at floor(h)     7.98  at n=2
+WORST z_a_floor=7.982279 at_n=2
+
+OVERFLOOR cells=1 of=3 first_n=10
+
+Arm B contains arm A at every unit, so the paired delta is exactly the
+share of units whose absolute score fell in (T_A, T_B]. That gap is one
+score wide wherever the required rank is one above the landed floor, and
+the count above says how much archive mass sat in it.

@@ -39,7 +39,7 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 from conformal_coverage import required_rank  # noqa: E402
-from paired_report import format_cell, summarize  # noqa: E402
+from paired_report import format_cell, landed, summarize  # noqa: E402
 
 LEVELS = (0.90, 0.95)
 OUT_TEMPLATE = "outputs/probe_output_real_data{suffix}.txt"
@@ -290,6 +290,12 @@ def _score(interval, point, resid, y_test, coverage, method):
         hi_b = math.inf if b_idx == n + 1 else point + float(signed[b_idx - 1])
         feasible = a_idx >= 1 and b_idx <= n
         j_lo, j_hi = bracket_indices(lo_a - point, hi_a - point, signed)
+        # The same pair read fractionally. A two-rail helper interpolates at BOTH
+        # rails, so the span it delivers is (pos_hi - pos_lo) gaps and the span it
+        # guarantees is one fewer; the guaranteed figure is what a_rank carries and
+        # the fractional one is what predicts the coverage.
+        _, pos_lo = landed(lo_a - point, signed)
+        _, pos_hi = landed(hi_a - point, signed)
         # Containment, per fit, on the VALUES -- which is what makes the paired
         # difference non-negative. self_check() establishes the index inequality
         # behind it for every n before any data is read; this catches a series
@@ -305,6 +311,7 @@ def _score(interval, point, resid, y_test, coverage, method):
             "a_covered": a_covered,
             "a_width": hi_a - lo_a,
             "a_rank": j_hi - j_lo - 1,   # the span arm A guarantees, in gaps
+            "landed_frac": pos_hi - pos_lo,   # the span it delivers, fractionally
             "b_covered": bool(lo_b <= y_test <= hi_b),
             "b_width": hi_b - lo_b,
         }
@@ -313,6 +320,7 @@ def _score(interval, point, resid, y_test, coverage, method):
     # so arm B is the same band at the required rank and contains it.
     scores = np.abs(resid)
     half_a = (hi_a - lo_a) / 2.0
+    a_rank, a_frac = landed(half_a, scores)
     k = required_rank(n, coverage)
     if k is None:
         half_b, cov_b, feasible = math.inf, True, False
@@ -329,7 +337,8 @@ def _score(interval, point, resid, y_test, coverage, method):
         "feasible": feasible,
         "a_covered": a_covered,
         "a_width": hi_a - lo_a,
-        "a_rank": rank_of(half_a, scores),
+        "a_rank": a_rank,
+        "landed_frac": a_frac,
         "b_covered": bool(cov_b),
         "b_width": 2 * half_b if math.isfinite(half_b) else math.inf,
     }

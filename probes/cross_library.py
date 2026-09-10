@@ -471,21 +471,99 @@ def main():
     for rr in rows:
         if "method='linear'" in rr["api"] or "interpolation='linear'" in rr["api"] \
                 or "DEFAULT" in rr["api"]:
-            defaults.append((rr["api"], rr["delivered"]))
+            defaults.append((rr["api"], rr["h"], rr["delivered"]))
     rm = r_measure(n, 1 - alpha)
     if rm is not None:
-        defaults.append(("R quantile() [type=7]", rm["default"] / (n + 1)))
+        defaults.append(("R quantile() [type=7]", rm["default"],
+                         rm["default"] / (n + 1)))
     jm = julia_measure(n, 1 - alpha)
     if jm is not None:
-        defaults.append(("Julia Statistics.quantile()",
+        defaults.append(("Julia Statistics.quantile()", jm["default"],
                          jm["default"] / (n + 1)))
     om = octave_measure(n, 1 - alpha)
     if om is not None:
-        defaults.append(("Octave quantile() [method 5]",
+        defaults.append(("Octave quantile() [method 5]", om["default"],
                          om["default"] / (n + 1)))
-    for name, d in defaults:
-        say(f"      {name:<54} delivers {d:.4f}")
-    distinct = sorted({round(d, 9) for _, d in defaults})
+
+    # Which definition each default resolves to, and its Hyndman-Fan type, are
+    # IDENTIFIED rather than looked up. Every type R ships, and every spelling
+    # numpy exposes, is executed over CERT_CELLS on one grid, and a default is
+    # filed under the type, and the numpy name, whose index it equals in EVERY
+    # cell. One cell is not enough and neither is one size: at n = 50 every level
+    # whose qn lands on a half-integer makes `hazen` and `averaged_inverted_cdf`
+    # return the same index, so a same-size sweep names Octave's default nothing
+    # at all. That is this paper's own certificate arriving in its own probe, and
+    # the sizes below are chosen to break exactly that collapse. A default that
+    # still matches nothing prints "---", which is what scipy's Cunnane pair is.
+    CERT_CELLS = [(nn, qq) for nn in (n, n + 1, n + 3, n + 7)
+                  for qq in (1 - alpha, 0.95)]
+    NP_HF = ["inverted_cdf", "averaged_inverted_cdf", "closest_observation",
+             "interpolated_inverted_cdf", "hazen", "weibull", "linear",
+             "median_unbiased", "normal_unbiased"]
+    r_cell = {c: r_measure(*c) for c in CERT_CELLS}
+    j_cell = {c: julia_measure(*c) for c in CERT_CELLS}
+    o_cell = {c: octave_measure(*c) for c in CERT_CELLS}
+    np_cell = {c: {m: float(np.quantile(scores(c[0]), c[1], method=m))
+                   for m in NP_HF} for c in CERT_CELLS}
+
+    def default_h_at(default_name, cell):
+        """The index THIS default returns in `cell`, from its own engine."""
+        if default_name.startswith("R "):
+            return None if r_cell[cell] is None else r_cell[cell]["default"]
+        if default_name.startswith("Julia "):
+            return None if j_cell[cell] is None else j_cell[cell]["default"]
+        if default_name.startswith("Octave "):
+            return None if o_cell[cell] is None else o_cell[cell]["default"]
+        if default_name in A:
+            return A[default_name](*cell)
+        return None
+
+    def identify(default_name):
+        """(numpy spelling, HF type) for a default, or (None, None)."""
+        seq = []
+        for c in CERT_CELLS:
+            h = default_h_at(default_name, c)
+            if h is None:
+                return None, None
+            seq.append((c, h))
+        types = [t for t in range(1, 10)
+                 if all(r_cell[c] is not None and abs(r_cell[c][t] - h) < 1e-9
+                        for c, h in seq)]
+        names = [m for m in NP_HF
+                 if all(abs(np_cell[c][m] - h) < 1e-9 for c, h in seq)]
+        return (names[0] if len(names) == 1 else None,
+                types[0] if len(types) == 1 else None)
+
+    say(f"      {'default entry point':<54} {'guaranteed':>10} {'predicted':>10}"
+        f"  {'definition':<24} {'HF type':>7}")
+    ident = {}
+    for name, h, d in defaults:
+        nm, t = identify(name)
+        ident[name] = (nm, t)
+        guar = math.floor(h + 1e-12) / (n + 1)
+        say(f"      {name:<54} {guar:>10.4f} {d:>10.4f}"
+            f"  {(nm or '---'):<24} {(str(t) if t else '---'):>7}")
+    say("")
+    say(f"    The definition column is identified over {len(CERT_CELLS)} cells, "
+        f"sizes {n}, {n + 1}, {n + 3}, {n + 7}")
+    say(f"    crossed with levels {1 - alpha:g} and 0.95, against every type R "
+        f"ships and every")
+    say("    spelling numpy exposes, each executed here. At the "
+        "single size 50")
+    say("    alone, hazen and averaged_inverted_cdf are observationally identical "
+        "at every")
+    say("    level whose qn is a half-integer, and Octave's default would be "
+        "unnamed.")
+    named = [x for x, _ in ident.values() if x]
+    say(f"    {len(defaults)} default entry points, {len(set(named))} distinct "
+        f"definitions named,")
+    say(f"    {len(defaults) - len(named)} outside the Hyndman-Fan taxonomy.")
+    for nm in sorted(set(named)):
+        say(f"      {nm:<24} is the definition of "
+            f"{sum(1 for x, _ in ident.values() if x == nm)} of the "
+            f"{len(defaults)} defaults")
+    say("")
+    distinct = sorted({round(d, 9) for _, _, d in defaults})
     say("")
     say(f"    {len(defaults)} default entry points, {len(distinct)} DISTINCT delivered")
     say(f"    coverages: {', '.join(f'{d:.4f}' for d in distinct)}, against a")

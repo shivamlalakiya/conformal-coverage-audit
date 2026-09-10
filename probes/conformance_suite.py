@@ -242,7 +242,7 @@ def classify(fn, level=LEVEL):
 def delivered_n_min(fn, level, limit=2000):
     """Smallest n where the helper's own FINITE threshold delivers `level`.
 
-    A threshold at rank r covers with probability exactly r/(n+1), so this is a
+    A threshold at rank r has coverage r/(n+1) and no other value, so this is a
     derived quantity, not a simulation. An infinite threshold is excluded on
     purpose: +inf covers everything and would report n_min = 2 for every honest
     branch-(c) helper, which measures vacuity rather than delivery.

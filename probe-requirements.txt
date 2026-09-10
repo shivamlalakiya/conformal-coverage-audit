@@ -25,6 +25,22 @@
 #
 # helper_census reads source text only, so it runs under any of the three; it
 # reports which packages it could not locate rather than skipping them silently.
+#
+#   [6] sources       published_forms reads primary sources rather than an audited
+#                     library: three arXiv PDFs and one GitHub file, fetched over
+#                     the network and cached under probes/.sources/, which is
+#                     gitignored because third-party material is read here and
+#                     never redistributed. Needs only numpy and pypdf; the paper
+#                     build's own environment already carries both.
+#                     python -m venv .venv-real && .venv-real/bin/pip install \
+#                         numpy==2.4.6 pypdf==6.14.2
+#                     probes: published_forms
+#   [7] stdlib        stdlib_quantiles measures the interpreter's own
+#                     `statistics.quantiles`, so the version that matters is the
+#                     Python version printed in its output, not a pin here. Needs
+#                     numpy for the comparison arm and nothing else; the paper
+#                     build's own environment carries it.
+#                     probes: stdlib_quantiles
 
 # ----------------------------------------------------------------- [1] forecasting
 adagio==0.2.6

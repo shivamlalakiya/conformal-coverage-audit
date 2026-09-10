@@ -1,0 +1,66 @@
+========================================================================================================
+W16 STDLIB QUANTILES: the default Python ships and the survey omits
+========================================================================================================
+    python  3.14.4
+    numpy   2.4.6
+    cells   1300 = 10 sizes x 130 cut points
+
+--------------------------------------------------------------------------------------------------------
+(i) THE SIGNATURE. There is no level parameter, which is why this
+    entry point is not a row of the interface table.
+--------------------------------------------------------------------------------------------------------
+    statistics.quantiles(data, *, n=4, method='exclusive')
+    `n` here is how many equal parts, not the sample size, and the
+    return is the m-1 cut points between them. A caller wanting a
+    level has to choose m so that the level is k/m, so a level whose
+    denominator is large costs a proportionally large m, and an
+    irrational level cannot be asked for at all.
+
+--------------------------------------------------------------------------------------------------------
+(ii) EXACT. The set 1..n handed over as Fractions, so the cut point
+     comes back as the position itself with no rounding in the path,
+     and compared against the closed form in exact rationals.
+--------------------------------------------------------------------------------------------------------
+    method='exclusive' (the default): position = (k/m)(n+1) at 1300 of 1300 cells
+        which is numpy's `weibull` virtual index
+    method='inclusive': position = 1 + (k/m)(n-1) at 1300 of 1300 cells
+        which is numpy's `linear` virtual index
+
+     the default's position falls outside the sample, below rank 1 or
+     above rank n, at 216 of 1300 cells; there the
+     standard library extrapolates past the smallest and largest score
+     while numpy clips to the sample. That is the one behavioural
+     difference between the two, and it is not a difference of
+     definition.
+
+--------------------------------------------------------------------------------------------------------
+(iii) IN DOUBLES, against numpy, which is what a caller gets. Only the
+      cells whose position is inside the sample, so numpy's clip is
+      not counted as a disagreement.
+--------------------------------------------------------------------------------------------------------
+    method='exclusive' against numpy `weibull`: identical double at 918 of 1084 cells,
+        largest disagreement 2.842e-14, which is the last bits of a double and not a rank
+    method='inclusive' against numpy `linear`: identical double at 807 of 1084 cells,
+        largest disagreement 5.684e-14, which is the last bits of a double and not a rank
+
+--------------------------------------------------------------------------------------------------------
+(iv) ONE CELL IN FULL, the running example of the manuscripts:
+     50 calibration scores and a ninth decile.
+--------------------------------------------------------------------------------------------------------
+    statistics.quantiles(1..50, n=10, method='exclusive')[8] = 45.9
+    numpy.quantile(1..50, 0.9, method='weibull')      = 45.9
+    statistics.quantiles(1..50, n=10, method='inclusive')[8] = 45.1
+    numpy.quantile(1..50, 0.9, method='linear')       = 45.1
+
+    The default lands at (k/m)(n+1), the mean-rank plotting position,
+    so the level a caller would have had to ask for equals the coverage
+    the threshold is predicted to deliver. What carries the
+    finite-sample guarantee is the order statistic below that position,
+    and that is a strictly lower rank wherever the position is not an
+    integer.
+
+========================================================================================================
+MACHINE sq_cells=1300 sq_sizes=10 sq_groups=4 sq_outside=216 sq_default_is_weibull=yes
+MACHINE-METHOD exclusive | form=(k/m)(n+1) | numpy=weibull | exact_cells=1300
+MACHINE-METHOD inclusive | form=1 + (k/m)(n-1) | numpy=linear | exact_cells=1300
+========================================================================================================

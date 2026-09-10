@@ -103,6 +103,16 @@ def p_round_half_even(x, base=0):
     A first version rounded on the offset alone and its self-check caught `nearest`
     at n = 26, L = 9/10: h = 23.5 rounds to 24 because 23 is odd, while the offset
     0.5 rounds to 0 because 0 is even.
+
+    THIS PARITY IS 1-BASED AND numpy's IS NOT. `nearest` in numpy settles a tie on
+    the parity of the 0-based index, which in this module's indexing is round-half-
+    to-ODD, so the two disagree on every tie and by one rank when they do. Section
+    (8) measures the size of that: the counts, how many sit at sizes whose level has
+    an exact double, and the ten (valid, max D) cells of section (6) recomputed under
+    both, which are identical -- no number this project prints moves. Read the
+    counts there rather than from this docstring; a figure typed into a comment is
+    the thing that goes stale. `p_nearest_even` below documents the same trap for
+    `closest_observation` and was checked against numpy where this one was not.
     """
     lo = math.floor(x)
     frac = x - lo
@@ -1069,6 +1079,108 @@ def main():
         "neither", ceil_exact, ceil_valid)
     for r in ceil_rows:
         assert sum(r["tally"]) == len(ceil_sizes[r["L"]]), r
+
+    # -------------------------------------------------------------------
+    say("=" * 100)
+    say("(8) THIS MODULE'S TIE-BREAK AGAINST numpy's, FOR nearest")
+    say("=" * 100)
+    say("half_even here settles a tie on the parity of the whole integer part of h,")
+    say("which this module indexes from 1. numpy's `nearest` settles it on the")
+    say("0-based index, so in this module's indexing numpy rounds half to ODD. The")
+    say("two therefore disagree exactly on the ties and by exactly one rank. Nothing")
+    say("printed above this line moves, and that is asserted below rather than")
+    say("claimed. What could move is a statement about WHICH sizes nearest lands on,")
+    say("which is what the certificate's residue sets are, so the size of the")
+    say("disagreement is measured here rather than described.")
+    say("")
+
+    def p_half_even_zero(x, base=0):
+        """half_even with the parity read 0-based, which is numpy's `nearest`."""
+        lo = math.floor(x)
+        frac = x - lo
+        if frac < F(1, 2):
+            return lo
+        if frac > F(1, 2):
+            return lo + 1
+        return lo if (lo + base) % 2 == 1 else lo + 1
+
+    POLICIES["half_even_zero"] = p_half_even_zero
+    row = [r for r in HF if r[0] == "nearest"]
+    assert len(row) == 1, HF
+    _, a0, a1, b0, b1, pol = row[0]
+    assert pol == "half_even", pol
+
+    say("(a) EXECUTED. The rule as this module writes it, against numpy, over both")
+    say("    grids at section (6)'s five levels.")
+    say("")
+    say(f"{'form':>10} {'level':>7} {'sizes':>7} {'disagree':>9} "
+        f"{'level has an exact double':>27} {'0-based fixes':>14}")
+    say("-" * 100)
+    tie_total = tie_exact = tie_fixed = 0
+    for form, corrected in (("raw", False), ("unceiled", True)):
+        for L in survey_levels:
+            S = [n for n in range(2, 401) if required_rank(n, L) <= n]
+            dis = dis_exact = fixed = 0
+            for n in S:
+                q = min(F(1), L * (n + 1) / n) if corrected else L
+                mine = delivered_direct(a0, a1, b0, b1, pol, n, L, corrected)
+                zero = delivered_direct(a0, a1, b0, b1, "half_even_zero", n, L,
+                                        corrected)
+                theirs = math.floor(np.quantile(np.arange(1, n + 1, dtype=float),
+                                                float(q), method="nearest"))
+                if mine != theirs:
+                    dis += 1
+                    if F(float(q)) == q:
+                        dis_exact += 1
+                    if zero == theirs:
+                        fixed += 1
+            tie_total += dis
+            tie_exact += dis_exact
+            tie_fixed += fixed
+            say(f"{form:>10} {str(L):>7} {len(S):>7} {dis:>9} {dis_exact:>27} "
+                f"{fixed:>14}")
+    say("")
+    say(f"Over both grids and {len(survey_levels)} levels: {tie_total} disagreements,")
+    say(f"{tie_exact} of them at a size whose level has an exact double, so structural")
+    say("rather than the representation effect sections (5) and (7) measure. Reading")
+    say(f"the parity 0-based accounts for {tie_fixed} of the {tie_total}, which is")
+    say("what says the indexing base is the whole of the difference.")
+    say("MACHINE tie_disagreements=%d tie_structural=%d tie_zero_based_fixes=%d" %
+        (tie_total, tie_exact, tie_fixed))
+    assert tie_fixed == tie_total, (
+        "reading the parity 0-based does not account for every disagreement with "
+        f"numpy: {tie_fixed} of {tie_total}. The difference is then not only the "
+        "indexing base and this section's sentence is wrong")
+    say("")
+
+    say("(b) DIRECTION OF HARM. Section (6)'s own (valid, max D) cells for nearest,")
+    say("    recomputed through the reduction under both tie-breaks.")
+    say("")
+    say(f"{'corr':>10} {'level':>8} {'valid here':>11} {'max D here':>11} "
+        f"{'valid numpy':>12} {'max D numpy':>12}")
+    say("-" * 100)
+    harm = []
+    for corrected in (False, True):
+        for L in survey_levels:
+            U = effective_U(a0, a1, b0, b1, L, corrected)
+            v1 = deficit_vector("half_even", U, L)
+            v0 = deficit_vector("half_even_zero", U, L)
+            harm.append((min(v1) >= 0, max(v1), min(v0) >= 0, max(v0)))
+            say(f"{('corrected' if corrected else 'raw'):>10} {str(L):>8} "
+                f"{('yes' if min(v1) >= 0 else 'NO'):>11} {max(v1):>11} "
+                f"{('yes' if min(v0) >= 0 else 'NO'):>12} {max(v0):>12}")
+    say("")
+    same = sum(1 for a, b_, c, d in harm if a == c and b_ == d)
+    say(f"{same} of the {len(harm)} cells are identical under both tie-breaks, so no")
+    say("number section (6) prints for nearest moves. The residue SETS do move, at")
+    say("the sizes counted in (a), and a claim about which sizes nearest lands on is")
+    say("the claim this section exists to fence.")
+    say("MACHINE tie_cells_same=%d tie_cells=%d" % (same, len(harm)))
+    assert same == len(harm), (
+        "a (valid, max D) cell for nearest differs under the two tie-breaks, so a "
+        "number this project prints does move and PRB-5 is no longer a recording "
+        "decision", harm)
+    say("")
 
     say("=" * 100)
     say("WHAT THIS DOES NOT SETTLE")

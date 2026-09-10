@@ -320,8 +320,8 @@ def main():
                     # skipped every cell where the helper landed differently on
                     # different draws -- which is most of them, and which threw away
                     # exactly the rows where the generator is correctly specified.
-                    idxs = [c["a_rank"] for c in good]
-                    # `rank_at` returns the first score rank not below the returned
+                    idxs = [c["a_rank_above"] for c in good]
+                    # `a_rank_above` is the first score rank not below the returned
                     # threshold; r/(n+1) is Proposition 2's UPPER bound and
                     # (r-1)/(n+1) its lower one -- the threshold sits between two
                     # order statistics and the bracket is what holds without

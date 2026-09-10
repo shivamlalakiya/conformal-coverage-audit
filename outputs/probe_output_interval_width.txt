@@ -1,0 +1,77 @@
+====================================================================================================
+SPAN: THE PRICE OF EITHER SUBSTITUTE, MEASURED AGAINST WHAT SHIPS
+====================================================================================================
+self_check() cleared at import: positions taken from numpy, their order
+pinned, and the size where the level tops out kept out of the averages
+
+numpy 2.4.6   seed 20260906   replicates per cell 100000
+
+A band spans twice its cutoff, so dividing cutoffs already divides spans.
+Each quotient is averaged across draws; two averages are never divided.
+Column `default` keeps whatever units the law has. The quotient columns
+carry none, and may therefore be compared down the page.
+
+(1) AT THE LEVEL THIS REPOSITORY LEADS WITH
+----------------------------------------------------------------------------------------------------
+law               n  level   k*    default   weibull /     s.e.   invcdf@corr /     s.e.
+                                   (units)     default                  default         
+----------------------------------------------------------------------------------------------------
+uniform          20   0.90   19     0.8623     1.04629  0.00015         1.05207  0.00017
+uniform          50   0.90   46     0.8842     1.01814  0.00006         1.02041  0.00007
+uniform         100   0.90   91     0.8921     1.00898  0.00003         1.01010  0.00003
+uniform         200   0.90  181     0.8960     1.00444  0.00001         1.00499  0.00002
+half-normal      20   0.90   19     1.5458     1.12746  0.00040         1.14340  0.00045
+half-normal      50   0.90   46     1.6034     1.04843  0.00015         1.05449  0.00017
+half-normal     100   0.90   91     1.6240     1.02408  0.00008         1.02708  0.00009
+half-normal     200   0.90  181     1.6341     1.01195  0.00004         1.01344  0.00004
+exponential      20   0.90   19     2.1474     1.19548  0.00063         1.21991  0.00071
+exponential      50   0.90   46     2.2379     1.07324  0.00023         1.08240  0.00026
+exponential     100   0.90   91     2.2680     1.03572  0.00011         1.04018  0.00013
+exponential     200   0.90  181     2.2847     1.01761  0.00006         1.01981  0.00006
+lognormal        20   0.90   19     3.4065     1.27296  0.00094         1.30708  0.00106
+lognormal        50   0.90   46     3.5180     1.09849  0.00033         1.11080  0.00037
+lognormal       100   0.90   91     3.5626     1.04734  0.00015         1.05325  0.00017
+lognormal       200   0.90  181     3.5798     1.02329  0.00007         1.02620  0.00008
+pareto1.5        20   0.90   19     4.6341     1.34680  0.00139         1.39015  0.00156
+pareto1.5        50   0.90   46     4.6211     1.11868  0.00042         1.13352  0.00047
+pareto1.5       100   0.90   91     4.6250     1.05615  0.00019         1.06317  0.00021
+pareto1.5       200   0.90  181     4.6353     1.02745  0.00009         1.03088  0.00010
+
+(2) TWO FURTHER LEVELS AT A SINGLE SIZE: THE PRICE TRACKS THE LEVEL
+----------------------------------------------------------------------------------------------------
+law               n  level   k*    default   weibull /     s.e.   invcdf@corr /     s.e.
+----------------------------------------------------------------------------------------------------
+uniform         100   0.95   96     0.9412     1.00954  0.00003         1.01007  0.00003
+uniform         100   0.99  100     0.9803     1.01001  0.00003         1.01011  0.00003
+half-normal     100   0.95   96     1.9194     1.04024  0.00013         1.04247  0.00013
+half-normal     100   0.99  100     2.4169     1.13775  0.00041         1.13916  0.00042
+exponential     100   0.95   96     2.9149     1.06246  0.00020         1.06593  0.00021
+exponential     100   0.99  100     4.1961     1.24102  0.00079         1.24348  0.00079
+lognormal       100   0.95   96     5.0360     1.09410  0.00031         1.09933  0.00033
+lognormal       100   0.99  100     9.0647     1.50952  0.00210         1.51472  0.00213
+pareto1.5       100   0.95   96     7.2650     1.13577  0.00049         1.14331  0.00052
+pareto1.5       100   0.99  100    19.5940     2.55827  0.01176         2.57417  0.01188
+
+(3) THE BILL
+----------------------------------------------------------------------------------------------------
+Neither substitution shrinks anything; both enlarge. That follows from how
+the three positions are ordered and needs no measurement. The k* column
+splits two regimes. When k* coincides with n the requirement names the
+largest draw, one step up from the region where no index whatsoever meets
+the request, and the quotient then describes the uppermost spacing of a
+heavy-tailed sample instead of describing the definitions. Elsewhere the
+charge is a few per cent and shrinks with n, as the intervening positions
+crowd together.
+
+  pairings                    30, with 25 under k* = n
+  weibull, worst cell         2.55827x  (pareto1.5, n=100, level 0.99, k*=100)
+  weibull, mean cell          1.14672x
+  corrected, worst cell       2.57417x  (pareto1.5, n=100, level 0.99, k*=100)
+  corrected, worst below k*=n 1.39015x  (pareto1.5, n=20, level 0.90, k*=19)
+  corrected, mean cell        1.15487x
+
+A fixed line for whatever reads this file. Everything above is wording and
+wording gets revised; anything keyed to a sentence snaps when it does.
+MACHINE iw_cells=30 iw_interior=25 iw_laws=5 iw_sizes=4 iw_reps=100000
+MACHINE iw_weibull_worst=2.55827 iw_weibull_mean=1.14672 iw_corrected_worst=2.57417 iw_corrected_mean=1.15487 iw_corrected_interior_worst=1.39015
+MACHINE iw_worst_law=pareto1.5 iw_worst_n=100 iw_worst_level=0.99 iw_interior_law=pareto1.5 iw_interior_n=20 iw_interior_level=0.90

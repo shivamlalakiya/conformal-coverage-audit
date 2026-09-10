@@ -25,9 +25,19 @@ The subtleties, each learned from a failure of this harness:
      something to be assumed from the word "paired". A record carrying
      nests=True asserts here that no unit went the other way; a probe comparing
      genuinely different constructions must set nests=False and say so.
+  5. An interpolating helper returns a threshold BETWEEN two scores, so it
+     reaches the lower of the two and no more. Crediting it with the one above
+     -- which "the smallest rank at or above the threshold" does -- puts the
+     predicted delta at the wrong end of a whole gap, and at these calibration
+     sizes a whole gap is the entire effect: the statsforecast n=10 cell
+     predicted +0.0007 against a measured +0.1080 for that reason alone.
+     `a_rank` is therefore the rank arm A REACHES, counted at or below its
+     threshold, and `landed_frac` says where inside the gap above it the
+     threshold sits. The two give a distribution-free floor and a point
+     prediction, and both are printed.
 
 A record is a dict with keys: n, required_rank, feasible, a_covered, a_width,
-a_rank, b_covered, b_width, and optionally two_rail and nests.
+a_rank, landed_frac, b_covered, b_width, and optionally two_rail and nests.
 """
 
 import math
@@ -35,11 +45,66 @@ import math
 import numpy as np
 
 
+# A threshold that IS one of the scores arrives off it by float drift: darts'
+# calibration path returns the 10th of 10 scores and misses it by one part in 10^15
+# at 28 of 250 series, and reading that as "reaches the 9th" is a whole gap of error
+# in the direction that flatters the library. Relative, so it scales with the
+# score's own magnitude, and twelve orders of magnitude below any gap these score
+# sets have. self_check() pins both ends: a near-hit reaches, a real near-miss does
+# not.
+LANDED_TOL = 1e-9
+
+
+def landed(threshold, scores):
+    """Where a threshold lands in a score set: (rank reached, fractional position).
+
+    The rank reached is how many scores sit AT OR BELOW the threshold. That is the
+    rank whose coverage the threshold inherits. An exchangeable draw sits under the
+    r-th of n order statistics with probability r/(n+1) and no other value; a
+    threshold placed between the r-th and the (r+1)-th is under the (r+1)-th, so it
+    inherits the r-th's guarantee and not the next one's.
+
+    The fractional position places the threshold inside the gap above that rank,
+    linearly, and equals the rank exactly when the threshold IS one of the scores.
+    Reading it through r/(n+1) estimates the coverage the interpolation delivers:
+    exact for uniform scores, and the companion gives the order-1/n^2 error for a
+    smooth density. Clamped to [0, n], because a threshold outside the score range
+    has no gap to sit in.
+
+    LANDED_TOL closes a near-hit from below, so a threshold that should equal a
+    score is credited with the rank that score carries.
+    """
+    s = np.sort(np.asarray(scores, dtype=float))
+    n = s.size
+    if not math.isfinite(threshold):
+        return n, float(n)
+    t = threshold + LANDED_TOL * max(1.0, abs(threshold))
+    r = int(np.searchsorted(s, t, side="right"))
+    if r >= n:
+        return n, float(n)
+    if r == 0:
+        return 0, 0.0
+    lo, hi = float(s[r - 1]), float(s[r])
+    # From the threshold as given, not from the tolerated one: `tol` exists to
+    # decide the RANK when a near-hit misses by drift, and letting it into the
+    # fraction as well would print a position of 3.000000003 for a threshold that
+    # is one of the scores.
+    frac = (threshold - lo) / (hi - lo) if hi > lo else 0.0
+    return r, r + float(min(1.0, max(0.0, frac)))
+
+
 def summarize(records):
     """Paired statistics over one cell. Returns None if the cell is empty."""
     good = [r for r in records if r is not None and "error" not in r]
     if not good:
         return None
+    # Subtlety 5. A probe that has not been updated to report where its threshold
+    # landed inside the gap would otherwise fall back to the rank silently, and the
+    # predicted delta it prints would be the old wrong-end one.
+    missing = [r for r in good if "landed_frac" not in r]
+    assert not missing, (
+        f"{len(missing)} of {len(good)} records carry no 'landed_frac'; the "
+        f"predicted coverage cannot be formed from the rank alone")
     a = np.array([r["a_covered"] for r in good], float)
     b = np.array([r["b_covered"] for r in good], float)
     d = b - a
@@ -60,11 +125,26 @@ def summarize(records):
     # Mean of per-unit (req - landed)/(n+1) over feasible units. Medians of the two
     # index figures are not a substitute when n varies inside the cell -- that
     # construction printed +0.0000 at statsforecast m=10 against a measured miss.
+    # Two forms, and the difference between them is one gap: `landed_frac` is where
+    # arm A's threshold actually sits and gives a point prediction, `a_rank` is the
+    # rank it reaches and gives the distribution-free end of the bracket. Neither is
+    # derived from the other here; each is a mean across the identical unit set.
     preds = [
+        (r["required_rank"] - r["landed_frac"]) / (r["n"] + 1)
+        for r in feas
+        if r.get("required_rank") is not None
+    ]
+    preds_floor = [
         (r["required_rank"] - r["a_rank"]) / (r["n"] + 1)
         for r in feas
         if r.get("required_rank") is not None
     ]
+    # Predicted arm A coverage, over EVERY unit and not only the feasible ones:
+    # arm A returns a threshold below the floor too, and what it lands on there is
+    # the whole of reading (1). Arm B is +inf there and has no rank, which is why
+    # the predicted delta above cannot be formed at those cells.
+    pred_a = [r["landed_frac"] / (r["n"] + 1) for r in good]
+    pred_a_floor = [r["a_rank"] / (r["n"] + 1) for r in good]
     out = {
         "cells": len(good),
         "n_median": int(np.median([r["n"] for r in good])),
@@ -73,6 +153,10 @@ def summarize(records):
         "delta": float(d.mean()),
         "se": float(d.std(ddof=1) / math.sqrt(d.size)) if d.size > 1 else float("nan"),
         "pred_delta": float(np.mean(preds)) if preds else float("nan"),
+        "pred_delta_floor": (float(np.mean(preds_floor)) if preds_floor
+                             else float("nan")),
+        "pred_a": float(np.mean(pred_a)),
+        "pred_a_floor": float(np.mean(pred_a_floor)),
         "gains": gains,
         "losses": losses,
         "changed": gains + losses,
@@ -150,8 +234,11 @@ def format_cell(header, s):
            if s["infeasible"] else ""),
         f"      paired delta (B - A)   {s['delta']:+.4f}  (s.e. {s['se']:.4f})"
         f"  {stars(s['delta'], s['se'])}",
+        f"      predicted arm A        {s['pred_a']:.4f}"
+        f"   (rank floor {s['pred_a_floor']:.4f})",
         (
             f"      predicted delta        {s['pred_delta']:+.4f}"
+            f"   (rank floor {s['pred_delta_floor']:+.4f})"
             if not math.isnan(s["pred_delta"])
             else "      predicted delta        n/a (no feasible unit)"
         ),
@@ -198,7 +285,8 @@ def stars(delta, se):
 def self_check():
     # a cell where B covers strictly more, all feasible
     recs = [dict(n=10, required_rank=10, feasible=True, a_covered=(i > 1),
-                 a_width=1.0, a_rank=9, b_covered=True, b_width=1.5)
+                 a_width=1.0, a_rank=9, landed_frac=9.0, b_covered=True,
+                 b_width=1.5)
             for i in range(10)]
     s = summarize(recs)
     assert s["a_cov"] == 0.8 and s["b_cov"] == 1.0
@@ -211,13 +299,13 @@ def self_check():
     # medians that look like a zero prediction and a mean that is not.
     split = [
         dict(n=10, required_rank=10, feasible=True, a_covered=True,
-             a_width=1.0, a_rank=9, b_covered=True, b_width=1.5),
+             a_width=1.0, a_rank=9, landed_frac=9.0, b_covered=True, b_width=1.5),
         dict(n=10, required_rank=10, feasible=True, a_covered=True,
-             a_width=1.0, a_rank=9, b_covered=True, b_width=1.5),
+             a_width=1.0, a_rank=9, landed_frac=9.0, b_covered=True, b_width=1.5),
         dict(n=20, required_rank=19, feasible=True, a_covered=True,
-             a_width=1.0, a_rank=19, b_covered=True, b_width=1.5),
+             a_width=1.0, a_rank=19, landed_frac=19.0, b_covered=True, b_width=1.5),
         dict(n=20, required_rank=19, feasible=True, a_covered=True,
-             a_width=1.0, a_rank=19, b_covered=True, b_width=1.5),
+             a_width=1.0, a_rank=19, landed_frac=19.0, b_covered=True, b_width=1.5),
     ]
     sp = summarize(split)
     median_pred = (sp["req_rank_median"] - sp["a_rank_median"]) / (sp["n_median"] + 1)
@@ -239,8 +327,8 @@ def self_check():
         "the case the old delta x units check could not see")
     # and the reason for not nesting is read off the index figures, not declared
     assert not m["a_meets"], "arm A lands at rank 9 of a required 10 here"
-    above = summarize([dict(r, nests=False, a_rank=12, required_rank=10)
-                       for r in mixed])
+    above = summarize([dict(r, nests=False, a_rank=12, landed_frac=12.0,
+                            required_rank=10) for r in mixed])
     assert above["a_meets"] and "conservatism" in "\n".join(
         format_cell("h", above)), "an over-covering arm A is reported as conservatism"
     # and the nesting claim is enforced rather than printed
@@ -256,7 +344,8 @@ def self_check():
     assert "median rank" in "\n".join(format_cell("h", s))
     # an infeasible cell must not contaminate the feasible-only widths
     recs2 = recs + [dict(n=5, required_rank=6, feasible=False, a_covered=True,
-                         a_width=1.0, a_rank=5, b_covered=True, b_width=math.inf)]
+                         a_width=1.0, a_rank=5, landed_frac=5.0, b_covered=True,
+                         b_width=math.inf)]
     s2 = summarize(recs2)
     assert s2["infeasible"] == 1
     assert math.isfinite(s2["f_b_width"]) and s2["f_cells"] == 10
@@ -264,6 +353,44 @@ def self_check():
     s3 = summarize(recs + [{"error": "too_short"}])
     assert s3["errors"] == {"too_short": 1} and s3["cells"] == 10
     assert summarize([]) is None
+    # landed(): the rank REACHED, and where inside the gap above it the threshold
+    # sits. An exact hit must give the rank itself, or the two prediction forms
+    # coincide everywhere and the distinction below is decoration.
+    sc = np.array([10.0, 20.0, 30.0, 40.0])
+    assert landed(30.0, sc) == (3, 3.0)
+    r, f = landed(30.5, sc)
+    assert (r, round(f, 4)) == (3, 3.05), (r, f)
+    assert landed(5.0, sc) == (0, 0.0)
+    assert landed(40.0, sc) == (4, 4.0) and landed(99.0, sc) == (4, 4.0)
+    assert landed(math.inf, sc) == (4, 4.0)
+    # the drift tolerance closes a near-hit from below and nothing wider
+    assert landed(30.0 - 1e-12, sc) == (3, 3.0)
+    assert landed(30.0 - 1e-6, sc)[0] == 2, (
+        "the tolerance is wide enough to credit a rank the threshold misses")
+    assert landed(29.0, sc)[0] == 2
+    # An interpolating helper: the threshold sits 5% of the way up the last gap,
+    # so it reaches rank 9 and the required rank is 10. The point prediction is
+    # 0.95/11 and the distribution-free floor is 1/11; the figure the harness used
+    # to print, crediting rank 10, is 0. All three differ, which is the whole of
+    # PR1-17.
+    interp = [dict(n=10, required_rank=10, feasible=True, a_covered=True,
+                   a_width=1.0, a_rank=9, landed_frac=9.05, b_covered=True,
+                   b_width=1.5) for _ in range(4)]
+    si = summarize(interp)
+    assert abs(si["pred_delta"] - 0.95 / 11) < 1e-12, si["pred_delta"]
+    assert abs(si["pred_delta_floor"] - 1 / 11) < 1e-12, si["pred_delta_floor"]
+    assert abs(si["pred_a"] - 9.05 / 11) < 1e-12, si["pred_a"]
+    assert abs(si["pred_a_floor"] - 9 / 11) < 1e-12, si["pred_a_floor"]
+    assert abs(si["pred_a"] + si["pred_delta"] - 10 / 11) < 1e-12, (
+        "the printed arm A and delta predictions must sum to arm B's exact "
+        "coverage, or the two table columns cannot be read against each other")
+    # a record that has not been updated must fail loudly rather than fall back
+    try:
+        summarize([{k: v for k, v in interp[0].items() if k != "landed_frac"}])
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError("a record with no landed_frac was summarized")
     assert "0.0 s.e." not in stars(0.0, 0.0)
 
 

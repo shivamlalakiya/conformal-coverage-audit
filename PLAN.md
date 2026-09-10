@@ -19,8 +19,8 @@ quantile convention turns that level into a position by its own rule. Hence:
 
 ## 2. The claim being tested
 
-> Whether a library applies the finite-sample `(n+1)/n` correction does not predict whether its intervals
-> cover. The level→rank map does.
+> Applying the finite-sample `(n+1)/n` correction is no guide to whether a library's
+> intervals cover. The level→rank map is.
 
 Supporting observation already measured on synthetic draws: two libraries that both omit the correction
 depart from nominal by different amounts at comparable `n`, one landing at exactly **0.0000**. One passes

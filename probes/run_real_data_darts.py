@@ -43,8 +43,8 @@ import sys
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from paired_report import format_cell, summarize  # noqa: E402
-from run_real_data import out_path, rank_of, required_rank  # noqa: E402
+from paired_report import format_cell, landed, summarize  # noqa: E402
+from run_real_data import out_path, required_rank  # noqa: E402
 
 CAL_LENGTHS = (10, 15, 30, 35, 50, 55)
 LEVELS = (0.90, 0.95)
@@ -128,6 +128,7 @@ def run_cell(series, cal, coverage, TimeSeries, ConformalNaiveModel,
     lo_a, centre, hi_a = float(vals[0]), float(vals[1]), float(vals[2])
     half_a = (hi_a - lo_a) / 2.0
 
+    a_rank, a_frac = landed(half_a, scores)
     k = required_rank(n, coverage)
     if k is None:
         half_b, feasible = math.inf, False
@@ -140,7 +141,8 @@ def run_cell(series, cal, coverage, TimeSeries, ConformalNaiveModel,
         "feasible": feasible,
         "a_covered": bool(lo_a <= test <= hi_a),
         "a_width": hi_a - lo_a,
-        "a_rank": rank_of(half_a, scores),
+        "a_rank": a_rank,
+        "landed_frac": a_frac,
         "b_covered": bool(abs(test - centre) <= half_b),
         "b_width": 2 * half_b if math.isfinite(half_b) else math.inf,
     }

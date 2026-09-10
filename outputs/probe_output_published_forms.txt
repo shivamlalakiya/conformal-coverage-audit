@@ -1,0 +1,114 @@
+========================================================================================================
+W16  THE PUBLISHED CORRECTION, READ FROM THE SOURCES THAT PUBLISH IT
+========================================================================================================
+
+CLAIM  The correction has more than one published form. Some sources
+       state it as a RANK, one states it as an un-ceiled LEVEL, and one
+       states it as a ceiled level -- twice, with the ceiling in two
+       different places. Nothing here is read off a secondary summary.
+alpha 0.1   sizes 2..400   numpy 2.4.6
+
+--------------------------------------------------------------------------------------------------------
+(i) SOURCES, AS FETCHED. The digest pins the quotes below to the bytes
+    they were read from; a reposted source changes it.
+--------------------------------------------------------------------------------------------------------
+key                      bytes  sha256                                                          
+lei2018                1340253  28bbed19a871a5dd748953a3ea4f9d58cb03f00bb9e3f7f26f8d46398c399914
+                                Lei, G'Sell, Rinaldo, Tibshirani, Wasserman, arXiv:1604.04173
+                                https://arxiv.org/pdf/1604.04173
+romano2019             1430567  e9483113d0563a6b274810c2ab70face7e876e06d4e7687b58d74ff07bdc9ee1
+                                Romano, Patterson, Candes, arXiv:1905.03222
+                                https://arxiv.org/pdf/1905.03222
+romano2019-code          17678  d88dc3b4ce227296a0f41425c1be53d95383368a8513510336bfe5f0cad47d9c
+                                yromano/cqr, nonconformist/nc.py, the released code
+                                https://raw.githubusercontent.com/yromano/cqr/master/nonconformist/nc.py
+angelopoulos2023       5360733  c69aa191d8363c25b36685db4adb7e6980e55ee39892fd3626206c16e1e0efa1
+                                Angelopoulos and Bates, arXiv:2107.07511
+                                https://arxiv.org/pdf/2107.07511
+
+--------------------------------------------------------------------------------------------------------
+(ii) THE LINES. Printed verbatim from the extracted text, with the page
+     or line they sit on. No interpretation in this block.
+--------------------------------------------------------------------------------------------------------
+lei2018             page 10   Algorithm 2, split conformal: stated as a RANK
+    d = the kth smallest value in{Ri :i∈I 2}, where k =⌈(n/2 + 1)(1−α)⌉
+    (also at page 13)
+
+romano2019          page 5    equation (11): stated as an un-ceiled LEVEL
+    Q1−α(E,I2) := (1−α)(1 + 1/|I2|)-th empirical quantile of{Ei :i∈I 2} (11)
+    (also at page 6)
+
+romano2019-code     line 207  class QuantileRegErrFunc
+    class QuantileRegErrFunc(RegressionErrFunc):
+
+romano2019-code     line 229  its apply_inverse selects an INDEX, no quantile call
+    index = int(np.ceil((1 - significance) * (nc.shape[0] + 1))) - 1
+
+angelopoulos2023    page 4    prose: stated as a CEILED level
+    empirical quantile of s1,...,s n, where⌈·⌉ is the ceiling function (ˆq is essentially the 1−α quantile, but with
+
+angelopoulos2023    page 7    body code: the ceiling over the NUMERATOR
+    qhat = np.quantile(cal_scores, np.ceil((n+1)*(1-alpha))/n, interpolation='higher')
+    (also at page 8)
+
+angelopoulos2023    page 16   appendix code: the ceiling over the WHOLE RATIO
+    qhat = np.quantile(calib_scores, np.ceil((n+1)*(1-alpha)/n), method='higher') # calibrate
+
+--------------------------------------------------------------------------------------------------------
+(iii) THE SAME ARITHMETIC, EXECUTED. Each spelling evaluated at every
+      size, and the rank read back from numpy on scores 1..n rather than
+      derived. k* is the required rank ceil((n+1)(1-alpha)).
+--------------------------------------------------------------------------------------------------------
+    feasible sizes (k* <= n): 392, from n = 9 to n = 400
+
+      A rank spelling is compared with k* directly. A level spelling is
+      passed to numpy's `higher`, which is what both code lines pass it
+      to, and the rank that comes back is scored against k*.
+
+spelling                                            n=9     n=50    n=400   exact   over  short
+rank, Lei Algorithm 2 at |I2| = n                     9       46      361     392      0      0
+rank, Romano's code, its index made 1-based           9       46      361     392      0      0
+level, Romano's text                             1.0000   0.9180   0.9022     353     39      0
+level, Angelopoulos and Bates body               1.0000   0.9200   0.9025      10    382      0
+level, Angelopoulos and Bates appendix           1.0000   1.0000   1.0000      10    382      0
+
+    counts are over the 392 feasible sizes. The transcribed
+    arithmetic, spelling by spelling:
+      rank, Lei Algorithm 2 at |I2| = n               ceil((n + 1)(1 - alpha))
+      rank, Romano's code, its index made 1-based     int(ceil((1 - alpha)(n + 1))) - 1, plus 1
+      level, Romano's text                            (1 - alpha)(1 + 1/n)
+      level, Angelopoulos and Bates body              ceil((n + 1)(1 - alpha)) / n
+      level, Angelopoulos and Bates appendix          ceil((n + 1)(1 - alpha) / n)
+
+    Romano's index is 0-based; the row adds the one back, which is what
+    subscripting a sorted array does. It is listed to show that the
+    released code selects an index and calls no quantile function, which
+    is the clause a review pass had backwards.
+
+    The last two rows share their counts and are not the same call. The
+    body form is exact wherever k* = n and over by a rank elsewhere; the
+    appendix form is the level 1.0 everywhere, so it returns n, which
+    equals k* at the same sizes and for a different reason. The level
+    columns are what tell them apart.
+
+--------------------------------------------------------------------------------------------------------
+(iv) THE APPENDIX SPELLING, ALONE. The ceiling wraps the ratio, so what
+     is rounded up is a number at most 1 rather than a rank.
+--------------------------------------------------------------------------------------------------------
+    resolves to the level 1.0 at 392 of the 392 feasible sizes, that is at all of them
+    exceeds 1.0, where numpy raises, at 7 sizes, all of them below the feasibility floor n = 9
+    at level 1.0 the rank returned is n at every one of those sizes: offsets from n seen = [0]
+    A threshold at rank n covers n/(n+1) whatever level was requested,
+    so nothing here is invalid; it is the widest interval this many
+    scores can produce. It is also what a helper returns when it has
+    clamped a level it could not honour, a different event with the same
+    output.
+
+========================================================================================================
+MACHINE pf_sources=4 pf_quotes=7 pf_forms=5 pf_feasible=392 pf_appendix_saturates=392
+MACHINE-FORM rank, Lei Algorithm 2 at |I2| = n | exact=392 over=0 short=0
+MACHINE-FORM rank, Romano's code, its index made 1-based | exact=392 over=0 short=0
+MACHINE-FORM level, Romano's text | exact=353 over=39 short=0
+MACHINE-FORM level, Angelopoulos and Bates body | exact=10 over=382 short=0
+MACHINE-FORM level, Angelopoulos and Bates appendix | exact=10 over=382 short=0
+========================================================================================================
