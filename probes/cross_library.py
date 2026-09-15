@@ -248,8 +248,8 @@ def q_needed(fn, n, alpha):
         else:
             lo = mid
     step = 10.0 ** -PRINTED_DP
-    # round() before ceil(): the bisection's last bits are noise, and ceil() on
-    # 9000.000000000002 would climb a whole printed place for an exact level.
+    # round() before ceil(): the bisection's last bits are noise, and ceil() of a
+    # raw 9000.000000000002 would climb a whole printed place for an exact level.
     cand = math.ceil(round(hi * 10 ** PRINTED_DP, 6)) / 10 ** PRINTED_DP
     if fn(n, cand) + 1e-12 < target:
         cand = round(cand + step, PRINTED_DP)   # the infimum was open
