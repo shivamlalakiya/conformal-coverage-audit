@@ -69,6 +69,44 @@ BRANCHES = [
              "does not control a returned bound"),
 ]
 
+OFFERED = {b for b, _ in BRANCHES}
+
+# The census vocabulary is wider than the label list a coder is handed, and the
+# gap is not cosmetic: a key label outside OFFERED cannot be matched by any
+# coder, so the item scores as a disagreement however well the site was read.
+# Every such label is either given a rule naming the offered labels that count
+# as agreement, or declared unscoreable. Silence is the one option that lets the
+# instrument report a ceiling it does not have.
+#
+# 'e/f' and 'f/e' are one class in two spellings, and the ambiguity is on the
+# SAME axis the coder is choosing along: (e) and (f) both name a p-value
+# denominator, both are offered, and a site carrying the exact form in one
+# branch and the smoothed form in the next admits either letter. Membership.
+SCORES_AS = {
+    "e/f": {"e", "f"},
+    "f/e": {"e", "f"},
+}
+
+# 🛑 Unscoreable, and the reason matters more than the list.
+#
+# '?' carries no executed label, so there is nothing to score against.
+#
+# 'c-exact' was given a rule mapping it to (c) and that rule MANUFACTURED
+# AGREEMENT. It is a statement about the MECHANISM -- the site appends +inf to
+# the scores and inverts, so it is exact without correcting a level -- while
+# (a), (b) and (c) are statements about BEHAVIOUR WHERE NO RANK CARRIES THE
+# REQUEST. Those are two axes and no offered label spans them. For
+# BaseCalibrator.compute_quantile the default path raises from an explicit
+# pre-check eleven lines above the drawn line (api/calibration.py:256-257,
+# alpha_calib_check, which raises ValueError when alpha < 1/(n+1)), and the
+# +inf append that (c) describes is reached only when weights are passed:
+# probe_output_routes_tabular.txt:21 records the site as `raises`. So (a) is
+# wrong (the raise is not from the quantile routine and the level is not
+# corrected), (c) is wrong (that is the weighted path), and (d) is literally
+# true of the level and false of the outcome. An item with no correct answer is
+# not scored; it is declared.
+UNSCOREABLE = {"?", "c-exact"}
+
 LINES = []
 
 
@@ -139,6 +177,27 @@ def self_check():
         "the redactor leaves a branch label in the worksheet; the blind is not blind")
     assert "quantile" in redact("a quantile call", ["b"]), "the redactor eats prose"
     assert len({b for b, _ in BRANCHES}) == len(BRANCHES), "a branch is listed twice"
+    # Every declared rule has to name offered labels, or it moves the ceiling
+    # instead of removing it.
+    for lab, ok in SCORES_AS.items():
+        assert ok and ok <= OFFERED, (
+            f"SCORES_AS[{lab!r}] names {sorted(ok - OFFERED)}, which the coder "
+            f"was never offered")
+        assert lab not in OFFERED, (
+            f"{lab!r} is offered to the coder and needs no membership rule")
+    assert not (SCORES_AS.keys() & UNSCOREABLE), (
+        "a label cannot be both unscoreable and given a scoring rule")
+    assert not (UNSCOREABLE & OFFERED), (
+        "an offered label cannot be unscoreable")
+    # 🛑 The rule this replaced said SCORES_AS["c-exact"] = {"c"}, which scored
+    # two readers' (c) as agreement on a site the audit's own routes output
+    # records as `raises`. A mapping onto a different axis is how an instrument
+    # reports agreement it did not measure.
+    assert "c-exact" not in SCORES_AS, (
+        "'c-exact' is a mechanism label and (a)/(b)/(c) are behaviour labels; "
+        "mapping between the axes manufactures agreement")
+    assert SCORES_AS["e/f"] == SCORES_AS["f/e"], (
+        "the two spellings of the p-value class score differently")
     return True
 
 
@@ -148,6 +207,18 @@ self_check()
 def build(root):
     sites = sample_sites()
     labels = [s["branch"] for s in sites]
+    # The key is only scoreable against the labels the coder was offered. A
+    # census value that is neither offered nor given a rule in SCORES_AS makes
+    # the item unmatchable, which is a silent ceiling on agreement rather than
+    # a measurement; a '?' site has no executed label at all.
+    undeclared = sorted({b for b in labels if b not in OFFERED
+                         and b not in SCORES_AS and b not in UNSCOREABLE})
+    assert not undeclared, (
+        f"drawn sites carry census labels {undeclared} that are neither in the "
+        f"{len(OFFERED)} offered to the coder nor declared in SCORES_AS; every "
+        f"such item scores as a disagreement however well it was read. A '?' "
+        f"site reaches here too, and it must not be given a rule: it carries "
+        f"no executed label to score against")
     sheet = []
     sheet.append("=" * 100)
     sheet.append("BLIND RE-CLASSIFICATION WORKSHEET")
@@ -217,19 +288,53 @@ def score(path):
     got = {}
     for m in re.finditer(r"ANSWER (\d+):[ \t]*(\S+)", open(path).read()):
         got[m.group(1)] = m.group(2).strip()
-    common = sorted(set(key) & set(got))
+    answered = sorted(set(key) & set(got))
+    # An item whose key has no correct answer in the offered labels is excluded
+    # rather than counted. Counting it either penalises every coder or, if it is
+    # mapped onto a neighbouring label, credits one who was wrong.
+    excluded = [c for c in answered if key[c] in UNSCOREABLE]
+    common = [c for c in answered if key[c] not in UNSCOREABLE]
     if not common:
-        print("no answers found in that sheet; nothing to score")
+        print("no scoreable answers found in that sheet; nothing to score")
         return
-    a = [key[c] for c in common]
+    # An item whose key sits outside the offered labels is scored on membership
+    # (SCORES_AS), not equality. Without this a correct reading of a 'c-exact'
+    # or 'e/f' site is counted as a disagreement and the ceiling is below 1.0.
+    def agrees(k_lab, c_lab):
+        return c_lab in SCORES_AS.get(k_lab, {k_lab})
+
+    # kappa needs one label per rater, so a membership hit is folded onto the
+    # coder's own letter; that is what agreement means for these items.
+    a = [got[c] if agrees(key[c], got[c]) else key[c] for c in common]
     b = [got[c] for c in common]
     po, pe, k = kappa(a, b)
+    by_membership = [c for c in common if key[c] in SCORES_AS]
+    blank = sorted(set(key) - set(got))
     print(f"items scored      {len(common)} of {len(key)}")
+    print(f"  answered         {len(answered)}")
+    print(f"  left blank       {len(blank)}"
+          + (f"  ({', '.join(blank)})" if blank else ""))
+    print(f"  excluded         {len(excluded)}"
+          + (f"  ({', '.join(excluded)}: no offered label is correct)"
+             if excluded else ""))
+    print(f"  correct          {sum(1 for c in common if agrees(key[c], got[c]))}"
+          f" of {len(common)} scoreable")
     print(f"raw agreement     {po:.3f}")
     print(f"chance agreement  {pe:.3f}")
     print(f"Cohen's kappa     {k:.3f}")
+    if by_membership:
+        print(f"scored on membership rather than equality: "
+              f"{', '.join(by_membership)}")
+        print("  (the key label is outside the labels the coder was offered; "
+              "SCORES_AS names what agrees)")
+    for c in excluded:
+        print(f"  {c}  audit={key[c]:<8} coder={got[c]:<8}   <- EXCLUDED, "
+              f"no offered label is correct for this site")
     for c in common:
-        flag = "" if key[c] == got[c] else "   <- differs"
+        hit = agrees(key[c], got[c])
+        flag = "" if hit else "   <- differs"
+        if hit and key[c] != got[c]:
+            flag = f"   <- agrees, key ({key[c]}) is not an offered label"
         print(f"  {c}  audit={key[c]:<8} coder={got[c]:<8}{flag}")
 
 
