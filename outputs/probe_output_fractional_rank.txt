@@ -33,6 +33,11 @@ nearest                         step      step            45.0000    0.8824     
 --------------------------------------------------------------------------------------------------------
 (ii) DELIVERED COVERAGE vs h/(n+1), numpy default 'linear', uncorrected level
      err/s.e. is the standardised departure from the prediction.
+     It is ONE draw per cell, so read it as a draw and not as a size: over
+     35 cells the largest |err/s.e.| is about 2.6 in expectation under a
+     correct prediction, and a cell near 4 turns up about once in 200 whole
+     runs. Only a departure that survives at a larger replicate count, or
+     that repeats across the cells sharing its (n, q), is a tail effect.
 --------------------------------------------------------------------------------------------------------
 dist             n      q         h  predicted  measured    s.e.  err/s.e.    floor
 uniform         50   0.90    45.100    0.88431   0.88449 0.00051     +0.35  0.88235
@@ -83,36 +88,36 @@ pareto1.5       50   0.99    49.510    0.97078   0.97579 0.00024    +20.59  0.96
       distribution-free.
 --------------------------------------------------------------------------------------------------------
 dist             n   1-a   q_raw      cov  q_folk      cov  q_ceil      cov   q_dag      cov  DF floor
-uniform         20  0.90  0.9000   0.8625  0.9450   0.9024  0.9500   0.9073  0.9421   0.9010    0.8571
-uniform         50  0.90  0.9000   0.8844  0.9180   0.9017  0.9200   0.9034  0.9163   0.8996    0.8824
-uniform        200  0.90  0.9000   0.8958  0.9045   0.8996  0.9050   0.9007  0.9040   0.8996    0.8955
+uniform         20  0.90  0.9000   0.8625  0.9450   0.9024  0.9500   0.9073  0.9422   0.9011    0.8571
+uniform         50  0.90  0.9000   0.8844  0.9180   0.9017  0.9200   0.9034  0.9164   0.8997    0.8824
+uniform        200  0.90  0.9000   0.8958  0.9045   0.8996  0.9050   0.9007  0.9041   0.8997    0.8955
 uniform         50  0.95  0.9500   0.9322  0.9690   0.9510  0.9800   0.9605  0.9684   0.9498    0.9412
 uniform        100  0.95  0.9500   0.9410  0.9595   0.9508  0.9600   0.9513  0.9591   0.9501    0.9406
-normal          20  0.90  0.9000   0.8637  0.9450   0.9038  0.9500   0.9086  0.9421   0.9009    0.8571
-normal          50  0.90  0.9000   0.8846  0.9180   0.9012  0.9200   0.9038  0.9163   0.8998    0.8824
-normal         200  0.90  0.9000   0.8952  0.9045   0.8999  0.9050   0.9013  0.9040   0.8994    0.8955
+normal          20  0.90  0.9000   0.8637  0.9450   0.9038  0.9500   0.9086  0.9422   0.9010    0.8571
+normal          50  0.90  0.9000   0.8846  0.9180   0.9012  0.9200   0.9038  0.9164   0.8998    0.8824
+normal         200  0.90  0.9000   0.8952  0.9045   0.8999  0.9050   0.9013  0.9041   0.8995    0.8955
 normal          50  0.95  0.9500   0.9336  0.9690   0.9523  0.9800   0.9609  0.9684   0.9517    0.9412
 normal         100  0.95  0.9500   0.9421  0.9595   0.9502  0.9600   0.9506  0.9591   0.9500    0.9406
-exponential     20  0.90  0.9000   0.8643  0.9450   0.9032  0.9500   0.9093  0.9421   0.9015    0.8571
-exponential     50  0.90  0.9000   0.8846  0.9180   0.9015  0.9200   0.9030  0.9163   0.9001    0.8824
-exponential    200  0.90  0.9000   0.8964  0.9045   0.8999  0.9050   0.9014  0.9040   0.9001    0.8955
+exponential     20  0.90  0.9000   0.8643  0.9450   0.9032  0.9500   0.9093  0.9422   0.9015    0.8571
+exponential     50  0.90  0.9000   0.8846  0.9180   0.9015  0.9200   0.9030  0.9164   0.9001    0.8824
+exponential    200  0.90  0.9000   0.8964  0.9045   0.8999  0.9050   0.9014  0.9041   0.9002    0.8955
 exponential     50  0.95  0.9500   0.9339  0.9690   0.9523  0.9800   0.9614  0.9684   0.9520    0.9412
 exponential    100  0.95  0.9500   0.9412  0.9595   0.9499  0.9600   0.9509  0.9591   0.9501    0.9406
-lognormal       20  0.90  0.9000   0.8658  0.9450   0.9035  0.9500   0.9103  0.9421   0.9018    0.8571
-lognormal       50  0.90  0.9000   0.8848  0.9180   0.9013  0.9200   0.9043  0.9163   0.9003    0.8824
-lognormal      200  0.90  0.9000   0.8960  0.9045   0.9006  0.9050   0.9009  0.9040   0.9004    0.8955
-lognormal       50  0.95  0.9500   0.9343  0.9690   0.9535  0.9800   0.9618  0.9684   0.9528    0.9412
+lognormal       20  0.90  0.9000   0.8658  0.9450   0.9035  0.9500   0.9103  0.9422   0.9018    0.8571
+lognormal       50  0.90  0.9000   0.8848  0.9180   0.9013  0.9200   0.9043  0.9164   0.9003    0.8824
+lognormal      200  0.90  0.9000   0.8960  0.9045   0.9006  0.9050   0.9009  0.9041   0.9005    0.8955
+lognormal       50  0.95  0.9500   0.9343  0.9690   0.9535  0.9800   0.9618  0.9684   0.9529    0.9412
 lognormal      100  0.95  0.9500   0.9414  0.9595   0.9502  0.9600   0.9514  0.9591   0.9502    0.9406
-pareto1.5       20  0.90  0.9000   0.8673  0.9450   0.9034  0.9500   0.9126  0.9421   0.9020    0.8571
-pareto1.5       50  0.90  0.9000   0.8851  0.9180   0.9019  0.9200   0.9041  0.9163   0.9000    0.8824
-pareto1.5      200  0.90  0.9000   0.8964  0.9045   0.9000  0.9050   0.9003  0.9040   0.8999    0.8955
+pareto1.5       20  0.90  0.9000   0.8673  0.9450   0.9034  0.9500   0.9126  0.9422   0.9021    0.8571
+pareto1.5       50  0.90  0.9000   0.8851  0.9180   0.9019  0.9200   0.9041  0.9164   0.9000    0.8824
+pareto1.5      200  0.90  0.9000   0.8964  0.9045   0.9000  0.9050   0.9003  0.9041   0.9000    0.8955
 pareto1.5       50  0.95  0.9500   0.9344  0.9690   0.9533  0.9800   0.9623  0.9684   0.9531    0.9412
 pareto1.5      100  0.95  0.9500   0.9420  0.9595   0.9513  0.9600   0.9515  0.9591   0.9497    0.9406
 
     uncorrected  mean |coverage - nominal| = 0.01587   worst = 0.03753
     folklore     mean |coverage - nominal| = 0.00161   worst = 0.00379
     ceiled       mean |coverage - nominal| = 0.00537   worst = 0.01264
-    q_dagger     mean |coverage - nominal| = 0.00081   worst = 0.00310
+    q_dagger     mean |coverage - nominal| = 0.00082   worst = 0.00313
 
 --------------------------------------------------------------------------------------------------------
 (iv) THE BOUNDARY OF THE CLAIM -- pi/gamma against level and tail
@@ -143,6 +148,8 @@ pareto1.5       50   0.99   0.510   0.782     1.533    0.024
 --------------------------------------------------------------------------------------------------------
 (v) ALL THIRTEEN DEFINITIONS at n=50, requested 0.90 -- delivered coverage
     under the raw level, and the corrected level each one needs.
+    reps per cell in THIS block 100000, not the 400000 the file
+    header prints: one cell per definition does not need the full count.
     'guarantee' is distribution-free; 'delivered' is the h/(n+1) prediction
     with the measured normal-sample coverage beside it. 'floor at q' is the
     distribution-free floor floor(h(q needed))/(n+1) that survives AT the
@@ -153,21 +160,30 @@ method                         h(raw)  guarantee  delivered  measured  q needed 
 interpolated_inverted_cdf      45.000     0.8824     0.8824    0.8833    0.9180      0.8824      no
 hazen                          45.500     0.8824     0.8922    0.8927    0.9080      0.8824      no
 weibull                        45.900     0.8824     0.9000    0.8993    0.9000      0.8824      no
-linear                         45.100     0.8824     0.8843    0.8842    0.9163      0.8824      no
+linear                         45.100     0.8824     0.8843    0.8842    0.9164      0.8824      no
 median_unbiased                45.633     0.8824     0.8948    0.8963    0.9053      0.8824      no
 normal_unbiased                45.600     0.8824     0.8941    0.8939    0.9060      0.8824      no
-inverted_cdf                   45.000     0.8824     0.8824    0.8833    0.9000      0.9020     yes
-averaged_inverted_cdf          45.500     0.8824     0.8922    0.8928    0.9000      0.9020      no
+inverted_cdf                   45.000     0.8824     0.8824    0.8833    0.9001      0.9020     yes
+averaged_inverted_cdf          45.500     0.8824     0.8922    0.8928    0.9001      0.9020      no
 closest_observation            45.000     0.8824     0.8824    0.8825    0.9100      0.9020     yes
 lower                          45.000     0.8824     0.8824    0.8836    0.9184      0.9020     yes
 higher                         46.000     0.9020     0.9020    0.9017    0.8980      0.9020     yes
 midpoint                       45.500     0.8824     0.8922    0.8939    0.9184      0.9020      no
 nearest                        45.000     0.8824     0.8824    0.8820    0.9082      0.9020     yes
 
-    'exact? yes' marks a corrected level arriving at a whole rank, which
-    makes what comes out a finite-sample PROMISE rather than a limit. That
-    column carries this probe's practical advice. Where it says no, the
-    'floor at q' column is what the caller is left with.
+    'exact? yes' marks a definition whose index is a whole rank at the raw
+    level AND at the corrected one -- both conditions, not the second alone.
+    averaged_inverted_cdf reaches rank 46 at its corrected level and still
+    reads no, because its raw index is 45.5. Where it says yes, what comes
+    out is a finite-sample PROMISE rather than a limit, and that column
+    carries this probe's practical advice. Where it says no, the 'floor at
+    q' column is what the caller is left with.
+
+    'q needed' is the smallest level printable at 4 decimals that
+    delivers, and 'floor at q' and 'exact?' are evaluated AT it. Four of the
+    seven rounding definitions have an infimum they do not attain -- at n=50
+    inverted_cdf needs any level above 9/10 and returns rank 45 at 9/10
+    itself -- so the infimum is not a level a caller can apply.
 
 --------------------------------------------------------------------------------------------------------
 (vi) THE DELIVERING SET IS PERIODIC -- n_min is its smallest member, not a

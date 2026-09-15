@@ -92,6 +92,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "..", "outputs", "probe_output_fractional_rank.txt")
 
 REPS = 400_000
+# Block (v) measures thirteen definitions at one cell each and does not need the
+# full count; it is named here and PRINTED on that block's own header, because the
+# file header prints REPS and a reader who prices block (v)'s s.e. off the header
+# is out by a factor of two.
+REPS_ALLDEFS = 100_000
 SEED = 20260805
 # A second, independent stream, used by block (iii)'s ceiled column and by
 # nothing else. See main() for why it is not drawn from SEED's stream.
@@ -153,8 +158,11 @@ def affine(n, method):
     return A, B
 
 
-def q_needed(n, alpha, method):
-    """Smallest level at which `method` delivers 1-alpha, or None if it cannot.
+PRINTED_DP = 4          # the precision every level in this transcript is printed at
+
+
+def _q_infimum(n, alpha, method):
+    """Infimum of the levels at which `method` delivers 1-alpha, or None.
 
     One rule covering all thirteen: aim the virtual index at
     h* = (1-alpha)(n+1), since h/(n+1) is what comes out. For a rounding
@@ -162,6 +170,11 @@ def q_needed(n, alpha, method):
     reduces to the required rank. For a continuous definition it inverts the
     affine map. Found by bisection on h, which is non-decreasing in q for every
     definition, so nothing is assumed about which family `method` belongs to.
+
+    This is an INFIMUM and not a minimum. For a rounding definition the jump in
+    h happens strictly above the bound: at n=50 `inverted_cdf` needs any level
+    above 9/10 and returns rank 45 at 9/10 itself. Callers want a level they can
+    apply, so they want q_needed() below.
     """
     target = (1.0 - alpha) * (n + 1)
     if virtual_index(n, 1.0, method) + 1e-12 < target:
@@ -174,6 +187,44 @@ def q_needed(n, alpha, method):
         else:
             lo = mid
     return hi
+
+
+def q_needed(n, alpha, method):
+    """Smallest level PRINTABLE HERE at which `method` delivers 1-alpha, or None.
+
+    The infimum above is not always a level: for four of the seven rounding
+    definitions it is not attained, and printing it to four decimals named a
+    level that delivers a whole rank less than the column claims --- at n=50
+    `inverted_cdf` printed 0.9000 beside its own measured 0.8824. A level a
+    reader cannot apply is not the level they need, so this rounds UP to the
+    precision the transcript prints and then checks that the rounded level
+    delivers, stepping one unit in the last place where the infimum was open.
+    Everything downstream -- the floor that survives at the corrected level, the
+    whole-rank test, the coverage measured at q_dagger -- is then computed at the
+    level that is printed, which is the property the earlier version lacked.
+
+    Rounding up rather than searching up leaves every level that was already
+    attainable exactly where it was. What moves in this output is block (v)'s three
+    q-needed cells that named a non-delivering level, and block (iii)'s q_dagger
+    column, which printed a rounded level while measuring the coverage beside it at
+    the unrounded bound -- the same defect, in the column that hid it better.
+    """
+    q = _q_infimum(n, alpha, method)
+    if q is None:
+        return None
+    target = (1.0 - alpha) * (n + 1)
+    step = 10.0 ** -PRINTED_DP
+    # round(q * 10**dp, 6) first: the bisection returns a float whose last bits
+    # are noise, and ceil() on 9000.000000000002 would climb a whole unit in the
+    # last printed place for a level that was already exact.
+    cand = math.ceil(round(q * 10 ** PRINTED_DP, 6)) / 10 ** PRINTED_DP
+    if virtual_index(n, cand, method) + 1e-12 < target:
+        cand = round(cand + step, PRINTED_DP)   # the infimum was open
+    assert virtual_index(n, cand, method) + 1e-12 >= target, (
+        f"q_needed({n}, {alpha}, {method}) = {cand} does not deliver "
+        f"{1 - alpha}: the index there is {virtual_index(n, cand, method)} "
+        f"against a required {target}")
+    return cand
 
 
 def q_folklore(n, alpha):
@@ -245,13 +296,13 @@ def self_check():
             af = float(alpha)
             target = (1 - alpha) * (n + 1)
             for method in HF:
-                q = q_needed(n, af, method)
+                q = _q_infimum(n, af, method)
                 if q is None:
                     continue
                 assert abs(virtual_index(n, q, method) / (n + 1)
                            - float(1 - alpha)) < 1e-7, (n, alpha, method)
             for method in ("inverted_cdf", "higher"):
-                q = q_needed(n, af, method)
+                q = _q_infimum(n, af, method)
                 k = required_rank(n, 1 - alpha)
                 if q is None:
                     assert k is None, (n, alpha, method)
@@ -260,6 +311,32 @@ def self_check():
                 assert abs(virtual_index(n, q, method) - k) < 1e-9, (
                     n, alpha, method, k)
                 assert math.ceil(target) == k, (n, alpha, target, k)
+
+    # (4b) the level q_needed PRINTS must deliver, and one step in the last
+    #      printed place below it must not. The first half is what the earlier
+    #      version got wrong: it returned the infimum, which for a rounding
+    #      definition is a level at which h is still a rank short, and the
+    #      column then named 0.9000 beside a measured 0.8824. The second half is
+    #      what stops the repair from overshooting -- an assertion that only the
+    #      delivery held would pass for any level at all, including 1.0.
+    step = 10.0 ** -PRINTED_DP
+    for n in (10, 11, 19, 20, 50, 101):
+        for alpha in (Fraction(1, 10), Fraction(1, 20), Fraction(33, 100),
+                      Fraction(1, 11)):
+            af, target = float(alpha), float((1 - alpha) * (n + 1))
+            for method in list(HF) + list(ROUNDING):
+                q = q_needed(n, af, method)
+                if q is None:
+                    continue
+                assert round(q, PRINTED_DP) == q, (
+                    f"q_needed is not printable at {PRINTED_DP} decimals: {q}")
+                assert virtual_index(n, q, method) + 1e-12 >= target, (
+                    n, alpha, method, q, "does not deliver")
+                below = round(q - step, PRINTED_DP)
+                if below > 0:
+                    assert virtual_index(n, below, method) + 1e-12 < target, (
+                        n, alpha, method, q,
+                        "is not the smallest printable level that delivers")
 
     # (5) the folklore correction is EXACT for the rounding definitions that
     #     return an order statistic, and strictly overshoots under `linear` --
@@ -365,6 +442,11 @@ def main():
     say("-" * 104)
     say("(ii) DELIVERED COVERAGE vs h/(n+1), numpy default 'linear', uncorrected level")
     say("     err/s.e. is the standardised departure from the prediction.")
+    say("     It is ONE draw per cell, so read it as a draw and not as a size: over")
+    say("     35 cells the largest |err/s.e.| is about 2.6 in expectation under a")
+    say("     correct prediction, and a cell near 4 turns up about once in 200 whole")
+    say("     runs. Only a departure that survives at a larger replicate count, or")
+    say("     that repeats across the cells sharing its (n, q), is a tail effect.")
     say("-" * 104)
     say(f"{'dist':<13}{'n':>5}{'q':>7}{'h':>10}{'predicted':>11}{'measured':>10}"
         f"{'s.e.':>8}{'err/s.e.':>10}{'floor':>9}")
@@ -464,6 +546,8 @@ def main():
     say("-" * 104)
     say("(v) ALL THIRTEEN DEFINITIONS at n=50, requested 0.90 -- delivered coverage")
     say("    under the raw level, and the corrected level each one needs.")
+    say(f"    reps per cell in THIS block {REPS_ALLDEFS}, not the {REPS} the file")
+    say("    header prints: one cell per definition does not need the full count.")
     say("    'guarantee' is distribution-free; 'delivered' is the h/(n+1) prediction")
     say("    with the measured normal-sample coverage beside it. 'floor at q' is the")
     say("    distribution-free floor floor(h(q needed))/(n+1) that survives AT the")
@@ -475,7 +559,8 @@ def main():
         f"{'measured':>10}{'q needed':>10}{'floor at q':>12}{'exact?':>8}")
     for method in list(HF) + list(ROUNDING):
         h = virtual_index(n, 1 - alpha, method)
-        got, _ = measure(S["normal"], n, 1 - alpha, method, reps=100_000)
+        got, _ = measure(S["normal"], n, 1 - alpha, method,
+                        reps=REPS_ALLDEFS)
         qd = q_needed(n, alpha, method)
         integer = abs(h - round(h)) < 1e-12
         qs = "---" if qd is None else f"{qd:.4f}"
@@ -492,10 +577,19 @@ def main():
             f"{h / (n + 1):>11.4f}{got:>10.4f}{qs:>10}{fq:>12}"
             f"{'yes' if integer_at_q else 'no':>8}")
     say("")
-    say("    'exact? yes' marks a corrected level arriving at a whole rank, which")
-    say("    makes what comes out a finite-sample PROMISE rather than a limit. That")
-    say("    column carries this probe's practical advice. Where it says no, the")
-    say("    'floor at q' column is what the caller is left with.")
+    say("    'exact? yes' marks a definition whose index is a whole rank at the raw")
+    say("    level AND at the corrected one -- both conditions, not the second alone.")
+    say("    averaged_inverted_cdf reaches rank 46 at its corrected level and still")
+    say("    reads no, because its raw index is 45.5. Where it says yes, what comes")
+    say("    out is a finite-sample PROMISE rather than a limit, and that column")
+    say("    carries this probe's practical advice. Where it says no, the 'floor at")
+    say("    q' column is what the caller is left with.")
+    say("")
+    say(f"    'q needed' is the smallest level printable at {PRINTED_DP} decimals that")
+    say("    delivers, and 'floor at q' and 'exact?' are evaluated AT it. Four of the")
+    say("    seven rounding definitions have an infimum they do not attain -- at n=50")
+    say("    inverted_cdf needs any level above 9/10 and returns rank 45 at 9/10")
+    say("    itself -- so the infimum is not a level a caller can apply.")
     say("")
 
     # ---------------- (vi) n_min is not a threshold ------------------------

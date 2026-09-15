@@ -221,8 +221,22 @@ def affine(fn, n):
     return (A, B) if dev < 1e-9 else (None, None)
 
 
+PRINTED_DP = 4          # the precision every level in this transcript is printed at
+
+
 def q_needed(fn, n, alpha):
-    """Smallest level delivering 1-alpha, by bisection on the virtual index."""
+    """Smallest level PRINTABLE HERE that delivers 1-alpha, or None.
+
+    Bisection finds the infimum, and for a configuration that rounds rather than
+    interpolates the infimum is not attained: `numpy.quantile(x, 0.9,
+    method='inverted_cdf')` at n=50 returns rank 45, so the level this column
+    wants is any level ABOVE 9/10 and 9/10 itself delivers 0.8824. Printing the
+    infimum at four decimals therefore named a level short of the requirement by
+    a whole rank. Round up to the printed precision and verify, stepping one unit
+    in the last place where the infimum was open. `fractional_rank.py` carries
+    the same repair for the same reason; the two probes print this column for
+    overlapping configurations and must not disagree about it.
+    """
     target = (1.0 - alpha) * (n + 1)
     if fn(n, 1.0) + 1e-12 < target:
         return None
@@ -233,7 +247,16 @@ def q_needed(fn, n, alpha):
             hi = mid
         else:
             lo = mid
-    return hi
+    step = 10.0 ** -PRINTED_DP
+    # round() before ceil(): the bisection's last bits are noise, and ceil() on
+    # 9000.000000000002 would climb a whole printed place for an exact level.
+    cand = math.ceil(round(hi * 10 ** PRINTED_DP, 6)) / 10 ** PRINTED_DP
+    if fn(n, cand) + 1e-12 < target:
+        cand = round(cand + step, PRINTED_DP)   # the infimum was open
+    assert fn(n, cand) + 1e-12 >= target, (
+        f"q_needed at n={n}, alpha={alpha} returned {cand}, where the index is "
+        f"{fn(n, cand)} against a required {target}")
+    return cand
 
 
 # ---------------------------------------------------------------------------
@@ -323,6 +346,31 @@ def self_check():
             assert Aa is None, f"{name} fitted as affine but is a step function"
         else:
             assert Aa is not None, f"{name} is affine but the fit failed"
+
+    # (5) the level q_needed PRINTS must deliver, and one step in the last
+    #     printed place below it must not. The first half is what the earlier
+    #     version got wrong -- it returned an infimum a rounding configuration
+    #     does not attain, so the column named 0.9000 for a call that returns
+    #     rank 45 there. The second half is what stops the repair overshooting:
+    #     a delivery-only assertion passes for any level, 1.0 included.
+    dp_step = 10.0 ** -PRINTED_DP
+    for name, fn in A.items():
+        for n in (10, 20, 50, 101):
+            for alpha in (0.10, 0.05, 0.33):
+                q = q_needed(fn, n, alpha)
+                if q is None:
+                    continue
+                target = (1.0 - alpha) * (n + 1)
+                assert round(q, PRINTED_DP) == q, (
+                    f"{name}: q_needed is not printable at {PRINTED_DP} "
+                    f"decimals: {q}")
+                assert fn(n, q) + 1e-12 >= target, (name, n, alpha, q,
+                                                    "does not deliver")
+                below = round(q - dp_step, PRINTED_DP)
+                if below > 0:
+                    assert fn(n, below) + 1e-12 < target, (
+                        name, n, alpha, q,
+                        "is not the smallest printable level that delivers")
 
 
 self_check()
