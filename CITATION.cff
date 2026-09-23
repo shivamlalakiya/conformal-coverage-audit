@@ -62,6 +62,9 @@ identifiers:
   - type: doi
     value: 10.5281/zenodo.22697612
     description: "Version v1.5.6 -- the public-route probe and the interpolated predicted arm"
+  - type: doi
+    value: 10.5281/zenodo.22926031
+    description: "Version v1.5.7 -- the census refusal rule, and the fractional-rank and cross-library re-runs"
 # verified against the live remote
 repository-code: "https://github.com/shivamlalakiya/conformal-coverage-audit"
 # This is what GitHub's cite widget and the indexers read. Left at v1.1.0 it sent a
@@ -76,6 +79,14 @@ version: v1.5.7
 # matches its contents, and it is the first one where that came from bumping the field
 # before tagging rather than from the dates happening to coincide. Check it again next
 # release rather than assuming they do -- v1.5.4's did not.
+# v1.5.7's own GitHub-Zenodo webhook stalled after a 202 accept and produced an empty
+# draft; "Import files from the previous version" was clicked to unblock it and pulled
+# forward the v1.5.6 archive byte for byte (record 22925961, superseded, not cited
+# here) -- exactly the labelled-one-release-behind failure this file already
+# names once. Fixed by a further new version carrying `git archive v1.5.7` uploaded by
+# hand; record 22926031 was verified by MD5 against that local archive before this DOI
+# was written anywhere. date-released matches Zenodo's publication_date with no
+# correction needed this time.
 date-released: "2026-09-23"
 abstract: >-
   Measurement harnesses used to audit how Python conformal-prediction
