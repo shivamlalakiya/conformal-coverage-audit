@@ -137,6 +137,33 @@ RULE_C = {
     ],
 }
 
+# Rule D, the refusals. A value the pinned library rejects before any calibration
+# set exists is a test of the guard, not a calibration size the suite pins. Scoring
+# one among the sizes below the feasibility floor credits a project that guards the
+# degenerate case with the very failure this census counts --- and guarding it is
+# what the audit's own checklist asks for. The entry gives the smallest value the
+# library accepts and the refusal string, and the string is opened in the clone the
+# way an anchor is, so the rule is applied to the package rather than asserted over
+# it.
+REFUSED = {
+    "darts 0.46.1": [
+        ("ConformalNaiveModel", 1,
+         "darts/models/forecasting/conformal_models.py",
+         "must be `>=1` or `None`",
+         "the constructor raises before a calibration set exists"),
+        ("ConformalQRModel", 1,
+         "darts/models/forecasting/conformal_models.py",
+         "must be `>=1` or `None`",
+         "the constructor raises before a calibration set exists"),
+    ],
+    "torchcp 1.2.1": [
+        ("calculate_conformal_value", 1,
+         "torchcp/utils/common.py",
+         "which is a invalid scores",
+         "the helper warns and returns inf instead of resolving a level"),
+    ],
+}
+
 # Excluded, with the reason printed beside the value rather than dropped.
 EXCLUDED = {
     "sktime 1.1.0": [
@@ -348,6 +375,16 @@ def scan(pkg, root):
                                          "value": v, "file": rel,
                                          "line": k.value.lineno,
                                          "scorable": False, "reason": reason})
+    # Rule D runs over the hits rather than inside the walk, because a refusal is a
+    # property of the value a rule already matched and not a fourth way of finding one.
+    for h in hits:
+        for callee, floor_v, _anchor, _needle, why in REFUSED.get(pkg, []):
+            if h["scorable"] and h["what"].startswith(callee + "(") \
+                    and h["value"] < floor_v:
+                h["scorable"] = False
+                h["reason"] = (f"{callee} refuses {h['value']}: {why}, so this "
+                               "fixture pins the guard and not a calibration size")
+
     # THE UNIT IS THE SIZE FIXED IN THE SOURCE, NOT THE CALL THAT USES IT.
     # One score set bound once and asserted against three times is one fixture
     # exercised three times, and counting it three times would inflate a census
@@ -385,6 +422,16 @@ def check_anchors(pkg, root):
             assert sym in src, (
                 f"{pkg}: {sym} is not in {rel} at this tag; the rule anchored to "
                 f"it would match nothing and report an absence as a finding")
+    for sym, _floor_v, rel, needle, _why in REFUSED.get(pkg, []):
+        path = os.path.join(root, rel)
+        assert os.path.exists(path), (
+            f"{pkg}: the refusal anchor {rel} is not in the clone, so rule D "
+            f"naming {sym} would silently score a value the library rejects")
+        src = open(path, encoding="utf-8", errors="replace").read()
+        assert needle in src, (
+            f"{pkg}: {sym}'s refusal text is not in {rel} at this tag, so the "
+            f"guard rule D relies on may have gone; re-read it before trusting "
+            f"an exclusion")
     for entry in EXCLUDED.get(pkg, []):
         sym, rel = entry[0], entry[2]
         path = os.path.join(root, rel)

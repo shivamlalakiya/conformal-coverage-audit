@@ -22,10 +22,10 @@ puncc 0.9.3           v0.9.3             24            0         0   tests prese
 sktime 1.1.0          v1.1.0            513            0         0   tests present
 statsforecast 2.1.1   v2.1.1             29           40         4   tests present
 nonconformist 2.1.0   2.1.0               0            0         0   NO TEST SUITE IN THE REPOSITORY
-darts 0.46.1          0.46.1            122            1         1   tests present
+darts 0.46.1          0.46.1            122            0         0   tests present
 neuralforecast 3.2.1  v3.2.1             73            7         2   tests present
 river 0.25.0          0.25.0             60            0         0   tests present
-torchcp 1.2.1         v1.2.1             90            3         3   tests present
+torchcp 1.2.1         v1.2.1             90            2         2   tests present
 
 --------------------------------------------------------------------------------------------------------
 EACH SCORED PIN, tied back to where the project itself writes it down
@@ -117,7 +117,7 @@ statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  
                       tests/test_models.py:2016
 statsforecast 2.1.1   A    ConformalIntervals(n_windows)              2      0  11   below the feasibility floor, so no rank carries 0.90 there
                       tests/test_models.py:2063
-darts 0.46.1          A    ConformalNaiveModel(cal_length)            0      0  11   below the feasibility floor, so no rank carries 0.90 there
+darts 0.46.1          -    ConformalNaiveModel(cal_length)            0    --- ---   not a calibration size: ConformalNaiveModel refuses 0: the constructor raises before a calibration set exists, so this fixture pins the guard and not a calibration size
                       darts/tests/models/forecasting/test_conformal_model.py:181
 neuralforecast 3.2.1  A    PredictionIntervals(n_windows)             2      0  11   below the feasibility floor, so no rank carries 0.90 there
                       tests/test_categorical.py:349
@@ -135,7 +135,7 @@ neuralforecast 3.2.1  A    PredictionIntervals(n_windows)             2      0  
                       tests/test_simulate.py:139
 torchcp 1.2.1         C    calculate_conformal_value(score set)       5      0  11   below the feasibility floor, so no rank carries 0.90 there
                       tests/utils/test_common.py:61
-torchcp 1.2.1         C    calculate_conformal_value(score set)       0      0  11   below the feasibility floor, so no rank carries 0.90 there
+torchcp 1.2.1         -    calculate_conformal_value(score set)       0    --- ---   not a calibration size: calculate_conformal_value refuses 0: the helper warns and returns inf instead of resolving a level, so this fixture pins the guard and not a calibration size
                       tests/utils/test_common.py:75
 torchcp 1.2.1         C    calculate_conformal_value(score set)       1      0  11   below the feasibility floor, so no rank carries 0.90 there
                       tests/utils/test_common.py:79
@@ -146,10 +146,10 @@ SUMMARY
 repositories read: 10
 repositories shipping a test suite: 8
 repositories shipping NO test suite at all: 2 -- crepes 0.9.1, nonconformist 2.1.0
-repositories contributing a scorable calibration size: 5
-scored fixtures: 53
-distinct calibration sizes fixed: 8  [0, 1, 2, 3, 4, 5, 10, 30]
-pins under the 0.90 deterministic bound: 50
+repositories contributing a scorable calibration size: 4
+scored fixtures: 51
+distinct calibration sizes fixed: 7  [1, 2, 3, 4, 5, 10, 30]
+pins under the 0.90 deterministic bound: 48
 fixtures in range at less than maximal power: 3 of 3
 fixtures at the worst power available: 2
 fixtures at maximal power: 0
