@@ -492,7 +492,8 @@ def main():
     for r in infeas:
         say(f"       nominal {r['coverage']:.2f} H={r['H']:<3} n={r['n_aligned']:<4}"
             f" needs {r['floor']:<4} simultaneous(A) {r['sim_A']:.4f}"
-            f"  finite(A) {r['finite_A']:.2f}")
+            f"  finite(A) {r['finite_A']:.2f}"
+            f"  gap {r['coverage'] - r['sim_A']:+.4f}")
     say("")
     say("  2. ALIGNMENT (arm A vs arm C at step 1, feasible cells). sktime's scores")
     say("     are (h+1)-step, so they are inflated and the interval is too wide:")
@@ -506,7 +507,8 @@ def main():
     for r in feas:
         say(f"       nominal {r['coverage']:.2f} H={r['H']:<3} predicted"
             f" {r['pred']:.4f}   D {r['step1_D']:.4f}"
-            f"   gap {r['step1_D'] - r['pred']:+.4f}   C {r['step1_C']:.4f}")
+            f"   gap {r['step1_D'] - r['pred']:+.4f}   C {r['step1_C']:.4f}"
+            f"   C-D {r['step1_C'] - r['step1_D']:+.4f}")
     say("")
     if feas:
         say(f"  The h/(n+1) prediction of the fractional-rank result tracks arm D to"

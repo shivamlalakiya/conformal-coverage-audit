@@ -91,13 +91,13 @@ W10  HORIZON FEASIBILITY -- the floor scales with what you divide alpha by
      H/alpha - 1, so no index into the score set supports the divided
      level. Arithmetic, needs no exchangeability. A finite interval is
      returned regardless:
-       nominal 0.95 H=1   n=15   needs 19   simultaneous(A) 0.9667  finite(A) 1.00
-       nominal 0.90 H=6   n=26   needs 59   simultaneous(A) 0.8967  finite(A) 1.00
-       nominal 0.95 H=6   n=26   needs 119  simultaneous(A) 0.9067  finite(A) 1.00
-       nominal 0.90 H=12  n=38   needs 119  simultaneous(A) 0.8267  finite(A) 1.00
-       nominal 0.95 H=12  n=38   needs 239  simultaneous(A) 0.8400  finite(A) 1.00
-       nominal 0.90 H=24  n=68   needs 239  simultaneous(A) 0.8367  finite(A) 1.00
-       nominal 0.95 H=24  n=68   needs 479  simultaneous(A) 0.8367  finite(A) 1.00
+       nominal 0.95 H=1   n=15   needs 19   simultaneous(A) 0.9667  finite(A) 1.00  gap -0.0167
+       nominal 0.90 H=6   n=26   needs 59   simultaneous(A) 0.8967  finite(A) 1.00  gap +0.0033
+       nominal 0.95 H=6   n=26   needs 119  simultaneous(A) 0.9067  finite(A) 1.00  gap +0.0433
+       nominal 0.90 H=12  n=38   needs 119  simultaneous(A) 0.8267  finite(A) 1.00  gap +0.0733
+       nominal 0.95 H=12  n=38   needs 239  simultaneous(A) 0.8400  finite(A) 1.00  gap +0.1100
+       nominal 0.90 H=24  n=68   needs 239  simultaneous(A) 0.8367  finite(A) 1.00  gap +0.0633
+       nominal 0.95 H=24  n=68   needs 479  simultaneous(A) 0.8367  finite(A) 1.00  gap +0.1133
 
   2. ALIGNMENT (arm A vs arm C at step 1, feasible cells). sktime's scores
      are (h+1)-step, so they are inflated and the interval is too wide:
@@ -112,13 +112,13 @@ W10  HORIZON FEASIBILITY -- the floor scales with what you divide alpha by
   3. LEVEL-TO-RANK (arm D vs arm C at step 1, feasible cells). Same scores,
      same alignment; D resolves sktime's level through `linear`, C takes the
      required rank. D should sit at h/(n+1):
-       nominal 0.90 H=1   predicted 0.8500   D 0.8300   gap -0.0200   C 0.9200
-       nominal 0.90 H=1   predicted 0.8871   D 0.8867   gap -0.0004   C 0.8967
-       nominal 0.95 H=1   predicted 0.9355   D 0.9333   gap -0.0022   C 0.9667
-       nominal 0.90 H=6   predicted 0.9763   D 0.9667   gap -0.0096   C 0.9767
-       nominal 0.95 H=6   predicted 0.9845   D 0.9767   gap -0.0078   C 0.9867
-       nominal 0.90 H=12  predicted 0.9877   D 0.9833   gap -0.0044   C 0.9900
-       nominal 0.95 H=12  predicted 0.9919   D 0.9900   gap -0.0019   C 0.9967
+       nominal 0.90 H=1   predicted 0.8500   D 0.8300   gap -0.0200   C 0.9200   C-D +0.0900
+       nominal 0.90 H=1   predicted 0.8871   D 0.8867   gap -0.0004   C 0.8967   C-D +0.0100
+       nominal 0.95 H=1   predicted 0.9355   D 0.9333   gap -0.0022   C 0.9667   C-D +0.0333
+       nominal 0.90 H=6   predicted 0.9763   D 0.9667   gap -0.0096   C 0.9767   C-D +0.0100
+       nominal 0.95 H=6   predicted 0.9845   D 0.9767   gap -0.0078   C 0.9867   C-D +0.0100
+       nominal 0.90 H=12  predicted 0.9877   D 0.9833   gap -0.0044   C 0.9900   C-D +0.0067
+       nominal 0.95 H=12  predicted 0.9919   D 0.9900   gap -0.0019   C 0.9967   C-D +0.0067
 
   The h/(n+1) prediction of the fractional-rank result tracks arm D to within 0.0200 on the feasible cells,
   measured on scores that do exchange, at a level the library chose.
