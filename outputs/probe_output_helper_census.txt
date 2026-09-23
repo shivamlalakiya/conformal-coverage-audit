@@ -17,8 +17,8 @@ mapie 1.4.1           LACConformityScore.get_prediction_sets [cv/crossval] count
 mapie 1.4.1           BaseRegressionScore._beta_optimize                   b        -    yes  OK
 mapie 1.4.1           _MapieQuantileRegressor.predict                      a        -    yes  OK
 mapie 1.4.1           _check_alpha_and_n_samples                           a        -    -    OK
-crepes 0.9.1          ConformalClassifier.predict_set                      f/e      yes  yes  OK
-crepes 0.9.1          p_values_batch                                       f/e      yes  yes  OK
+crepes 0.9.1          ConformalClassifier.predict_set                      e/f      yes  yes  OK
+crepes 0.9.1          p_values_batch                                       e/f      yes  yes  OK
 crepes 0.9.1          ConformalRegressor.predict_int                       c        -    yes  OK
 crepes 0.9.1          ConformalRegressor.predict_int_online                c        yes  yes  OK
 crepes 0.9.1          ConformalPredictiveSystem.predict_int                c        -    yes  OK
