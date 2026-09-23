@@ -325,6 +325,7 @@ Over 1941 size-level cells, `inverted_cdf` fed the corrected level hit the requi
 21 of them, and each exception overshot by a single rank rather
 than falling short. The cost is width, never validity.
 MACHINE exec_cells=1941 exec_misses=21
+MACHINE exec_grid_lo=10 exec_grid_hi=399
 
            n     k*  returned   L(n+1) integral   float (1-a)(n+1)/n * n
 ----------------------------------------------------------------------------------------------------

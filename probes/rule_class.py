@@ -711,9 +711,16 @@ def main():
     say(f"{'':>7} {'':>6} | {'exact':>8}{'over':>8}{'under':>9} | "
         f"{'exact':>8}{'over':>7}{'under':>8} | {'exact':>13}")
     say("-" * 100)
+    # Named once so the grid this loop sweeps is a printed field rather than a
+    # literal a reader has to find inside the loop body: online Appendix E
+    # cites a count off this section (39 of 390 `higher` sizes at 0.90) beside
+    # a different sweep's count over a different grid (Table S13, n=9 to 400),
+    # and the two denominators cannot be reconciled in prose without both
+    # bounds on the page.
+    GRID = range(10, 400)
     exec_rows = []
     for L in (F(9, 10), F(19, 20), F(5, 7), F(2, 3), F(1, 2)):
-        sizes = [n for n in range(10, 400) if math.ceil((n + 1) * L) <= n]
+        sizes = [n for n in GRID if math.ceil((n + 1) * L) <= n]
         tal = {k: [0, 0, 0] for k in ("inv", "hi", "srt")}   # exact, over, under
         misses = []
         for n in sizes:
@@ -745,6 +752,7 @@ def main():
     # prose gets reworded; a parser anchored on a sentence breaks when it does.
     say(f"MACHINE exec_cells={sum(r['n'] for r in exec_rows)} "
         f"exec_misses={len(allmiss)}")
+    say(f"MACHINE exec_grid_lo={GRID.start} exec_grid_hi={GRID.stop - 1}")
     say("")
     if allmiss:
         say(f"{'n':>12} {'k*':>6} {'returned':>9} {'L(n+1) integral':>17} "
