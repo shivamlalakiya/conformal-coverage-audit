@@ -627,12 +627,15 @@ def main():
         say("=" * 104)
         say(label)
         say("=" * 104)
+        deltas = []
         for coverage in COVERAGE:
             say(f"  nominal {coverage:.2f}")
             for n_cal in n_cals:
                 rng = np.random.default_rng(SEED + n_cal)
                 recs = [fn(X, y, n_cal, coverage, rng) for _, _, X, y in data[kind]]
                 s = summarize(recs)
+                if s is not None:
+                    deltas.append(s["delta"])
                 for ln in format_cell(f"n_cal={n_cal:<4}", s):
                     say(ln)
                 at_max = [r for r in recs if r and "error" not in r and r.get("clipped")]
@@ -654,6 +657,16 @@ def main():
                         f" statistic for that level (CORRECT, not a clip),"
                         f" {len(clipped)} where the clip altered it")
             say("")
+        # BY DESIGN, per S6.3: whether this configuration's own arithmetic reaches
+        # the required rank/span at every feasible n, rather than at some of them
+        # by measurement -- the distinction that separates a mechanism proof
+        # (kthvalue, direct indexing, the +inf append) from a result that could
+        # have come out otherwise (crepes's float truncation, mapie's asymmetric
+        # rail). A cell is exact when its paired delta is precisely zero.
+        by_design = bool(deltas) and all(d == 0 for d in deltas)
+        say(f"  BY DESIGN (reaches the required rank/span at every feasible n in "
+            f"the shipped arithmetic): {'yes' if by_design else 'no'}"
+            f"  [{sum(1 for d in deltas if d == 0)} of {len(deltas)} cells exact]")
 
     say("")
     say("Reading this table")

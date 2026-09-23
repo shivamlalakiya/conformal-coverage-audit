@@ -139,6 +139,7 @@ mapie SplitConformalClassifier (LAC)
       status changed in 0 of 15 units: gains=0 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 1.85   B 1.85
 
+  BY DESIGN (reaches the required rank/span at every feasible n in the shipped arithmetic): yes  [8 of 8 cells exact]
 
 ========================================================================================================
 mapie SplitConformalRegressor sym=True
@@ -203,7 +204,7 @@ mapie SplitConformalRegressor sym=True
       arm B (required rank)  coverage 0.9543   median required rank 49 of 50
       paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
       predicted arm A        0.9608   (rank floor 0.9608)
-      predicted delta        +0.0000   (rank floor +0.0000)
+      predicted delta        -0.0000   (rank floor +0.0000)
       status changed in 0 of 14 units: gains=0 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 2905   B 2905
   n_cal=200    series=14   median n=200
@@ -215,6 +216,7 @@ mapie SplitConformalRegressor sym=True
       status changed in 0 of 14 units: gains=0 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 2875   B 2875
 
+  BY DESIGN (reaches the required rank/span at every feasible n in the shipped arithmetic): yes  [8 of 8 cells exact]
 
 ========================================================================================================
 mapie SplitConformalRegressor sym=False
@@ -224,8 +226,8 @@ mapie SplitConformalRegressor sym=False
       arm A (shipped)        coverage 0.9092   lands on median span 19 of 20
       arm B (required rank)  coverage 0.9092   median required span 19 of 20
       paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
-      predicted arm A        0.9048   (rank floor 0.8946)
-      predicted delta        +0.0000   (rank floor +0.0102)
+      predicted arm A        0.9048   (rank floor 0.8912)
+      predicted delta        +0.0000   (rank floor +0.0136)
       status changed in 0 of 14 units: gains=0 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 2406   B 2406
       a rail equals max|score| in 11/14 datasets, classified against that rail's own level 0.950:
@@ -234,9 +236,9 @@ mapie SplitConformalRegressor sym=False
       arm A (shipped)        coverage 0.9543   lands on median span 29 of 30
       arm B (required rank)  coverage 0.9259   median required span 28 of 30
       paired delta (B - A)   -0.0284  (s.e. 0.0061)  4.7 s.e.  <- >=2 s.e.
-      predicted arm A        0.9355   (rank floor 0.9263)
-      predicted delta        -0.0323   (rank floor -0.0230)
-      status changed in 13 of 14 units: gains=0 losses=13   [arms are different constructions: losses are expected]
+      predicted arm A        0.9355   (rank floor 0.9286)
+      predicted delta        -0.0323   (rank floor -0.0253)
+      status changed in 13 of 14 units: gains=0 losses=13   [arm A already reaches the required index, so arm B is the MINIMAL sufficient interval and the narrower one: losses are arm A's conservatism]
       widths:  A 3212   B 2752
       a rail equals max|score| in 10/14 datasets, classified against that rail's own level 0.950:
         10 where max IS the required order statistic for that level (CORRECT, not a clip), 0 where the clip altered it
@@ -252,8 +254,8 @@ mapie SplitConformalRegressor sym=False
       arm A (shipped)        coverage 0.9006   lands on median span 181 of 200
       arm B (required rank)  coverage 0.9006   median required span 181 of 200
       paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
-      predicted arm A        0.9005   (rank floor 0.8998)
-      predicted delta        +0.0000   (rank floor +0.0007)
+      predicted arm A        0.9005   (rank floor 0.9001)
+      predicted delta        +0.0000   (rank floor +0.0004)
       status changed in 0 of 14 units: gains=0 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 2428   B 2428
 
@@ -264,8 +266,8 @@ mapie SplitConformalRegressor sym=False
       arm A (shipped)        coverage 0.9644   lands on median span 49 of 50
       arm B (required rank)  coverage 0.9644   median required span 49 of 50
       paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
-      predicted arm A        0.9608   (rank floor 0.9566)
-      predicted delta        +0.0000   (rank floor +0.0042)
+      predicted arm A        0.9608   (rank floor 0.9594)
+      predicted delta        +0.0000   (rank floor +0.0014)
       status changed in 0 of 14 units: gains=0 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 3103   B 3103
       a rail equals max|score| in 8/14 datasets, classified against that rail's own level 0.975:
@@ -275,10 +277,11 @@ mapie SplitConformalRegressor sym=False
       arm B (required rank)  coverage 0.9498   median required span 191 of 200
       paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
       predicted arm A        0.9502   (rank floor 0.9499)
-      predicted delta        +0.0000   (rank floor +0.0004)
+      predicted delta        -0.0000   (rank floor +0.0004)
       status changed in 0 of 14 units: gains=0 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 2850   B 2850
 
+  BY DESIGN (reaches the required rank/span at every feasible n in the shipped arithmetic): no  [4 of 6 cells exact]
 
 ========================================================================================================
 crepes ConformalRegressor.predict_int
@@ -339,7 +342,7 @@ crepes ConformalRegressor.predict_int
       arm B (required rank)  coverage 0.9543   median required rank 49 of 50
       paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
       predicted arm A        0.9608   (rank floor 0.9608)
-      predicted delta        +0.0000   (rank floor +0.0000)
+      predicted delta        -0.0000   (rank floor +0.0000)
       status changed in 0 of 14 units: gains=0 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 2905   B 2905
   n_cal=200    series=14   median n=200
@@ -351,6 +354,7 @@ crepes ConformalRegressor.predict_int
       status changed in 0 of 14 units: gains=0 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 2875   B 2875
 
+  BY DESIGN (reaches the required rank/span at every feasible n in the shipped arithmetic): yes  [8 of 8 cells exact]
 
 ========================================================================================================
 puncc BaseCalibrator (CONTROL, exact)
@@ -411,7 +415,7 @@ puncc BaseCalibrator (CONTROL, exact)
       arm B (required rank)  coverage 0.9543   median required rank 49 of 50
       paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
       predicted arm A        0.9608   (rank floor 0.9608)
-      predicted delta        +0.0000   (rank floor +0.0000)
+      predicted delta        -0.0000   (rank floor +0.0000)
       status changed in 0 of 14 units: gains=0 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 2905   B 2905
   n_cal=200    series=14   median n=200
@@ -423,6 +427,7 @@ puncc BaseCalibrator (CONTROL, exact)
       status changed in 0 of 14 units: gains=0 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 2875   B 2875
 
+  BY DESIGN (reaches the required rank/span at every feasible n in the shipped arithmetic): yes  [8 of 8 cells exact]
 
 ========================================================================================================
 torchcp calculate_conformal_value (reference)
@@ -483,7 +488,7 @@ torchcp calculate_conformal_value (reference)
       arm B (required rank)  coverage 0.9543   median required rank 49 of 50
       paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
       predicted arm A        0.9608   (rank floor 0.9608)
-      predicted delta        +0.0000   (rank floor +0.0000)
+      predicted delta        -0.0000   (rank floor +0.0000)
       status changed in 0 of 14 units: gains=0 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 2905   B 2905
   n_cal=200    series=14   median n=200
@@ -495,6 +500,7 @@ torchcp calculate_conformal_value (reference)
       status changed in 0 of 14 units: gains=0 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 2875   B 2875
 
+  BY DESIGN (reaches the required rank/span at every feasible n in the shipped arithmetic): yes  [8 of 8 cells exact]
 
 ========================================================================================================
 nonconformist AbsErrorErrFunc.apply_inverse
@@ -559,7 +565,7 @@ nonconformist AbsErrorErrFunc.apply_inverse
       arm B (required rank)  coverage 0.9543   median required rank 49 of 50
       paired delta (B - A)   +0.0000  (s.e. 0.0000)  (exact 0)
       predicted arm A        0.9608   (rank floor 0.9608)
-      predicted delta        +0.0000   (rank floor +0.0000)
+      predicted delta        -0.0000   (rank floor +0.0000)
       status changed in 0 of 14 units: gains=0 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 2905   B 2905
   n_cal=200    series=14   median n=200
@@ -571,6 +577,7 @@ nonconformist AbsErrorErrFunc.apply_inverse
       status changed in 0 of 14 units: gains=0 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 2875   B 2875
 
+  BY DESIGN (reaches the required rank/span at every feasible n in the shipped arithmetic): yes  [8 of 8 cells exact]
 
 Reading this table
 ------------------
