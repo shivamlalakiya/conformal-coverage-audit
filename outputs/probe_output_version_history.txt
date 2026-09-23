@@ -23,14 +23,14 @@ crepes   (6 anchored site(s))
   releases examined: 14  (0.1.0 .. 0.9.1)
 
   ConformalClassifier.predict_set
-      crepes/base.py   branch (f/e)
+      crepes/base.py   branch (e/f)
       anchor: prediction_sets = (p_values >= 1-confidence).astype(int)
       present in 8 of 14 releases fetched; expression changed in 6
       unchanged across: 0.9.1 back to 0.6.0
       differs in: 0.5.1, 0.5.0, 0.4.0, 0.3.0, 0.2.0, 0.1.0
 
   p_values_batch
-      crepes/base.py   branch (f/e)
+      crepes/base.py   branch (e/f)
       anchor: (np.sum(alphas_cal >= alphas_test[i])+1)/(q+1)
       present in 3 of 14 releases fetched; expression changed in 11
       unchanged across: 0.9.1 back to 0.8.0
@@ -65,7 +65,20 @@ crepes   (6 anchored site(s))
 --------------------------------------------------------------------------------------------------------
 darts   (2 anchored site(s))
 --------------------------------------------------------------------------------------------------------
-  NOT ATTEMPTED: release list unavailable (TypeError)
+  releases examined: 14  (0.37.1 .. 0.47.0)
+
+  ConformalNaiveModel._calibrate_interval
+      darts/models/forecasting/conformal_models.py   branch (d)
+      anchor: q=self.interval_range_sym,
+      present in 14 of 14 releases fetched
+      unchanged across: 0.47.0 back to 0.37.1
+
+  ConformalQRModel._calibrate_interval
+      darts/models/forecasting/conformal_models.py   branch (d)
+      anchor: residuals_, q=self.interval_range_sym, method="higher", axis=2
+      present in 14 of 14 releases fetched
+      unchanged across: 0.47.0 back to 0.37.1
+
 --------------------------------------------------------------------------------------------------------
 mapie   (7 anchored site(s))
 --------------------------------------------------------------------------------------------------------
@@ -125,19 +138,19 @@ mapie   (7 anchored site(s))
 --------------------------------------------------------------------------------------------------------
 neuralforecast   (2 anchored site(s))
 --------------------------------------------------------------------------------------------------------
-  releases examined: 14  (3.0.0 .. 3.2.1)
+  releases examined: 14  (3.0.1 .. 3.2.2)
 
   add_conformal_distribution_intervals
       neuralforecast/utils.py   branch (d)
       anchor: scores_quantiles = np.quantile(
       present in 14 of 14 releases fetched
-      unchanged across: 3.2.1 back to 3.0.0
+      unchanged across: 3.2.2 back to 3.0.1
 
   add_conformal_error_intervals
       neuralforecast/utils.py   branch (d)
       anchor: scores_quantiles = np.quantile(
       present in 14 of 14 releases fetched
-      unchanged across: 3.2.1 back to 3.0.0
+      unchanged across: 3.2.2 back to 3.0.1
 
 --------------------------------------------------------------------------------------------------------
 nonconformist   (3 anchored site(s))
@@ -164,59 +177,140 @@ nonconformist   (3 anchored site(s))
       unchanged across: 2.1.0 back to 1.0.0
 
 --------------------------------------------------------------------------------------------------------
-puncc   (7 anchored site(s))
+puncc   (8 anchored site(s))
 --------------------------------------------------------------------------------------------------------
-  NOT ATTEMPTED: release list unavailable (TypeError)
+  releases examined: 10  (0.7 .. 0.9.3)
+
+  BaseCalibrator.compute_quantile
+      deel/puncc/api/calibration.py   branch (c-exact)
+      anchor: lemma_residuals = np.concatenate((residuals, infty_array), axis=0)
+      present in 2 of 10 releases fetched; expression changed in 8
+      unchanged across: 0.9.3 back to 0.9.2
+      differs in: 0.9.1, 0.8.0, 0.7.8, 0.7.7, 0.7.6, 0.7.5, 0.7.4, 0.7
+
+  ClasswiseCalibrator.compute_quantile
+      deel/puncc/api/calibration.py   branch (c-exact)
+      anchor: class_scores_with_inf, 1 - alpha, method="inverted_cdf"
+      present in 3 of 10 releases fetched; expression changed in 7
+      unchanged across: 0.9.3 back to 0.9.1
+      differs in: 0.8.0, 0.7.8, 0.7.7, 0.7.6, 0.7.5, 0.7.4, 0.7
+
+  quantile
+      deel/puncc/api/utils.py   branch (d)
+      anchor: return np.quantile(a, q, axis=axis, method="inverted_cdf")
+      present in 7 of 10 releases fetched; expression changed in 3
+      unchanged across: 0.9.3 back to 0.7.6
+      differs in: 0.7.5, 0.7.4, 0.7
+
+  BaseCalibrator.compute_quantile (Bonferroni)
+      deel/puncc/api/calibration.py   branch (?)
+      anchor: alpha = correction(alpha)
+      present in 7 of 10 releases fetched; expression changed in 3
+      unchanged across: 0.9.3 back to 0.7.6
+      differs in: 0.7.5, 0.7.4, 0.7
+
+  ScoreCalibrator.is_conformal
+      deel/puncc/api/calibration.py   branch (a)
+      anchor: self._nonconf_scores, q=(1 - alpha) * (n + 1) / n, w=weights
+      present in 10 of 10 releases fetched
+      unchanged across: 0.9.3 back to 0.7
+
+  alpha_calib_check
+      deel/puncc/api/utils.py   branch (a)
+      anchor: def alpha_calib_check(
+      present in 10 of 10 releases fetched
+      unchanged across: 0.9.3 back to 0.7
+
+  EnbPI.predict
+      deel/puncc/regression.py   branch (d)
+      anchor: res_quantile = np.quantile(self.residuals, (1 - alpha), method="linear")
+      present in 10 of 10 releases fetched
+      unchanged across: 0.9.3 back to 0.7
+
+  EnbPI.predict (online update)
+      deel/puncc/regression.py   branch (d)
+      anchor: res_quantile = np.quantile(updated_residuals, (1 - alpha))
+      present in 10 of 10 releases fetched
+      unchanged across: 0.9.3 back to 0.7
+
 --------------------------------------------------------------------------------------------------------
 river   (1 anchored site(s))
 --------------------------------------------------------------------------------------------------------
-  releases examined: 14  (0.15.0 .. 0.25.0)
+  releases examined: 14  (0.17.0 .. 0.26.1)
 
   RegressionJackknife.predict_one
       river/conf/jackknife.py   branch (g)
       anchor: alpha = (1 - confidence_level) / 2
       present in 14 of 14 releases fetched
-      unchanged across: 0.25.0 back to 0.15.0
+      unchanged across: 0.26.1 back to 0.17.0
 
 --------------------------------------------------------------------------------------------------------
 sktime   (5 anchored site(s))
 --------------------------------------------------------------------------------------------------------
-  releases examined: 14  (0.37.1 .. 1.1.0)
+  releases examined: 14  (0.38.0 .. 1.2.0)
 
   ConformalIntervals._predict_interval [method='empirical']
       sktime/forecasting/conformal.py   branch (d)
       anchor: quantiles = 0.5 + np.tile([-0.5, 0.5], len(coverage)) * coverage2
       present in 14 of 14 releases fetched
-      unchanged across: 1.1.0 back to 0.37.1
+      unchanged across: 1.2.0 back to 0.38.0
 
   ConformalIntervals._predict_interval [method='empirical_residual']
       sktime/forecasting/conformal.py   branch (d)
       anchor: quantiles = 0.5 - 0.5 * coverage2
       present in 14 of 14 releases fetched
-      unchanged across: 1.1.0 back to 0.37.1
+      unchanged across: 1.2.0 back to 0.38.0
 
   ConformalIntervals._predict_interval [method='conformal_bonferroni']
       sktime/forecasting/conformal.py   branch (d)
       anchor: quantiles = 1 - alphas / len(fh)
       present in 14 of 14 releases fetched
-      unchanged across: 1.1.0 back to 0.37.1
+      unchanged across: 1.2.0 back to 0.38.0
 
   ConformalIntervals._predict_interval [method='conformal']
       sktime/forecasting/conformal.py   branch (d)
       anchor: quantiles = coverage2
       present in 14 of 14 releases fetched
-      unchanged across: 1.1.0 back to 0.37.1
+      unchanged across: 1.2.0 back to 0.38.0
 
   EnbPI.conformal_interval
       sktime/libs/_aws_fortuna_enbpi/enbpi.py   branch (d)
       anchor: residuals_quantile = np.quantile(train_residuals, q=1 - error, axis=0)
       present in 14 of 14 releases fetched
-      unchanged across: 1.1.0 back to 0.37.1
+      unchanged across: 1.2.0 back to 0.38.0
 
 --------------------------------------------------------------------------------------------------------
 statsforecast   (4 anchored site(s))
 --------------------------------------------------------------------------------------------------------
-  NOT ATTEMPTED: release list unavailable (TypeError)
+  releases examined: 14  (1.7.2 .. 2.1.1)
+
+  _add_conformal_distribution_intervals
+      statsforecast/models.py   branch (d)
+      anchor: cuts = [alpha / 200 for alpha in reversed(alphas)]
+      present in 14 of 14 releases fetched
+      unchanged across: 2.1.1 back to 1.7.2
+
+  _add_conformal_error_intervals
+      statsforecast/models.py   branch (d)
+      anchor: quantiles = {lv: np.quantile(cs, lv / 100, axis=0) for lv in level}
+      present in 2 of 14 releases fetched; expression changed in 12
+      unchanged across: 2.1.1 back to 2.1.0
+      differs in: 2.0.3, 2.0.2, 2.0.1, 2.0.0, 1.7.8, 1.7.7.1, 1.7.7, 1.7.6 ...
+
+  ConformalSeasonalPool._oriented_index
+      statsforecast/models.py   branch (b)
+      anchor: return min(1.0, float(np.ceil((n + 1.0) * q)) / n)
+      present in 2 of 14 releases fetched; expression changed in 12
+      unchanged across: 2.1.1 back to 2.1.0
+      differs in: 2.0.3, 2.0.2, 2.0.1, 2.0.0, 1.7.8, 1.7.7.1, 1.7.7, 1.7.6 ...
+
+  ConformalSeasonalPool._intervals_from_samples
+      statsforecast/models.py   branch (b)
+      anchor: quantiles = np.quantile(samples, oriented, axis=0)
+      present in 2 of 14 releases fetched; expression changed in 12
+      unchanged across: 2.1.1 back to 2.1.0
+      differs in: 2.0.3, 2.0.2, 2.0.1, 2.0.0, 1.7.8, 1.7.7.1, 1.7.7, 1.7.6 ...
+
 --------------------------------------------------------------------------------------------------------
 torchcp   (3 anchored site(s))
 --------------------------------------------------------------------------------------------------------
@@ -248,12 +342,14 @@ torchcp   (3 anchored site(s))
 SUMMARY
 package         site                                            br  present  fetched  oldest with it
 --------------------------------------------------------------------------------------------------------
-crepes          ConformalClassifier.predict_set                f/e        8       14           0.6.0
-crepes          p_values_batch                                 f/e        3       14           0.8.0
+crepes          ConformalClassifier.predict_set                e/f        8       14           0.6.0
+crepes          p_values_batch                                 e/f        3       14           0.8.0
 crepes          ConformalRegressor.predict_int                   c       14       14           0.1.0
 crepes          ConformalRegressor.predict_int_online            c        3       14           0.8.0
 crepes          ConformalPredictiveSystem.predict_int            c       14       14           0.1.0
 crepes          ConformalPredictiveSystem.predict_int_onli       c        3       14           0.8.0
+darts           ConformalNaiveModel._calibrate_interval          d       14       14          0.37.1
+darts           ConformalQRModel._calibrate_interval             d       14       14          0.37.1
 mapie           BaseConformityScore.get_quantile                 b        5       14           1.2.0
 mapie           _compute_quantiles                               a       14       14           0.8.6
 mapie           LACConformityScore.get_conformity_score_qu       a        5       14           1.2.0
@@ -261,22 +357,45 @@ mapie           LACConformityScore.get_prediction_sets [cv   count        6     
 mapie           BaseRegressionScore._beta_optimize               b        2       14           1.4.1
 mapie           _MapieQuantileRegressor.predict                  a       14       14           0.8.6
 mapie           _check_alpha_and_n_samples                       a       10       14           1.0.0
-neuralforecast  add_conformal_distribution_intervals             d       14       14           3.0.0
-neuralforecast  add_conformal_error_intervals                    d       14       14           3.0.0
+neuralforecast  add_conformal_distribution_intervals             d       14       14           3.0.1
+neuralforecast  add_conformal_error_intervals                    d       14       14           3.0.1
 nonconformist   IcpClassifier.predict                          e/f        5       14           1.2.3
 nonconformist   AbsErrorErrFunc.apply_inverse                    b       14       14           1.0.0
 nonconformist   SignErrorErrFunc.apply_inverse                   b       14       14           1.0.0
-river           RegressionJackknife.predict_one                  g       14       14          0.15.0
-sktime          ConformalIntervals._predict_interval [meth       d       14       14          0.37.1
-sktime          ConformalIntervals._predict_interval [meth       d       14       14          0.37.1
-sktime          ConformalIntervals._predict_interval [meth       d       14       14          0.37.1
-sktime          ConformalIntervals._predict_interval [meth       d       14       14          0.37.1
-sktime          EnbPI.conformal_interval                         d       14       14          0.37.1
+puncc           BaseCalibrator.compute_quantile              c-exact        2       10           0.9.2
+puncc           ClasswiseCalibrator.compute_quantile         c-exact        3       10           0.9.1
+puncc           quantile                                         d        7       10           0.7.6
+puncc           BaseCalibrator.compute_quantile (Bonferron       ?        7       10           0.7.6
+puncc           ScoreCalibrator.is_conformal                     a       10       10             0.7
+puncc           alpha_calib_check                                a       10       10             0.7
+puncc           EnbPI.predict                                    d       10       10             0.7
+puncc           EnbPI.predict (online update)                    d       10       10             0.7
+river           RegressionJackknife.predict_one                  g       14       14          0.17.0
+sktime          ConformalIntervals._predict_interval [meth       d       14       14          0.38.0
+sktime          ConformalIntervals._predict_interval [meth       d       14       14          0.38.0
+sktime          ConformalIntervals._predict_interval [meth       d       14       14          0.38.0
+sktime          ConformalIntervals._predict_interval [meth       d       14       14          0.38.0
+sktime          EnbPI.conformal_interval                         d       14       14          0.38.0
+statsforecast   _add_conformal_distribution_intervals            d       14       14           1.7.2
+statsforecast   _add_conformal_error_intervals                   d        2       14           2.1.0
+statsforecast   ConformalSeasonalPool._oriented_index            b        2       14           2.1.0
+statsforecast   ConformalSeasonalPool._intervals_from_samp       b        2       14           2.1.0
 torchcp         calculate_conformal_value                        c        4       11           1.0.3
 torchcp         compute_p_values                               e/f        4       11           1.0.3
 torchcp         ClusterPredictor.__embed_all_classes             d        5       11           1.0.2
 
-14 of 27 anchored expressions are present in
+MACHINE vh_total=41 vh_offered=36 vh_guard=5
+36 of these 41 sites are the census's own
+OUTPUT-determining set; the other 5 are sites the manifest
+tracks without their determining the printed output -- a guard that
+raises before resolving a level, a helper whose returned value is
+not consulted, or a p-value site with no route to a predictor's
+output -- dated here because the site is worth knowing about even
+though the census does not count it. The two counts are two
+populations, not two measurements of one: this section's own totals
+below are over the full 41, not the narrower 36.
+
+21 of 41 anchored expressions are present in
 EVERY release fetched, so those are not transients: whatever the
 conformance suite measures at the pin, the expression producing it has
 been in place across the whole window examined here.

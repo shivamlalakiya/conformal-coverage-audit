@@ -76,8 +76,16 @@ def pypi_releases(pkg):
             out.append((ver, pick[0], pick[1]))
 
     def key(v):
-        return [int(x) if x.isdigit() else 0
-                for x in re.split(r"[._-]", v)[:4]] + [v]
+        # Padded to a fixed length, not just capped at one: a release string
+        # with fewer than four dot-separated parts ("1.0.0" against
+        # "2021.10.15.1") otherwise puts the raw string tail at a different
+        # list position than a longer version's numeric part, and sorting two
+        # releases whose numeric prefixes are equal then compares a string
+        # against an int and raises. Every key is exactly [n, n, n, n, v].
+        parts = [int(x) if x.isdigit() else 0
+                for x in re.split(r"[._-]", v)[:4]]
+        parts += [0] * (4 - len(parts))
+        return parts + [v]
     return sorted(out, key=lambda r: key(r[0]), reverse=True)
 
 
@@ -260,7 +268,7 @@ def main():
             summary.append({"pkg": pkg, "symbol": s["symbol"],
                             "branch": s["branch"], "present": len(present),
                             "fetched": len(blobs), "changed": len(absent),
-                            "nofile": len(nofile),
+                            "nofile": len(nofile), "output": s["output"],
                             "oldest": ([v for v, _, _ in rels if v in present] or
                                        [None])[-1]})
         say("")
@@ -279,6 +287,20 @@ def main():
             f"{r['present']:>8} {r['fetched']:>8} {str(r['oldest']):>15}")
     say("")
     if summary:
+        offered = sum(1 for r in summary if r["output"])
+        guard = len(summary) - offered
+        say(f"MACHINE vh_total={len(summary)} vh_offered={offered} "
+            f"vh_guard={guard}")
+        say(f"{offered} of these {len(summary)} sites are the census's own")
+        say(f"OUTPUT-determining set; the other {guard} are sites the manifest")
+        say(f"tracks without their determining the printed output -- a guard that")
+        say(f"raises before resolving a level, a helper whose returned value is")
+        say(f"not consulted, or a p-value site with no route to a predictor's")
+        say(f"output -- dated here because the site is worth knowing about even")
+        say(f"though the census does not count it. The two counts are two")
+        say(f"populations, not two measurements of one: this section's own totals")
+        say(f"below are over the full {len(summary)}, not the narrower {offered}.")
+        say("")
         stable = [r for r in summary
                   if r["fetched"] and r["present"] == r["fetched"]]
         say(f"{len(stable)} of {len(summary)} anchored expressions are present in")
