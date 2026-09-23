@@ -191,11 +191,17 @@ def excel_fns():
     automation, or is not licensed, this returns nothing and the caller reports it
     as NOT EXECUTED -- which is the honest state, and better than quoting the
     documented convention as if it had been measured.
+
+    Returns (functions, status note, version or None). DuckDB's own version()
+    call gives the database pair a version alongside its function count; this
+    reads Excel's the same way, once reachability is already proved, rather than
+    leaving it the one executed engine here with no build number beside its
+    count.
     """
     if not os.path.exists("/Applications/Microsoft Excel.app"):
-        return {}, "not installed"
+        return {}, "not installed", None
     if not shutil.which("osascript"):
-        return {}, "no osascript"
+        return {}, "no osascript", None
 
     # `evaluate name` on the application, driven from a SCRIPT FILE. Passing the
     # formula inline with `osascript -e` fails: the formula contains braces, commas
@@ -241,8 +247,20 @@ def excel_fns():
     try:
         fns["excel PERCENTILE.INC"](10, 0.5)
     except Exception as exc:
-        return {}, f"unreachable: {exc}"
-    return fns, "driven via AppleScript"
+        return {}, f"unreachable: {exc}", None
+
+    # The version, not the documented one: `evaluate name` above already proved
+    # this Excel reachable, so the same `osascript` interface can be asked what it
+    # is running, rather than the release notes for whatever version was current
+    # when this file was last touched.
+    try:
+        v = subprocess.run(["osascript", "-e",
+                            'tell application "Microsoft Excel" to get version'],
+                           capture_output=True, text=True, timeout=30)
+        xlver = v.stdout.strip() if v.returncode == 0 else None
+    except Exception:
+        xlver = None
+    return fns, "driven via AppleScript", xlver
 
 
 def self_check():
@@ -307,10 +325,13 @@ def main():
     else:
         say("duckdb: NOT INSTALLED -- reported, not inferred")
 
-    xl, xlnote = excel_fns()
+    xl, xlnote, xlver = excel_fns()
     if xl:
         engines.update(xl)
-        say(f"excel: {len(xl)} functions, {xlnote}")
+        if xlver:
+            say(f"excel v{xlver}: {len(xl)} functions, {xlnote}")
+        else:
+            say(f"excel: {len(xl)} functions, {xlnote}")
     else:
         say(f"excel: NOT EXECUTED ({xlnote}). Its conventions are documented -- "
             f"PERCENTILE.INC as H&F 7 and PERCENTILE.EXC as H&F 6 -- and this probe")

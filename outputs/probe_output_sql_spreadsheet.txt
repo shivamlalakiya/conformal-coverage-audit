@@ -13,7 +13,7 @@ clips the index into [1, n] and an endpoint fit returns linear's
 coefficients whatever the convention.
 
 duckdb v1.5.5: 5 functions, in process
-excel: 3 functions, driven via AppleScript
+excel v16.113.1: 3 functions, driven via AppleScript
 
 (1) which convention each function implements, identified at n=50
 function                                   convention                               A       B
@@ -300,5 +300,3 @@ SQLite has no percentile function at all, so the most widely deployed
 engine in the world offers no convention to get wrong and every caller
 hand-rolls one. That is a different failure mode from a wrong default and
 it is not covered by anything else in this deposit.
-
-written -> /Users/lalakiya/Desktop/Opensource/Research/conformal-coverage-audit/outputs/probe_output_sql_spreadsheet.txt
