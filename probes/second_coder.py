@@ -373,6 +373,18 @@ def main():
     say(f"  source lines of context each   {CONTEXT}")
     say(f"  items whose source is absent   {missing}")
     say(f"  labels offered to the coder    {len(BRANCHES)}")
+    # The off-list keys are the ceiling this instrument ships with, and the
+    # ceiling is a property of the drawn sample, not of who scores it -- so it
+    # is disclosed here, at build time, rather than left for a coder's returned
+    # sheet to discover one item at a time.
+    unscoreable = sorted(k for k, b in enumerate(labels, 1) if b in UNSCOREABLE)
+    membership = sorted(k for k, b in enumerate(labels, 1) if b in SCORES_AS)
+    say(f"  drawn labels unscoreable        {len(unscoreable)}"
+        + (f"  (item {', '.join(f'{k:02d}' for k in unscoreable)})"
+           if unscoreable else ""))
+    say(f"  drawn labels off-list, by membership  {len(membership)}"
+        + (f"  (item {', '.join(f'{k:02d}' for k in membership)})"
+           if membership else ""))
     say(f"  sheets returned                0")
     say("")
     say("=" * 104)
