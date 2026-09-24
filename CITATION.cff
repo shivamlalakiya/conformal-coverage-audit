@@ -71,7 +71,7 @@ repository-code: "https://github.com/shivamlalakiya/conformal-coverage-audit"
 # reviewer to the snapshot whose DISCLOSURE.md carries one row and an open TODO list,
 # and the write-up's disclosure claim was judged against that. Bump it in the commit
 # that gets tagged, not after -- a release naming the previous version is the same bug.
-version: v1.5.7
+version: v1.5.8
 # Reconciled again at v1.5.6: record 22697612 carries publication_date 2026-09-10, the
 # tag date, so this line needed no correction. It is written as a tag date and labelled
 # as one, because the version field has to be right in the commit that gets tagged and
@@ -87,7 +87,7 @@ version: v1.5.7
 # hand; record 22926031 was verified by MD5 against that local archive before this DOI
 # was written anywhere. date-released matches Zenodo's publication_date with no
 # correction needed this time.
-date-released: "2026-09-23"
+date-released: "2026-09-24"
 abstract: >-
   Measurement harnesses used to audit how Python conformal-prediction
   implementations resolve the conformal quantile at finite sample sizes. Each
