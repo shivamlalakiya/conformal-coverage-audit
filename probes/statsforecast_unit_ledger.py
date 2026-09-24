@@ -214,7 +214,13 @@ def main():
     say("(1) THE EXPRESSION, read from the installed file")
     say("-" * 100)
     say(f"statsforecast {version}")
-    say(f"file: {path}")
+    # Relative to site-packages, not absolute. The absolute form names this
+    # machine's home directory in a committed output that is public under a real
+    # name, and it makes the file differ on every re-run elsewhere for a reason
+    # that has nothing to do with what was measured. `statsforecast/models.py` is
+    # also how every other probe here names a third-party file.
+    rel = path.split("site-packages/", 1)[-1]
+    say(f"file: {rel}")
     say(f"stack line: {scores_ln}   quantile line: {quant_ln}")
     for i, ln in body:
         say(f"  {i:5d}  {ln}")

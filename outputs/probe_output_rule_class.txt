@@ -610,176 +610,213 @@ A ratio of two integers almost never has an exact double, and the last
 column counts the sizes where it does not. That column is where every
 departure below sits, apart from higher's, which is structural.
 
-definition                   level      form   exact    over   short
+definition                   level      form   exact    over   short  x-exact  x-over  x-short  moved
 ----------------------------------------------------------------------------------------------------
-inverted_cdf                  9/10  unceiled     392       0       0
-inverted_cdf                  9/10    ceiled     392       0       0
-inverted_cdf                 19/20  unceiled     382       0       0
-inverted_cdf                 19/20    ceiled     382       0       0
-inverted_cdf                   5/7  unceiled     397       1       0
-inverted_cdf                   5/7    ceiled     389       9       0
-inverted_cdf                   2/3  unceiled     394       5       0
-inverted_cdf                   2/3    ceiled     383      16       0
-inverted_cdf                   1/2  unceiled     384      15       0
-inverted_cdf                   1/2    ceiled     373      26       0
-inverted_cdf                   5/8  unceiled     393       6       0
-inverted_cdf                   5/8    ceiled     378      21       0
+inverted_cdf                  9/10  unceiled     392       0       0      392       0        0      0
+inverted_cdf                  9/10    ceiled     392       0       0      392       0        0      0
+inverted_cdf                 19/20  unceiled     382       0       0      382       0        0      0
+inverted_cdf                 19/20    ceiled     382       0       0      382       0        0      0
+inverted_cdf                   5/7  unceiled     397       1       0      398       0        0      1
+inverted_cdf                   5/7    ceiled     389       9       0      398       0        0      9
+inverted_cdf                   2/3  unceiled     394       5       0      399       0        0      5
+inverted_cdf                   2/3    ceiled     383      16       0      399       0        0     16
+inverted_cdf                   1/2  unceiled     384      15       0      399       0        0     15
+inverted_cdf                   1/2    ceiled     373      26       0      399       0        0     26
+inverted_cdf                   5/8  unceiled     393       6       0      399       0        0      6
+inverted_cdf                   5/8    ceiled     378      21       0      399       0        0     21
 
-weibull                       9/10  unceiled     392       0       0
-weibull                       9/10    ceiled     392       0       0
-weibull                      19/20  unceiled     382       0       0
-weibull                      19/20    ceiled     382       0       0
-weibull                        5/7  unceiled     342       0      56
-weibull                        5/7    ceiled     398       0       0
-weibull                        2/3  unceiled     399       0       0
-weibull                        2/3    ceiled     399       0       0
-weibull                        1/2  unceiled     399       0       0
-weibull                        1/2    ceiled     399       0       0
-weibull                        5/8  unceiled     300       0      99
-weibull                        5/8    ceiled     399       0       0
+weibull                       9/10  unceiled     392       0       0      392       0        0      0
+weibull                       9/10    ceiled     392       0       0      392       0        0      0
+weibull                      19/20  unceiled     382       0       0      382       0        0      0
+weibull                      19/20    ceiled     382       0       0      382       0        0      0
+weibull                        5/7  unceiled     342       0      56      342       0       56      0
+weibull                        5/7    ceiled     398       0       0      398       0        0      0
+weibull                        2/3  unceiled     399       0       0      399       0        0      0
+weibull                        2/3    ceiled     399       0       0      399       0        0      0
+weibull                        1/2  unceiled     399       0       0      399       0        0      0
+weibull                        1/2    ceiled     399       0       0      399       0        0      0
+weibull                        5/8  unceiled     300       0      99      300       0       99      0
+weibull                        5/8    ceiled     399       0       0      399       0        0      0
 
-linear                        9/10  unceiled      40       0     352
-linear                        9/10    ceiled     392       0       0
-linear                       19/20  unceiled      20       0     362
-linear                       19/20    ceiled     382       0       0
-linear                         5/7  unceiled     113       0     285
-linear                         5/7    ceiled     398       0       0
-linear                         2/3  unceiled     133       0     266
-linear                         2/3    ceiled     399       0       0
-linear                         1/2  unceiled     199       0     200
-linear                         1/2    ceiled     399       0       0
-linear                         5/8  unceiled     149       0     250
-linear                         5/8    ceiled     399       0       0
+linear                        9/10  unceiled      40       0     352       40       0      352      0
+linear                        9/10    ceiled     392       0       0      392       0        0      0
+linear                       19/20  unceiled      20       0     362       20       0      362      0
+linear                       19/20    ceiled     382       0       0      382       0        0      0
+linear                         5/7  unceiled     113       0     285      113       0      285      0
+linear                         5/7    ceiled     398       0       0      398       0        0      0
+linear                         2/3  unceiled     133       0     266      133       0      266      0
+linear                         2/3    ceiled     399       0       0      399       0        0      0
+linear                         1/2  unceiled     199       0     200      199       0      200      0
+linear                         1/2    ceiled     399       0       0      399       0        0      0
+linear                         5/8  unceiled     149       0     250      149       0      250      0
+linear                         5/8    ceiled     399       0       0      399       0        0      0
 
-hazen                         9/10  unceiled     236       0     156
-hazen                         9/10    ceiled     392       0       0
-hazen                        19/20  unceiled     211       0     171
-hazen                        19/20    ceiled     382       0       0
-hazen                          5/7  unceiled     228       0     170
-hazen                          5/7    ceiled     398       0       0
-hazen                          2/3  unceiled     266       0     133
-hazen                          2/3    ceiled     399       0       0
-hazen                          1/2  unceiled     378       0      21
-hazen                          1/2    ceiled     399       0       0
-hazen                          5/8  unceiled     244       0     155
-hazen                          5/8    ceiled     399       0       0
+hazen                         9/10  unceiled     236       0     156      236       0      156      0
+hazen                         9/10    ceiled     392       0       0      392       0        0      0
+hazen                        19/20  unceiled     211       0     171      211       0      171      0
+hazen                        19/20    ceiled     382       0       0      382       0        0      0
+hazen                          5/7  unceiled     228       0     170      228       0      170      0
+hazen                          5/7    ceiled     398       0       0      398       0        0      0
+hazen                          2/3  unceiled     266       0     133      266       0      133      0
+hazen                          2/3    ceiled     399       0       0      399       0        0      0
+hazen                          1/2  unceiled     378       0      21      399       0        0     21
+hazen                          1/2    ceiled     399       0       0      399       0        0      0
+hazen                          5/8  unceiled     244       0     155      250       0      149      6
+hazen                          5/8    ceiled     399       0       0      399       0        0      0
 
-median_unbiased               9/10  unceiled     275       0     117
-median_unbiased               9/10    ceiled     392       0       0
-median_unbiased              19/20  unceiled     268       0     114
-median_unbiased              19/20    ceiled     382       0       0
-median_unbiased                5/7  unceiled     285       0     113
-median_unbiased                5/7    ceiled     398       0       0
-median_unbiased                2/3  unceiled     266       0     133
-median_unbiased                2/3    ceiled     399       0       0
-median_unbiased                1/2  unceiled     399       0       0
-median_unbiased                1/2    ceiled     399       0       0
-median_unbiased                5/8  unceiled     250       0     149
-median_unbiased                5/8    ceiled     399       0       0
+median_unbiased               9/10  unceiled     275       0     117      275       0      117      0
+median_unbiased               9/10    ceiled     392       0       0      392       0        0      0
+median_unbiased              19/20  unceiled     268       0     114      268       0      114      0
+median_unbiased              19/20    ceiled     382       0       0      382       0        0      0
+median_unbiased                5/7  unceiled     285       0     113      285       0      113      0
+median_unbiased                5/7    ceiled     398       0       0      398       0        0      0
+median_unbiased                2/3  unceiled     266       0     133      266       0      133      0
+median_unbiased                2/3    ceiled     399       0       0      399       0        0      0
+median_unbiased                1/2  unceiled     399       0       0      399       0        0      0
+median_unbiased                1/2    ceiled     399       0       0      399       0        0      0
+median_unbiased                5/8  unceiled     250       0     149      250       0      149      0
+median_unbiased                5/8    ceiled     399       0       0      399       0        0      0
 
-normal_unbiased               9/10  unceiled     275       0     117
-normal_unbiased               9/10    ceiled     392       0       0
-normal_unbiased              19/20  unceiled     249       0     133
-normal_unbiased              19/20    ceiled     382       0       0
-normal_unbiased                5/7  unceiled     229       0     169
-normal_unbiased                5/7    ceiled     398       0       0
-normal_unbiased                2/3  unceiled     266       0     133
-normal_unbiased                2/3    ceiled     399       0       0
-normal_unbiased                1/2  unceiled     399       0       0
-normal_unbiased                1/2    ceiled     399       0       0
-normal_unbiased                5/8  unceiled     250       0     149
-normal_unbiased                5/8    ceiled     399       0       0
+normal_unbiased               9/10  unceiled     275       0     117      275       0      117      0
+normal_unbiased               9/10    ceiled     392       0       0      392       0        0      0
+normal_unbiased              19/20  unceiled     249       0     133      249       0      133      0
+normal_unbiased              19/20    ceiled     382       0       0      382       0        0      0
+normal_unbiased                5/7  unceiled     229       0     169      229       0      169      0
+normal_unbiased                5/7    ceiled     398       0       0      398       0        0      0
+normal_unbiased                2/3  unceiled     266       0     133      266       0      133      0
+normal_unbiased                2/3    ceiled     399       0       0      399       0        0      0
+normal_unbiased                1/2  unceiled     399       0       0      399       0        0      0
+normal_unbiased                1/2    ceiled     399       0       0      399       0        0      0
+normal_unbiased                5/8  unceiled     250       0     149      250       0      149      0
+normal_unbiased                5/8    ceiled     399       0       0      399       0        0      0
 
-higher                        9/10  unceiled     353      39       0
-higher                        9/10    ceiled      10     382       0
-higher                       19/20  unceiled     363      19       0
-higher                       19/20    ceiled      20     362       0
-higher                         5/7  unceiled     285     113       0
-higher                         5/7    ceiled       3     395       0
-higher                         2/3  unceiled     267     132       0
-higher                         2/3    ceiled       3     396       0
-higher                         1/2  unceiled     200     199       0
-higher                         1/2    ceiled       1     398       0
-higher                         5/8  unceiled     251     148       0
-higher                         5/8    ceiled       3     396       0
+higher                        9/10  unceiled     353      39       0      353      39        0      0
+higher                        9/10    ceiled      10     382       0       10     382        0      0
+higher                       19/20  unceiled     363      19       0      363      19        0      0
+higher                       19/20    ceiled      20     362       0       20     362        0      0
+higher                         5/7  unceiled     285     113       0      285     113        0      0
+higher                         5/7    ceiled       3     395       0        3     395        0      0
+higher                         2/3  unceiled     267     132       0      267     132        0      0
+higher                         2/3    ceiled       3     396       0        3     396        0      0
+higher                         1/2  unceiled     200     199       0      200     199        0      0
+higher                         1/2    ceiled       1     398       0        1     398        0      0
+higher                         5/8  unceiled     251     148       0      251     148        0      0
+higher                         5/8    ceiled       3     396       0        3     396        0      0
 
-nearest                       9/10  unceiled     236       0     156
-nearest                       9/10    ceiled     392       0       0
-nearest                      19/20  unceiled     211       0     171
-nearest                      19/20    ceiled     382       0       0
-nearest                        5/7  unceiled     341       0      57
-nearest                        5/7    ceiled     398       0       0
-nearest                        2/3  unceiled     398       0       1
-nearest                        2/3    ceiled     399       0       0
-nearest                        1/2  unceiled     399       0       0
-nearest                        1/2    ceiled     399       0       0
-nearest                        5/8  unceiled     349       0      50
-nearest                        5/8    ceiled     399       0       0
+nearest                       9/10  unceiled     236       0     156      236       0      156      0
+nearest                       9/10    ceiled     392       0       0      392       0        0      0
+nearest                      19/20  unceiled     211       0     171      211       0      171      0
+nearest                      19/20    ceiled     382       0       0      382       0        0      0
+nearest                        5/7  unceiled     341       0      57      341       0       57      0
+nearest                        5/7    ceiled     398       0       0      398       0        0      0
+nearest                        2/3  unceiled     398       0       1      399       0        0      1
+nearest                        2/3    ceiled     399       0       0      399       0        0      0
+nearest                        1/2  unceiled     399       0       0      399       0        0      0
+nearest                        1/2    ceiled     399       0       0      399       0        0      0
+nearest                        5/8  unceiled     349       0      50      349       0       50      0
+nearest                        5/8    ceiled     399       0       0      399       0        0      0
 
-averaged_inverted_cdf         9/10  unceiled     392       0       0
-averaged_inverted_cdf         9/10    ceiled     392       0       0
-averaged_inverted_cdf        19/20  unceiled     382       0       0
-averaged_inverted_cdf        19/20    ceiled     382       0       0
-averaged_inverted_cdf          5/7  unceiled     397       1       0
-averaged_inverted_cdf          5/7    ceiled     389       9       0
-averaged_inverted_cdf          2/3  unceiled     394       5       0
-averaged_inverted_cdf          2/3    ceiled     383      16       0
-averaged_inverted_cdf          1/2  unceiled     384      15       0
-averaged_inverted_cdf          1/2    ceiled     373      26       0
-averaged_inverted_cdf          5/8  unceiled     393       6       0
-averaged_inverted_cdf          5/8    ceiled     378      21       0
+averaged_inverted_cdf         9/10  unceiled     392       0       0      392       0        0      0
+averaged_inverted_cdf         9/10    ceiled     392       0       0      392       0        0      0
+averaged_inverted_cdf        19/20  unceiled     382       0       0      382       0        0      0
+averaged_inverted_cdf        19/20    ceiled     382       0       0      382       0        0      0
+averaged_inverted_cdf          5/7  unceiled     397       1       0      398       0        0      1
+averaged_inverted_cdf          5/7    ceiled     389       9       0      398       0        0      9
+averaged_inverted_cdf          2/3  unceiled     394       5       0      399       0        0      5
+averaged_inverted_cdf          2/3    ceiled     383      16       0      399       0        0     16
+averaged_inverted_cdf          1/2  unceiled     384      15       0      399       0        0     15
+averaged_inverted_cdf          1/2    ceiled     373      26       0      399       0        0     26
+averaged_inverted_cdf          5/8  unceiled     393       6       0      399       0        0      6
+averaged_inverted_cdf          5/8    ceiled     378      21       0      399       0        0     21
 
-interpolated_inverted_cdf     9/10  unceiled      39       0     353
-interpolated_inverted_cdf     9/10    ceiled     389       0       3
-interpolated_inverted_cdf    19/20  unceiled      20       0     362
-interpolated_inverted_cdf    19/20    ceiled     381       0       1
-interpolated_inverted_cdf      5/7  unceiled      55       0     343
-interpolated_inverted_cdf      5/7    ceiled     389       0       9
-interpolated_inverted_cdf      2/3  unceiled     122       0     277
-interpolated_inverted_cdf      2/3    ceiled     368       0      31
-interpolated_inverted_cdf      1/2  unceiled     176       0     223
-interpolated_inverted_cdf      1/2    ceiled     359       0      40
-interpolated_inverted_cdf      5/8  unceiled      47       0     352
-interpolated_inverted_cdf      5/8    ceiled     376       0      23
+interpolated_inverted_cdf     9/10  unceiled      39       0     353       40       0      352      1
+interpolated_inverted_cdf     9/10    ceiled     389       0       3      392       0        0      3
+interpolated_inverted_cdf    19/20  unceiled      20       0     362       20       0      362      0
+interpolated_inverted_cdf    19/20    ceiled     381       0       1      382       0        0      1
+interpolated_inverted_cdf      5/7  unceiled      55       0     343       57       0      341      2
+interpolated_inverted_cdf      5/7    ceiled     389       0       9      398       0        0      9
+interpolated_inverted_cdf      2/3  unceiled     122       0     277      133       0      266     11
+interpolated_inverted_cdf      2/3    ceiled     368       0      31      399       0        0     31
+interpolated_inverted_cdf      1/2  unceiled     176       0     223      199       0      200     23
+interpolated_inverted_cdf      1/2    ceiled     359       0      40      399       0        0     40
+interpolated_inverted_cdf      5/8  unceiled      47       0     352       50       0      349      3
+interpolated_inverted_cdf      5/8    ceiled     376       0      23      399       0        0     23
 
-lower                         9/10  unceiled      40       0     352
-lower                         9/10    ceiled     392       0       0
-lower                        19/20  unceiled      20       0     362
-lower                        19/20    ceiled     382       0       0
-lower                          5/7  unceiled     113       0     285
-lower                          5/7    ceiled     398       0       0
-lower                          2/3  unceiled     133       0     266
-lower                          2/3    ceiled     399       0       0
-lower                          1/2  unceiled     199       0     200
-lower                          1/2    ceiled     399       0       0
-lower                          5/8  unceiled     149       0     250
-lower                          5/8    ceiled     399       0       0
+lower                         9/10  unceiled      40       0     352       40       0      352      0
+lower                         9/10    ceiled     392       0       0      392       0        0      0
+lower                        19/20  unceiled      20       0     362       20       0      362      0
+lower                        19/20    ceiled     382       0       0      382       0        0      0
+lower                          5/7  unceiled     113       0     285      113       0      285      0
+lower                          5/7    ceiled     398       0       0      398       0        0      0
+lower                          2/3  unceiled     133       0     266      133       0      266      0
+lower                          2/3    ceiled     399       0       0      399       0        0      0
+lower                          1/2  unceiled     199       0     200      199       0      200      0
+lower                          1/2    ceiled     399       0       0      399       0        0      0
+lower                          5/8  unceiled     149       0     250      149       0      250      0
+lower                          5/8    ceiled     399       0       0      399       0        0      0
 
-midpoint                      9/10  unceiled      40       0     352
-midpoint                      9/10    ceiled     392       0       0
-midpoint                     19/20  unceiled      20       0     362
-midpoint                     19/20    ceiled     382       0       0
-midpoint                       5/7  unceiled     113       0     285
-midpoint                       5/7    ceiled     398       0       0
-midpoint                       2/3  unceiled     133       0     266
-midpoint                       2/3    ceiled     399       0       0
-midpoint                       1/2  unceiled     199       0     200
-midpoint                       1/2    ceiled     399       0       0
-midpoint                       5/8  unceiled     149       0     250
-midpoint                       5/8    ceiled     399       0       0
+midpoint                      9/10  unceiled      40       0     352       40       0      352      0
+midpoint                      9/10    ceiled     392       0       0      392       0        0      0
+midpoint                     19/20  unceiled      20       0     362       20       0      362      0
+midpoint                     19/20    ceiled     382       0       0      382       0        0      0
+midpoint                       5/7  unceiled     113       0     285      113       0      285      0
+midpoint                       5/7    ceiled     398       0       0      398       0        0      0
+midpoint                       2/3  unceiled     133       0     266      133       0      266      0
+midpoint                       2/3    ceiled     399       0       0      399       0        0      0
+midpoint                       1/2  unceiled     199       0     200      199       0      200      0
+midpoint                       1/2    ceiled     399       0       0      399       0        0      0
+midpoint                       5/8  unceiled     149       0     250      149       0      250      0
+midpoint                       5/8    ceiled     399       0       0      399       0        0      0
 
-closest_observation           9/10  unceiled     217       0     175
-closest_observation           9/10    ceiled     392       0       0
-closest_observation          19/20  unceiled     201       0     181
-closest_observation          19/20    ceiled     382       0       0
-closest_observation            5/7  unceiled     228       0     170
-closest_observation            5/7    ceiled     398       0       0
-closest_observation            2/3  unceiled     266       0     133
-closest_observation            2/3    ceiled     399       0       0
-closest_observation            1/2  unceiled     293       0     106
-closest_observation            1/2    ceiled     399       0       0
-closest_observation            5/8  unceiled     223       0     176
-closest_observation            5/8    ceiled     399       0       0
+closest_observation           9/10  unceiled     217       0     175      217       0      175      0
+closest_observation           9/10    ceiled     392       0       0      392       0        0      0
+closest_observation          19/20  unceiled     201       0     181      201       0      181      0
+closest_observation          19/20    ceiled     382       0       0      382       0        0      0
+closest_observation            5/7  unceiled     228       0     170      228       0      170      0
+closest_observation            5/7    ceiled     398       0       0      398       0        0      0
+closest_observation            2/3  unceiled     266       0     133      266       0      133      0
+closest_observation            2/3    ceiled     399       0       0      399       0        0      0
+closest_observation            1/2  unceiled     293       0     106      299       0      100     22
+closest_observation            1/2    ceiled     399       0       0      399       0        0      0
+closest_observation            5/8  unceiled     223       0     176      225       0      174      6
+closest_observation            5/8    ceiled     399       0       0      399       0        0      0
+
+MACHINE ceil_arm_cells=156 ceil_arm_cells_moved=32 ceil_arm_sizes_moved=401
+
+WHERE THE TWO ARITHMETICS PART. Each line is one (definition, level,
+form) cell and the count of sizes inside it whose delivered rank moves.
+  inverted_cdf                   5/7  unceiled     1 size(s)
+  inverted_cdf                   5/7    ceiled     9 size(s)
+  inverted_cdf                   2/3  unceiled     5 size(s)
+  inverted_cdf                   2/3    ceiled    16 size(s)
+  inverted_cdf                   1/2  unceiled    15 size(s)
+  inverted_cdf                   1/2    ceiled    26 size(s)
+  inverted_cdf                   5/8  unceiled     6 size(s)
+  inverted_cdf                   5/8    ceiled    21 size(s)
+  hazen                          1/2  unceiled    21 size(s)
+  hazen                          5/8  unceiled     6 size(s)
+  nearest                        2/3  unceiled     1 size(s)
+  averaged_inverted_cdf          5/7  unceiled     1 size(s)
+  averaged_inverted_cdf          5/7    ceiled     9 size(s)
+  averaged_inverted_cdf          2/3  unceiled     5 size(s)
+  averaged_inverted_cdf          2/3    ceiled    16 size(s)
+  averaged_inverted_cdf          1/2  unceiled    15 size(s)
+  averaged_inverted_cdf          1/2    ceiled    26 size(s)
+  averaged_inverted_cdf          5/8  unceiled     6 size(s)
+  averaged_inverted_cdf          5/8    ceiled    21 size(s)
+  interpolated_inverted_cdf     9/10  unceiled     1 size(s)
+  interpolated_inverted_cdf     9/10    ceiled     3 size(s)
+  interpolated_inverted_cdf    19/20    ceiled     1 size(s)
+  interpolated_inverted_cdf      5/7  unceiled     2 size(s)
+  interpolated_inverted_cdf      5/7    ceiled     9 size(s)
+  interpolated_inverted_cdf      2/3  unceiled    11 size(s)
+  interpolated_inverted_cdf      2/3    ceiled    31 size(s)
+  interpolated_inverted_cdf      1/2  unceiled    23 size(s)
+  interpolated_inverted_cdf      1/2    ceiled    40 size(s)
+  interpolated_inverted_cdf      5/8  unceiled     3 size(s)
+  interpolated_inverted_cdf      5/8    ceiled    23 size(s)
+  closest_observation            1/2  unceiled    22 size(s)
+  closest_observation            5/8  unceiled     6 size(s)
 
   level   never short   always exact
 ----------------------------------------------------------------------------------------------------

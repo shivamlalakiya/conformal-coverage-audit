@@ -67,6 +67,22 @@ def gh(path):
         return None
 
 
+# MERGED IS NOT RESOLVED, and the gap is one row.
+#
+# A merge means a maintainer took a patch. It does not mean the finding that
+# prompted it was fixed: MAPIE#958 was a review of a third party's pull request
+# and it was merged with the blocking finding still unfixed. Counting merges as
+# fixes overstates the record in the direction that flatters the filer, which is
+# the one direction this whole file exists to avoid.
+#
+# Named by URL with the anchor its own disclosure row carries, so a reworded row
+# aborts the run rather than quietly promoting the merge to a fix.
+NOT_RESOLVED = {
+    "scikit-learn-contrib/MAPIE/pull/958":
+        "merged with the blocking one unfixed",
+}
+
+
 def filings():
     """(date, package, owner, repo, kind, number, url) per row of DISCLOSURE.md.
 
@@ -88,7 +104,9 @@ def filings():
                 r"https://github\.com/([^/]+)/([^/)]+)/(issues|pull)/(\d+)", cells[3])
             for j, (owner, repo, kind, num) in enumerate(found):
                 out.append({"date": cells[0], "pkg": cells[1].strip("`"),
-                            "site": cells[2], "owner": owner, "repo": repo,
+                            "site": cells[2],
+                            "status": cells[4] if len(cells) > 4 else "",
+                            "owner": owner, "repo": repo,
                             "kind": "pr" if kind == "pull" else "issue",
                             "num": int(num), "primary": j == 0,
                             "url": f"https://github.com/{owner}/{repo}/{kind}/{num}"})
@@ -215,13 +233,43 @@ def main():
     engaged = [r for r in ok if r["n_others"] > 0]
     silent = [r for r in ok if r["n_comments"] == 0]
     prim = [r for r in ok if r["primary"]]
+    # The three counts the paper's own disclosure table needs and this probe did
+    # not print, so the caption had to spell them and P1-12 could make them wrong.
+    #
+    #   table rows  -- one per row of DISCLOSURE.md, which the paper's table mirrors.
+    #   findings    -- rows are NOT one per finding: a row whose Site is only a
+    #                  pointer at an earlier row's fix ("fix for #46") reports no
+    #                  new finding. Counted by that shape, not by subtraction.
+    #   resolved    -- merged minus the merges that fixed nothing, by name above.
+    fix_only = [r for r in prim if re.fullmatch(r"fix for #\d+", r["site"].strip())]
+    findings = [r for r in prim if r not in fix_only]
+    unresolved_merges = [r for r in merged
+                         if f"{r['owner']}/{r['repo']}/pull/{r['num']}" in NOT_RESOLVED]
+    resolved = [r for r in merged if r not in unresolved_merges]
+    # Applied to the row, not asserted over it: if the row stops saying what the
+    # exclusion claims it says, this stops the run instead of counting the merge
+    # as a fix.
+    for r in unresolved_merges:
+        anchor = NOT_RESOLVED[f"{r['owner']}/{r['repo']}/pull/{r['num']}"]
+        assert anchor in r["site"], (
+            f"{r['owner']}/{r['repo']}#{r['num']} is excluded from `resolved` on "
+            f"the grounds that its row says {anchor!r}, and that row now reads "
+            f"{r['site']!r} -- re-read it before trusting either count")
     say(f"targets queried            {len(ok)} of {len(rows)}")
     say(f"  distinct filings         {len(prim)}")
     say(f"  linked fix PRs           {len(ok) - len(prim)}")
+    say(f"disclosure table rows      {len(prim)}")
+    say(f"  distinct findings        {len(findings)}")
+    say(f"  rows that are a fix for an earlier row  {len(fix_only)}")
     if miss:
         say(f"  not attempted            {len(miss)}: "
             f"{', '.join(f'{r['owner']}/{r['repo']}#{r['num']}' for r in miss)}")
     say(f"merged                     {len(merged)}")
+    say(f"  of those, resolved       {len(resolved)}")
+    if unresolved_merges:
+        say(f"  merged, finding unfixed  {len(unresolved_merges)}: "
+            + ", ".join(f"{r['owner']}/{r['repo']}#{r['num']}"
+                        for r in unresolved_merges))
     say(f"closed, not merged         {len(closed)}")
     say(f"open                       {len(openr)}")
     say(f"drew a reply from someone")
@@ -234,6 +282,10 @@ def main():
     assert len(ok) + len(miss) == len(rows)
     assert len(merged) + len(closed) + len(openr) == len(ok), (
         "the three states do not partition the answered filings")
+    assert len(resolved) + len(unresolved_merges) == len(merged), (
+        "resolved and merged-but-unfixed do not partition the merges")
+    assert len(findings) + len(fix_only) == len(prim), (
+        "findings and fix-only rows do not partition the disclosure table")
     say("READ THIS AS A SHORT WINDOW, WHICH IS WHAT IT IS. The filings run from")
     say(f"{min(r['date'] for r in rows)} to {max(r['date'] for r in rows)} and the")
     say(f"oldest is {max(r['age'] for r in ok) if ok else 0} days old. Maintainer")

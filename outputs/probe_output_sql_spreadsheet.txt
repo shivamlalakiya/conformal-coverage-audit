@@ -191,8 +191,8 @@ excel PERCENTILE.EXC                         0.90    29   27.0000        27     
 excel PERCENTILE.EXC                         0.90    50   45.9000        46        no
 excel PERCENTILE.EXC                         0.90    99   -- skipped: array of 99 exceeds the 255-charact
 excel PERCENTILE.EXC                         0.90   100   -- skipped: array of 100 exceeds the 255-charac
-excel PERCENTILE.EXC                         0.95     9   -- /Users/lalakiya/Desktop/Opensource/Research/
-excel PERCENTILE.EXC                         0.95    10   -- /Users/lalakiya/Desktop/Opensource/Research/
+excel PERCENTILE.EXC                         0.95     9   -- _excel_eval.applescript:58:88: execution err
+excel PERCENTILE.EXC                         0.95    10   -- _excel_eval.applescript:58:88: execution err
 excel PERCENTILE.EXC                         0.95    19   19.0000        19       yes
 excel PERCENTILE.EXC                         0.95    20   19.9500        20        no
 excel PERCENTILE.EXC                         0.95    29   28.5000        29        no
@@ -242,20 +242,20 @@ floor. Does the shipped function refuse there, or clamp?
 ----------------------------------------------------------------------------------------------------
    10     0.889091   0.909091        yes                     9.780000
    10     0.909090   0.909091        yes                     9.999989
-   10     0.909092   0.909091         no REFUSED (tion error: Microsoft Excel)
-   10     0.929091   0.909091         no REFUSED (tion error: Microsoft Excel)
-   10     0.990000   0.909091         no REFUSED (tion error: Microsoft Excel)
+   10     0.909092   0.909091         no REFUSED (t continue evaluate. (-1708))
+   10     0.929091   0.909091         no REFUSED (t continue evaluate. (-1708))
+   10     0.990000   0.909091         no REFUSED (t continue evaluate. (-1708))
 
    20     0.932381   0.952381        yes                    19.580000
    20     0.952380   0.952381        yes                    19.999979
-   20     0.952382   0.952381         no REFUSED (tion error: Microsoft Excel)
-   20     0.972381   0.952381         no REFUSED (tion error: Microsoft Excel)
-   20     0.990000   0.952381         no REFUSED (tion error: Microsoft Excel)
+   20     0.952382   0.952381         no REFUSED (t continue evaluate. (-1708))
+   20     0.972381   0.952381         no REFUSED (t continue evaluate. (-1708))
+   20     0.990000   0.952381         no REFUSED (t continue evaluate. (-1708))
 
    50     0.960392   0.980392        yes                    48.980000
    50     0.980391   0.980392        yes                    49.999949
-   50     0.980393   0.980392         no REFUSED (tion error: Microsoft Excel)
-   50     0.990000   0.980392         no REFUSED (tion error: Microsoft Excel)
+   50     0.980393   0.980392         no REFUSED (t continue evaluate. (-1708))
+   50     0.990000   0.980392         no REFUSED (t continue evaluate. (-1708))
 
 above the boundary: 8 refusals, 0 values returned
 So this function REFUSES rather than clamping. It is the only

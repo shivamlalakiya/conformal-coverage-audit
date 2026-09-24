@@ -7,7 +7,7 @@ self_check() passed at import
 (1) THE EXPRESSION, read from the installed file
 ----------------------------------------------------------------------------------------------------
 statsforecast 2.1.1
-file: /Users/lalakiya/Desktop/Opensource/Research/conformal-coverage-audit/.venv-real/lib/python3.14/site-packages/statsforecast/models.py
+file: statsforecast/models.py
 stack line: 130   quantile line: 131
     116  def _add_conformal_distribution_intervals(
     117      fcst: Dict,

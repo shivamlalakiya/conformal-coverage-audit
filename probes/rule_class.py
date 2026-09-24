@@ -999,14 +999,37 @@ def main():
     say("column counts the sizes where it does not. That column is where every")
     say("departure below sits, apart from higher's, which is structural.")
     say("")
+    # \S7 says this idiom lands on exactly k* "in rational arithmetic". Until now
+    # that clause was asserted: every cell here was scored through np.quantile on
+    # doubles, so nothing in this output evaluated it. The exact arm below runs
+    # the SAME sweep with q and h as Fractions and the module's own POLICIES, and
+    # prints its three counts beside the measured ones. The float run stays the
+    # measurement the manuscripts report; this is a second column, not a
+    # correction of the first.
+    #
+    # 🛑 The clamp is not optional. numpy clips the virtual index into [1, n];
+    # the affine h does not, so at q = 1 an unclamped harness invents departures
+    # that are an artefact of the harness and not of the arithmetic -- 41 moved
+    # cells unclamped against 32 clamped, every spurious one `weibull` at the
+    # edge. Clamped, the float-affine form reproduces np.quantile in all but one
+    # of the cells, which is what makes the remaining moves attributable.
+    def exact_delivered(a0, a1, b0, b1, pol, n, L, form):
+        k = required_rank(n, L)
+        q = (min(F(1), F(L) * (n + 1) / n) if form == "unceiled"
+             else min(F(1), F(k, n)))
+        h = F(a0) + F(a1) * n + q * (F(b0) + F(b1) * n)
+        return min(max(POLICIES[pol](h), 1), n)
+
     say(f"{'definition':<26} {'level':>7} {'form':>9} {'exact':>7} {'over':>7} "
-        f"{'short':>7}")
+        f"{'short':>7} {'x-exact':>8} {'x-over':>7} {'x-short':>8} {'moved':>6}")
     say("-" * 100)
     ceil_rows = []
+    xcells, xmoved = 0, []
     for name, a0, a1, b0, b1, pol in HF:
         for L in ceil_levels:
             for form in ("unceiled", "ceiled"):
                 tally, depart = [0, 0, 0], []
+                xtally, moved = [0, 0, 0], 0
                 for n in ceil_sizes[L]:
                     k = required_rank(n, L)
                     q = (min(1.0, float(L) * (n + 1) / n) if form == "unceiled"
@@ -1016,11 +1039,33 @@ def main():
                     tally[0 if got == k else (1 if got > k else 2)] += 1
                     if got != k:
                         depart.append(n)
+                    xgot = exact_delivered(a0, a1, b0, b1, pol, n, L, form)
+                    xtally[0 if xgot == k else (1 if xgot > k else 2)] += 1
+                    if xgot != got:
+                        moved += 1
+                xcells += 1
+                if moved:
+                    xmoved.append({"name": name, "L": L, "form": form,
+                                   "cells": moved})
                 say(f"{name:<26} {str(L):>7} {form:>9} {tally[0]:>7} "
-                    f"{tally[1]:>7} {tally[2]:>7}")
+                    f"{tally[1]:>7} {tally[2]:>7} {xtally[0]:>8} {xtally[1]:>7} "
+                    f"{xtally[2]:>8} {moved:>6}")
                 ceil_rows.append({"name": name, "L": L, "form": form,
-                                  "tally": tally, "depart": depart})
+                                  "tally": tally, "depart": depart,
+                                  "xtally": xtally, "moved": moved})
         say("")
+    # Two different denominators, named apart: a CELL is one (definition, level,
+    # form) triple, a SIZE is one n inside it. 32 of 156 cells contain at least
+    # one size that moves; 401 sizes move in total.
+    say(f"MACHINE ceil_arm_cells={xcells} ceil_arm_cells_moved={len(xmoved)} "
+        f"ceil_arm_sizes_moved={sum(r['cells'] for r in xmoved)}")
+    say("")
+    say("WHERE THE TWO ARITHMETICS PART. Each line is one (definition, level,")
+    say("form) cell and the count of sizes inside it whose delivered rank moves.")
+    for r in xmoved:
+        say(f"  {r['name']:<26} {str(r['L']):>7} {r['form']:>9} "
+            f"{r['cells']:>5} size(s)")
+    say("")
     per_def = {}
     for r in ceil_rows:
         if r["form"] == "ceiled":

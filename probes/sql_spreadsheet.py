@@ -221,7 +221,13 @@ def excel_fns():
         p = subprocess.run(["osascript", scpt, formula],
                            capture_output=True, text=True, timeout=120)
         if p.returncode != 0:
-            raise RuntimeError((p.stderr or "").strip()[:140])
+            # osascript leads its stderr with the script's own absolute path,
+            # which is this machine's home directory and has no business in a
+            # committed output that is published under a real name and re-run
+            # elsewhere. Drop the path; keep the part that says what Excel
+            # refused, which is the half this row is evidence for.
+            err = (p.stderr or "").strip().replace(scpt, "_excel_eval.applescript")
+            raise RuntimeError(err[:140])
         return float(p.stdout.strip())
 
     # 255 characters is the cap on the string this interface will hand Excel: an
