@@ -91,7 +91,17 @@ MAX_ROWS = 5000
 MAX_FEATURES = 100
 TEST_CAP = 1000
 COVERAGE = (0.90, 0.95)
-N_CAL = (20, 30, 50, 200)
+# 49 is chosen by the bug and not by roundness. `crepes/base.py:900` forms
+# `int((1-confidence)*(n+1))`, and in double `1-0.9` is 0.09999999999999998,
+# so the truncation lands one rank low at every size where that product
+# comes out integral: at alpha=0.1 that is n = 19, 29, 39, 49, 99, 199. The
+# four sizes this arm carried before miss that class entirely, which makes
+# crepes read exact in every cell and say nothing about whether it reaches
+# the required rank BY DESIGN or by a grid that happens to avoid its
+# failure. 49 is the smallest member of the class that clears every other
+# library's guard floor (mapie sym=False wants n >= 40 at 0.95), so adding
+# it tests crepes without turning the other rows into refusals.
+N_CAL = (20, 30, 49, 50, 200)
 SEED = 20260805
 OUT = "outputs/probe_output_real_data_tabular.txt"
 
@@ -323,16 +333,28 @@ def cell_mapie_classifier(X, y, n_cal, coverage, rng):
     k = required_rank(n, coverage)
     if k is None:
         hit_b, size_b, feasible = np.ones_like(hit_a, bool), len(classes), False
+        # arm B admits every label here, so it contains arm A whatever arm A did
+        nests = True
     else:
         q_b = float(np.sort(scores)[k - 1])
         sets_b = (1.0 - probs) <= q_b + 1e-12
         hit_b = sets_b[np.arange(len(truth)), truth]
         size_b, feasible = float(sets_b.sum(1).mean()), True
+        # Reported, not defaulted. `summarize()` reads `nests` with a default of
+        # True, and every REGRESSION cell here routes through
+        # `_finish_regression`, which sets it from the two intervals. This
+        # function does not, so until the grid reached n_cal=49 it claimed
+        # nesting by omission -- and at 49 that claim is false: arm A's
+        # threshold sits ABOVE arm B's, so arm B is the narrower set and every
+        # unit that differs LOSES coverage under it. A larger threshold admits
+        # more labels, so arm B contains arm A exactly when q_b >= q_a.
+        nests = bool(q_b >= q_a - 1e-9)
 
     return {
         "n": n,
         "required_rank": k if k is not None else n + 1,
         "feasible": feasible,
+        "nests": nests,
         "a_covered": float(hit_a.mean()),
         "a_width": float(sets_a.sum(1).mean()),
         "a_rank": a_rank,
@@ -627,7 +649,7 @@ def main():
         say("=" * 104)
         say(label)
         say("=" * 104)
-        deltas = []
+        deltas, meets = [], []
         for coverage in COVERAGE:
             say(f"  nominal {coverage:.2f}")
             for n_cal in n_cals:
@@ -636,6 +658,7 @@ def main():
                 s = summarize(recs)
                 if s is not None:
                     deltas.append(s["delta"])
+                    meets.append(s["a_meets"])
                 for ln in format_cell(f"n_cal={n_cal:<4}", s):
                     say(ln)
                 at_max = [r for r in recs if r and "error" not in r and r.get("clipped")]
@@ -657,16 +680,27 @@ def main():
                         f" statistic for that level (CORRECT, not a clip),"
                         f" {len(clipped)} where the clip altered it")
             say("")
-        # BY DESIGN, per S6.3: whether this configuration's own arithmetic reaches
-        # the required rank/span at every feasible n, rather than at some of them
-        # by measurement -- the distinction that separates a mechanism proof
-        # (kthvalue, direct indexing, the +inf append) from a result that could
-        # have come out otherwise (crepes's float truncation, mapie's asymmetric
-        # rail). A cell is exact when its paired delta is precisely zero.
-        by_design = bool(deltas) and all(d == 0 for d in deltas)
-        say(f"  BY DESIGN (reaches the required rank/span at every feasible n in "
-            f"the shipped arithmetic): {'yes' if by_design else 'no'}"
-            f"  [{sum(1 for d in deltas if d == 0)} of {len(deltas)} cells exact]")
+        # Two DIFFERENT predicates, reported apart, because conflating them is
+        # how a width cost gets read as a validity failure.
+        #
+        #   REACHES  -- arm A lands at or above the required rank in every unit
+        #               of every feasible cell. This is the guarantee, and it is
+        #               what S6.3's "reach the required rank by design" claims.
+        #   EXACT    -- arm A lands ON the required rank, so the paired delta is
+        #               precisely zero. Landing one rank HIGH still reaches; it
+        #               costs width and nothing else.
+        #
+        # At n_cal=49, nominal 0.90, alpha(n+1) is exactly 5 and four of the seven
+        # configurations land one rank high there while three land on it. All
+        # seven still reach. A single flag would have reported those four as
+        # failures of a claim they do not fail.
+        reaches = bool(meets) and all(meets)
+        say(f"  REACHES the required rank/span at every feasible n: "
+            f"{'yes' if reaches else 'no'}"
+            f"  [{sum(1 for x in meets if x)} of {len(meets)} cells]")
+        say(f"  EXACT on it (paired delta zero): "
+            f"{'yes' if deltas and all(d == 0 for d in deltas) else 'no'}"
+            f"  [{sum(1 for d in deltas if d == 0)} of {len(deltas)} cells]")
 
     say("")
     say("Reading this table")
