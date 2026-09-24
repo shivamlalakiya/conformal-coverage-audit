@@ -68,6 +68,9 @@ identifiers:
   - type: doi
     value: 10.5281/zenodo.22944958
     description: "Version v1.5.8 -- the exact arm, the tabular grid to n_cal=49, and the version axis split"
+  - type: doi
+    value: 10.5281/zenodo.22946337
+    description: "Version v1.5.9 -- the second returned second-coder sheet"
 # verified against the live remote
 repository-code: "https://github.com/shivamlalakiya/conformal-coverage-audit"
 # This is what GitHub's cite widget and the indexers read. Left at v1.1.0 it sent a
