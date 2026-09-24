@@ -16,10 +16,12 @@ audit's own labels.
 
 WHAT IT DOES NOT DO
 -------------------
-It does not measure agreement. Nobody has filled a sheet in. Any figure this
-repository prints for inter-rater agreement would be the author agreeing with
-the author, which is the thing the instrument exists to avoid. The worksheet
-ships blank on purpose and the manuscript says the number is absent.
+It does not fill a sheet in. A figure produced by the author filling in the
+author's own worksheet would be the author agreeing with the author, which is
+the thing the instrument exists to avoid, so the worksheet ships blank. Sheets
+that come back from somebody else are committed unedited under returned/ and
+listed in RETURNED; the run scores each one and prints the result beside the
+counts. One sheet has come back so far.
 
 THE BLIND IS THE INSTRUMENT
 ---------------------------
@@ -43,6 +45,11 @@ import helper_census as HC  # noqa: E402
 
 SHEET = os.path.join(HERE, "..", "outputs", "second_coder_worksheet.txt")
 KEY = os.path.join(HERE, "..", "outputs", "second_coder_key.txt")
+# Filled-in sheets, exactly as they came back. Appending one here is the whole
+# procedure for recording it; the run re-scores every listed sheet from scratch.
+RETURNED = [
+    os.path.join(HERE, "..", "returned", "second_coder_sheet_2026-09-24.txt"),
+]
 OUT = os.path.join(HERE, "..", "outputs", "probe_output_second_coder.txt")
 
 # Fixed, so the sample is the same sheet for every coder and for every re-run.
@@ -278,7 +285,7 @@ def build(root):
     return sites, labels, missing
 
 
-def score(path):
+def tally(path):
     key = {}
     for ln in open(KEY):
         if ln.startswith("#"):
@@ -295,8 +302,7 @@ def score(path):
     excluded = [c for c in answered if key[c] in UNSCOREABLE]
     common = [c for c in answered if key[c] not in UNSCOREABLE]
     if not common:
-        print("no scoreable answers found in that sheet; nothing to score")
-        return
+        return None
     # An item whose key sits outside the offered labels is scored on membership
     # (SCORES_AS), not equality. Without this a correct reading of a 'c-exact'
     # or 'e/f' site is counted as a disagreement and the ceiling is below 1.0.
@@ -310,6 +316,20 @@ def score(path):
     po, pe, k = kappa(a, b)
     by_membership = [c for c in common if key[c] in SCORES_AS]
     blank = sorted(set(key) - set(got))
+    correct = sum(1 for c in common if agrees(key[c], got[c]))
+    return dict(key=key, got=got, common=common, answered=answered,
+                excluded=excluded, by_membership=by_membership, blank=blank,
+                correct=correct, po=po, pe=pe, k=k, agrees=agrees)
+
+
+def score(path):
+    t = tally(path)
+    if t is None:
+        print("no scoreable answers found in that sheet; nothing to score")
+        return
+    key, got, common, answered = t["key"], t["got"], t["common"], t["answered"]
+    excluded, by_membership, blank = t["excluded"], t["by_membership"], t["blank"]
+    po, pe, k, agrees = t["po"], t["pe"], t["k"], t["agrees"]
     print(f"items scored      {len(common)} of {len(key)}")
     print(f"  answered         {len(answered)}")
     print(f"  left blank       {len(blank)}"
@@ -385,18 +405,41 @@ def main():
     say(f"  drawn labels off-list, by membership  {len(membership)}"
         + (f"  (item {', '.join(f'{k:02d}' for k in membership)})"
            if membership else ""))
-    say(f"  sheets returned                0")
+    tallies = [tally(p) for p in RETURNED]
+    assert all(t is not None for t in tallies), "a returned sheet has no scoreable answer"
+    say(f"  sheets returned                {len(RETURNED)}")
+    # One sheet is what the manuscript reports. A second one needs its own
+    # lines and its own prose, not a silent average with the first.
+    assert len(tallies) <= 1, "more than one returned sheet: report each, not a pool"
+    for t in tallies:
+        say(f"  items scored                   {len(t['common'])}")
+        say(f"  items correct                  {t['correct']}")
+        say(f"  items excluded                 {len(t['excluded'])}")
+        say(f"  items scored on membership     {len(t['by_membership'])}")
+        say(f"  items left blank               {len(t['blank'])}")
+        say(f"  raw agreement                  {t['po']:.3f}")
+        say(f"  chance agreement               {t['pe']:.3f}")
+        say(f"  Cohen's kappa                  {t['k']:.3f}")
     say("")
     say("=" * 104)
     say("AGREEMENT")
     say("=" * 104)
-    say("  sheets returned                0")
-    say("  raw agreement                  not measured")
-    say("  Cohen's kappa                  not measured")
+    say(f"  sheets returned                {len(RETURNED)}")
+    for p, t in zip(RETURNED, tallies):
+        say(f"  sheet  {os.path.relpath(p, os.path.join(HERE, '..'))}")
+        for c in t["excluded"]:
+            say(f"    {c}  audit={t['key'][c]:<8} coder={t['got'][c]:<8} excluded, "
+                f"no offered label is correct")
+        for c in t["common"]:
+            hit = t["agrees"](t["key"][c], t["got"][c])
+            note = "" if hit else "   differs"
+            if hit and t["key"][c] != t["got"][c]:
+                note = "   agrees on membership"
+            say(f"    {c}  audit={t['key'][c]:<8} coder={t['got'][c]:<8}{note}")
     say("")
-    say("No figure is printed and none is withheld. The author filling in a sheet")
-    say("the author wrote would produce a number that measures nothing, so the")
-    say("worksheet ships blank and the manuscript reports the absence.")
+    say("One reader, unaided, on a small sample. Read the kappa as an agreement")
+    say("rate on this instrument, not as a reliability coefficient for the audit's")
+    say("labels. The worksheet itself still ships blank.")
     say("")
     say("=" * 104)
     say("WHAT THIS DOES NOT SETTLE")
@@ -407,7 +450,7 @@ def main():
     say("the redaction buys is that nobody is told the answer by accident while")
     say("reading the item, which is the failure a worksheet actually has.")
     say("")
-    say("A sample of twelve bounds a kappa loosely even once somebody fills it in.")
+    say("A sample of twelve bounds a kappa loosely, and one returned sheet more so.")
     say("The sample is also drawn from sites the audit already located, so it")
     say("measures agreement on classification and says nothing about whether the")
     say("census found every site there is. That second question is the frame")

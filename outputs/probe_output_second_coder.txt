@@ -36,18 +36,37 @@ THE COUNTS
   labels offered to the coder    9
   drawn labels unscoreable        1  (item 04)
   drawn labels off-list, by membership  1  (item 09)
-  sheets returned                0
+  sheets returned                1
+  items scored                   11
+  items correct                  11
+  items excluded                 1
+  items scored on membership     1
+  items left blank               0
+  raw agreement                  1.000
+  chance agreement               0.190
+  Cohen's kappa                  1.000
 
 ========================================================================================================
 AGREEMENT
 ========================================================================================================
-  sheets returned                0
-  raw agreement                  not measured
-  Cohen's kappa                  not measured
+  sheets returned                1
+  sheet  returned/second_coder_sheet_2026-09-24.txt
+    04  audit=c-exact  coder=c        excluded, no offered label is correct
+    01  audit=d        coder=d       
+    02  audit=c        coder=c       
+    03  audit=d        coder=d       
+    05  audit=b        coder=b       
+    06  audit=b        coder=b       
+    07  audit=a        coder=a       
+    08  audit=g        coder=g       
+    09  audit=e/f      coder=f          agrees on membership
+    10  audit=d        coder=d       
+    11  audit=a        coder=a       
+    12  audit=c        coder=c       
 
-No figure is printed and none is withheld. The author filling in a sheet
-the author wrote would produce a number that measures nothing, so the
-worksheet ships blank and the manuscript reports the absence.
+One reader, unaided, on a small sample. Read the kappa as an agreement
+rate on this instrument, not as a reliability coefficient for the audit's
+labels. The worksheet itself still ships blank.
 
 ========================================================================================================
 WHAT THIS DOES NOT SETTLE
@@ -58,7 +77,7 @@ this same repository and in the manuscript's own table, both public. What
 the redaction buys is that nobody is told the answer by accident while
 reading the item, which is the failure a worksheet actually has.
 
-A sample of twelve bounds a kappa loosely even once somebody fills it in.
+A sample of twelve bounds a kappa loosely, and one returned sheet more so.
 The sample is also drawn from sites the audit already located, so it
 measures agreement on classification and says nothing about whether the
 census found every site there is. That second question is the frame
