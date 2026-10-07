@@ -101,10 +101,9 @@ nonetheless **not** filed as a defect:
   finite *deterministic* bound exists at any conventional level, and the library returns a
   finite interval regardless — delivering 0.5840 against a nominal 0.90. This is a
   **default-choice** question rather than a code defect: the arithmetic is correct for the
-  configuration, and the configuration is the problem. `Nixtla/statsforecast#1202` covers
-  the documentation defect in the same helper. The manuscript's §"What exists below the
-  floor" gives the constructive answer — a randomised bound that is exact at every window
-  count — rather than treating the configuration as a bug report.
+  configuration, and the configuration is the problem. The manuscript's §"What exists below
+  the floor" gives the constructive answer — a randomised bound that is exact at every
+  window count — rather than treating the configuration as a bug report.
 
 Retracted findings are not filed at all, and are recorded in the manuscript's retraction
 appendix instead. One retraction has since been withdrawn, and the finding it was hiding
