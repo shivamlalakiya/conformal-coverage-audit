@@ -266,12 +266,12 @@ than because anybody added a check. Against it, 9 of 14 shipped
 conformal helpers return a finite number below their floor and
 say nothing.
 
-(3) SQLite: what a query gets when the function does not exist
+(3) SQLite: which quantile functions exist, under any spelling
 sqlite 3.53.0
-    percentile_cont(0.9) within group (order by x)       absent (OperationalError)
-    percentile_disc(0.9) within group (order by x)       absent (OperationalError)
-    quantile(x, 0.9)                                     absent (OperationalError)
-    median(x)                                            present
+    percentile_cont                                      present
+    percentile_disc                                      present
+    quantile                                             absent (OperationalError)
+    median                                               present
 
 ====================================================================================================
 SUMMARY
@@ -296,7 +296,11 @@ which is the periodicity result showing up in a SQL engine: it is right
 one time in ten at level 9/10, and collecting more rows does not fix a
 size that is off the class.
 
-SQLite has no percentile function at all, so the most widely deployed
-engine in the world offers no convention to get wrong and every caller
-hand-rolls one. That is a different failure mode from a wrong default and
-it is not covered by anything else in this deposit.
+SQLite 3.53.0: 1 of 4 names tried are absent under
+every spelling tried.
+percentile_cont and percentile_disc exist but answer only to SQLite's positional
+form, percentile_cont(x, q); the WITHIN GROUP query that runs on DuckDB
+is an error here. A query ported from the standard therefore fails
+loudly instead of returning a wrong number, which is a different failure
+mode from a wrong default. Which convention the positional functions
+implement is not measured here.

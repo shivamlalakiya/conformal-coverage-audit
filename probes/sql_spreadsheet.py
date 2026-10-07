@@ -29,9 +29,10 @@ Executed, not transferred
 DuckDB runs in-process. Excel is driven through AppleScript when it is present and
 reachable, and reported as NOT EXECUTED otherwise rather than cited from
 documentation -- the documented convention and the shipped one are exactly what
-this programme exists to stop conflating. SQLite is included because its answer is
-that it has no such function, which is a finding about the most widely deployed
-engine in the world and not an omission.
+this programme exists to stop conflating. SQLite is included because it is the
+most widely deployed engine in the world and its answer is a spelling question: it
+ships percentile_cont and percentile_disc as built-ins, but a query written in the
+standard's WITHIN GROUP form is a syntax error there.
 
     python probes/sql_spreadsheet.py
 """
@@ -158,26 +159,53 @@ def duckdb_fns():
 
 
 # ---------------------------------------------------------------------------
-# SQLite: the answer is that there is nothing to measure
+# SQLite: which spellings of a quantile the engine accepts at all
 # ---------------------------------------------------------------------------
 def sqlite_probe():
+    """Each candidate is tried under both call conventions before it is called
+    absent: the SQL-standard `WITHIN GROUP` syntax SQLite's parser rejects, and
+    SQLite's own positional-argument form. A `WITHIN GROUP` syntax error is
+    evidence the parser does not accept that spelling, not evidence the function
+    is missing -- percentile_cont and percentile_disc both exist here, just not
+    under the spelling the standard uses. The name is called absent only when
+    every convention it might be reached under fails.
+    """
     import sqlite3
     con = sqlite3.connect(":memory:")
     ver = sqlite3.sqlite_version
+    con.execute("create table t(x real)")
+    candidates = {
+        "percentile_cont": ("percentile_cont(x, 0.9)",
+                            "percentile_cont(0.9) within group (order by x)"),
+        "percentile_disc": ("percentile_disc(x, 0.9)",
+                            "percentile_disc(0.9) within group (order by x)"),
+        "quantile": ("quantile(x, 0.9)",),
+        "median": ("median(x)",),
+    }
     found = {}
-    for expr in ("percentile_cont(0.9) within group (order by x)",
-                 "percentile_disc(0.9) within group (order by x)",
-                 "quantile(x, 0.9)", "median(x)"):
-        try:
-            con.execute("create table t(x real)")
-        except sqlite3.OperationalError:
-            pass
-        try:
-            con.execute(f"select {expr} from t")
-            found[expr] = "present"
-        except Exception as exc:
-            found[expr] = f"absent ({type(exc).__name__})"
-    return found, ver
+    for name, exprs in candidates.items():
+        errs = []
+        for expr in exprs:
+            try:
+                con.execute(f"select {expr} from t")
+                found[name] = "present"
+                break
+            except Exception as exc:
+                errs.append(type(exc).__name__)
+        else:
+            found[name] = f"absent ({errs[0]})"
+    # The standard spelling is tried on its own, so the summary's claim about it
+    # is measured and not inferred from which spelling happened to succeed.
+    standard = {}
+    for name, exprs in candidates.items():
+        for expr in exprs:
+            if "within group" in expr:
+                try:
+                    con.execute(f"select {expr} from t")
+                    standard[name] = True
+                except Exception:
+                    standard[name] = False
+    return found, ver, standard
 
 
 # ---------------------------------------------------------------------------
@@ -418,8 +446,8 @@ def main():
             say("say nothing.")
         say("")
 
-    say("(3) SQLite: what a query gets when the function does not exist")
-    found, sqlver = sqlite_probe()
+    say("(3) SQLite: which quantile functions exist, under any spelling")
+    found, sqlver, standard = sqlite_probe()
     say(f"sqlite {sqlver}")
     for expr, state in found.items():
         say(f"    {expr:<52} {state}")
@@ -449,10 +477,17 @@ def main():
         say("one time in ten at level 9/10, and collecting more rows does not fix a")
         say("size that is off the class.")
     say("")
-    say("SQLite has no percentile function at all, so the most widely deployed")
-    say("engine in the world offers no convention to get wrong and every caller")
-    say("hand-rolls one. That is a different failure mode from a wrong default and")
-    say("it is not covered by anything else in this deposit.")
+    absent = [k for k, v in found.items() if v != "present"]
+    say(f"SQLite {sqlver}: {len(absent)} of {len(found)} names tried are absent under")
+    say("every spelling tried.")
+    rejected = [k for k, ok in standard.items() if not ok and found[k] == "present"]
+    if rejected:
+        say(f"{' and '.join(rejected)} exist but answer only to SQLite's positional")
+        say("form, percentile_cont(x, q); the WITHIN GROUP query that runs on DuckDB")
+        say("is an error here. A query ported from the standard therefore fails")
+        say("loudly instead of returning a wrong number, which is a different failure")
+        say("mode from a wrong default. Which convention the positional functions")
+        say("implement is not measured here.")
 
     path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                         OUT)
