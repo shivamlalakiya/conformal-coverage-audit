@@ -201,7 +201,13 @@ def main():
         last = None
         if comments:
             last = max(c["created_at"][:10] for c in comments)
-        age = (today - datetime.date.fromisoformat(f["date"])).days
+        # A linked fix PR can be filed on a different day from the row it sits in,
+        # so its age comes from its own creation date. Only the age: the row date
+        # still sorts the table, or a fix lands under an issue it does not fix.
+        # Primary rows keep the row date, since a review row's target was opened by
+        # someone else long before the review it records.
+        born = f["date"] if f["primary"] else (data.get("created_at") or f["date"])[:10]
+        age = (today - datetime.date.fromisoformat(born)).days
         rows.append({**f, "state": data.get("state"), "merged": merged,
                      "n_comments": len(comments), "n_others": len(others),
                      "last": last, "age": age,

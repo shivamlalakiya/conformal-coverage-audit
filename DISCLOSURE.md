@@ -20,8 +20,8 @@ applies is stated per site in the next section.
 | Date | Package | Site | Report | Status |
 |---|---|---|---|---|
 | 2026-08-02 | `mapie` | classification quantile lands one order statistic too high | [scikit-learn-contrib/MAPIE#973](https://github.com/scikit-learn-contrib/MAPIE/pull/973) (PR) | merged 2026-08-11 |
-| 2026-08-02 | `mapie` | corrected level silently clipped to `1.0` where no conformal quantile exists | [scikit-learn-contrib/MAPIE#974](https://github.com/scikit-learn-contrib/MAPIE/issues/974) | open |
-| 2026-08-04 | `mapie` | asymmetric quantile score cancels the calibration-size guard | [scikit-learn-contrib/MAPIE#978](https://github.com/scikit-learn-contrib/MAPIE/pull/978) (PR) | open |
+| 2026-08-02 | `mapie` | corrected level silently clipped to `1.0` where no conformal quantile exists | [scikit-learn-contrib/MAPIE#974](https://github.com/scikit-learn-contrib/MAPIE/issues/974) | closed 2026-10-12 |
+| 2026-08-04 | `mapie` | asymmetric quantile score cancels the calibration-size guard | [scikit-learn-contrib/MAPIE#978](https://github.com/scikit-learn-contrib/MAPIE/pull/978) (PR) | merged 2026-10-12 |
 | 2026-07-10 | `mapie` | eight inline findings raised in review on a third party's PR; merged with the blocking one unfixed, which #978 addresses | [scikit-learn-contrib/MAPIE#958](https://github.com/scikit-learn-contrib/MAPIE/pull/958) (review) | merged |
 | 2026-08-02 | `crepes` | docstring inverts the implemented set-membership condition | [henrikbostrom/crepes#46](https://github.com/henrikbostrom/crepes/issues/46) | open |
 | 2026-08-02 | `crepes` | no warning on a too-small calibration set | [henrikbostrom/crepes#47](https://github.com/henrikbostrom/crepes/issues/47) | open |
@@ -33,7 +33,7 @@ applies is stated per site in the next section.
 | 2026-08-05 | `sktime` | `ConformalIntervals._compute_sliding_residuals` / `_predict_interval_series` — residual-alignment off-by-one: a step-*h* forecast is calibrated on (h+1)-step residuals | [sktime/sktime#10766](https://github.com/sktime/sktime/issues/10766) | open |
 | 2026-08-04 | `statsforecast` | `ConformalSeasonalPool`: documented sufficiency rule covers the lower rail only, and its worked example is off by one | [Nixtla/statsforecast#1202](https://github.com/Nixtla/statsforecast/issues/1202) | open |
 | 2026-08-04 | `torchcp` | `calculate_conformal_value` docstring names a threshold the code no longer computes | [ml-stat-Sustech/torchcp#122](https://github.com/ml-stat-Sustech/torchcp/pull/122) (PR) | merged 2026-08-05 |
-| 2026-08-06 | `mapie` | `allow_infinite_bounds=True` skips the calibration-size guard entirely, so the clip returns a finite bound where no valid finite deterministic bound exists | [scikit-learn-contrib/MAPIE#980](https://github.com/scikit-learn-contrib/MAPIE/issues/980) | open |
+| 2026-08-06 | `mapie` | `allow_infinite_bounds=True` skips the calibration-size guard entirely, so the clip returns a finite bound where no valid finite deterministic bound exists | [scikit-learn-contrib/MAPIE#980](https://github.com/scikit-learn-contrib/MAPIE/issues/980) | closed 2026-10-12 |
 | 2026-08-18 | `mapie` | `OnlineMartingaleTest.compute_p_value` leaves the +1 outside the tie term, so the online exchangeability p-value departs from the algorithm its own docstring cites | [scikit-learn-contrib/MAPIE#984](https://github.com/scikit-learn-contrib/MAPIE/issues/984), fix in [#985](https://github.com/scikit-learn-contrib/MAPIE/pull/985) (PR, 2026-08-18) | issue closed 2026-09-08; PR merged 2026-09-08 |
 
 Filing window: **2026-08-02 to 2026-08-18**, other than the #958 review, which is
