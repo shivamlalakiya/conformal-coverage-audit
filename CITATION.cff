@@ -74,6 +74,9 @@ identifiers:
   - type: doi
     value: 10.5281/zenodo.23221252
     description: "Version v1.5.10 -- SQLite's quantile functions tried under its positional spelling"
+  - type: doi
+    value: 10.5281/zenodo.23320331
+    description: "Version v1.5.11 -- mapie #978 merged and #974, #980 closed; SQLite's positional percentile_cont and percentile_disc identified"
 # verified against the live remote
 repository-code: "https://github.com/shivamlalakiya/conformal-coverage-audit"
 # This is what GitHub's cite widget and the indexers read. Left at v1.1.0 it sent a
