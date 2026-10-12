@@ -302,5 +302,20 @@ percentile_cont and percentile_disc exist but answer only to SQLite's positional
 form, percentile_cont(x, q); the WITHIN GROUP query that runs on DuckDB
 is an error here. A query ported from the standard therefore fails
 loudly instead of returning a wrong number, which is a different failure
-mode from a wrong default. Which convention the positional functions
-implement is not measured here.
+mode from a wrong default. Section (4) identifies the convention the
+positional functions implement.
+
+(4) SQLite's positional functions: which convention, and does it deliver
+Same instrument as (1) and (2): the tie-free set 1..n, identified at n=50.
+function                                   convention                               A       B
+----------------------------------------------------------------------------------------------------
+sqlite percentile_cont (positional)        linear (H&F 7)                      1.0000 49.0000
+sqlite percentile_disc (positional)        not affine (a rounding rule)            --      --
+
+    sqlite percentile_cont (positional)        delivers in 0 of 24 cells
+    sqlite percentile_disc (positional)        delivers in 0 of 24 cells
+
+Which rounding rule each discrete function is, matched exactly against
+numpy on the same sizes and an interior grid of levels:
+    sqlite percentile_disc (positional)        numpy method=lower
+    duckdb percentile_disc (SQL standard)      numpy method=inverted_cdf

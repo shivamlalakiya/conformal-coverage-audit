@@ -208,6 +208,46 @@ def sqlite_probe():
     return found, ver, standard
 
 
+def rounding_rule(fn):
+    """Name the numpy method a rounding rule reproduces exactly on the tie-free
+    set, over every size in NS and an interior grid of levels, or None. The
+    identifier above stops at 'not affine'; this is what says which one."""
+    for method in ("inverted_cdf", "lower", "higher", "nearest",
+                   "closest_observation"):
+        if all(abs(fn(n, float(q)) -
+                   float(np.quantile(scores(n), float(q), method=method))) < 1e-9
+               for n in NS for q in np.linspace(0.05, 0.95, 19)):
+            return method
+    return None
+
+
+def sqlite_positional_fns():
+    """SQLite's positional percentile_cont(x, q) and percentile_disc(x, q), as
+    callables the identifier and the delivery test take, or {} where the engine
+    lacks them. Kept out of the DuckDB/Excel tally on purpose: section (4) is
+    appended after the summary so no earlier line of the output moves.
+    """
+    import sqlite3
+    con = sqlite3.connect(":memory:")
+
+    def make(name):
+        def fn(n, q):
+            con.execute("drop table if exists t")
+            con.execute("create table t(x real)")
+            con.executemany("insert into t values (?)", [(v,) for v in scores(n)])
+            return float(con.execute(f"select {name}(x, ?) from t", [q]).fetchone()[0])
+        return fn
+
+    out = {}
+    for name in ("percentile_cont", "percentile_disc"):
+        try:
+            make(name)(5, 0.5)
+            out[f"sqlite {name} (positional)"] = make(name)
+        except Exception:
+            pass
+    return out
+
+
 # ---------------------------------------------------------------------------
 # Excel: executed through AppleScript, or reported as not executed
 # ---------------------------------------------------------------------------
@@ -324,6 +364,13 @@ def self_check():
     assert delivers(lin, 50, 0.90)[2] is False
     assert delivers(inv, 9, 0.90)[2] is True
     assert delivers(inv, 12, 0.90)[2] is False      # off the residue class
+    # the rounding-rule matcher must tell two rounding rules apart and must not
+    # name an interpolating convention as any of them
+    low = lambda n, q: float(np.quantile(np.asarray(scores(n), float), q,
+                                         method="lower"))
+    assert rounding_rule(inv) == "inverted_cdf"
+    assert rounding_rule(low) == "lower"
+    assert rounding_rule(lin) is None
 
 
 self_check()
@@ -486,8 +533,36 @@ def main():
         say("form, percentile_cont(x, q); the WITHIN GROUP query that runs on DuckDB")
         say("is an error here. A query ported from the standard therefore fails")
         say("loudly instead of returning a wrong number, which is a different failure")
-        say("mode from a wrong default. Which convention the positional functions")
-        say("implement is not measured here.")
+        say("mode from a wrong default. Section (4) identifies the convention the")
+        say("positional functions implement.")
+
+    pos = sqlite_positional_fns()
+    if pos:
+        say("")
+        say("(4) SQLite's positional functions: which convention, and does it deliver")
+        say("Same instrument as (1) and (2): the tie-free set 1..n, identified at n=50.")
+        say(f"{'function':<42} {'convention':<34} {'A':>7} {'B':>7}")
+        say("-" * 100)
+        for name, fn in pos.items():
+            conv, (A, B) = identify(fn)
+            say(f"{name:<42} {str(conv):<34} "
+                f"{('%.4f' % A) if A is not None else '--':>7} "
+                f"{('%.4f' % B) if B is not None else '--':>7}")
+        say("")
+        for name, fn in pos.items():
+            oks = []
+            for level in LEVELS:
+                for n in NS:
+                    h, req, ok = delivers(fn, n, level)
+                    oks.append(bool(ok))
+            say(f"    {name:<42} delivers in {sum(oks)} of {len(oks)} cells")
+        say("")
+        say("Which rounding rule each discrete function is, matched exactly against")
+        say("numpy on the same sizes and an interior grid of levels:")
+        disc = {k: v for k, v in pos.items() if "disc" in k}
+        disc.update({k: v for k, v in engines.items() if "percentile_disc" in k})
+        for name, fn in disc.items():
+            say(f"    {name:<42} numpy method={rounding_rule(fn)}")
 
     path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                         OUT)
