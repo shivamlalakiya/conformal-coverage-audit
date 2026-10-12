@@ -77,6 +77,9 @@ identifiers:
   - type: doi
     value: 10.5281/zenodo.23320331
     description: "Version v1.5.11 -- mapie #978 merged and #974, #980 closed; SQLite's positional percentile_cont and percentile_disc identified"
+  - type: doi
+    value: 10.5281/zenodo.23323429
+    description: "Version v1.5.12 -- tabular probe snaps mapie's recovered rails to their order statistic; Wilson cells for every M3 darts cell"
 # verified against the live remote
 repository-code: "https://github.com/shivamlalakiya/conformal-coverage-audit"
 # This is what GitHub's cite widget and the indexers read. Left at v1.1.0 it sent a
