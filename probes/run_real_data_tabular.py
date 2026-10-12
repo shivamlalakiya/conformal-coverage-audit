@@ -188,6 +188,20 @@ def measure_guard_floor(coverage, sym, X, y, hi=60):
     return None
 
 
+def snap_to_scores(x, s):
+    """`x`, or the sorted score it equals to within floating-point rounding.
+
+    mapie returns rails as centre + offset, so the offset comes back here through a
+    subtraction and can sit an ulp off the order statistic it is. bracket_indices
+    then counts that rail one gap short and an exact cell reads as failing to reach
+    the required span; on 12 Oct 2026 that was 16 of 112 bracket calls, the largest
+    residual 1.4e-14, and the REACHES count for sym=False moved between re-runs.
+    """
+    tol = 1e-9 * max(1.0, float(np.max(np.abs(s))))
+    i = int(np.argmin(np.abs(s - x)))
+    return float(s[i]) if abs(float(s[i]) - x) <= tol else x
+
+
 def self_check():
     # The clip in get_quantile and the guard in _check_alpha_and_n_samples are
     # mutually exclusive, at BOTH sym settings. An earlier reading of this probe
@@ -206,6 +220,14 @@ def self_check():
     assert required_rank(19, 0.95) == 19
     assert required_rank(18, 0.95) is None
     assert required_rank(200, 0.95) == 191
+    # A rail an ulp below the order statistic it is: unsnapped, the span is one
+    # gap short; snapped, it is the full span. A rail genuinely between two
+    # scores is left where it is.
+    s = np.array([-2.0, -1.0, 0.5, 1.0, 3.0])
+    near = np.nextafter(3.0, 0.0)
+    assert bracket_indices(-1.0, near, s) == (1, 4)
+    assert bracket_indices(-1.0, snap_to_scores(near, s), s) == (1, 5)
+    assert snap_to_scores(2.0, s) == 2.0
 
 
 self_check()
@@ -470,9 +492,10 @@ def _finish_regression(scores, centre, y_true, lo_a, hi_a, coverage, clipped,
         # for every test point and one bracket pair describes the cell.
         off_lo, off_hi = lo_a - centre, hi_a - centre
         assert np.ptp(off_lo) < 1e-6 and np.ptp(off_hi) < 1e-6, "rails are not offsets"
-        j_lo, j_hi = bracket_indices(float(off_lo[0]), float(off_hi[0]), s)
-        _, pos_lo = landed(float(off_lo[0]), s)
-        _, pos_hi = landed(float(off_hi[0]), s)
+        t_lo, t_hi = snap_to_scores(float(off_lo[0]), s), snap_to_scores(float(off_hi[0]), s)
+        j_lo, j_hi = bracket_indices(t_lo, t_hi, s)
+        _, pos_lo = landed(t_lo, s)
+        _, pos_hi = landed(t_hi, s)
         nests = bool(np.all(lo_b <= lo_a + 1e-9) and np.all(hi_b >= hi_a - 1e-9))
         return {
             "n": n,

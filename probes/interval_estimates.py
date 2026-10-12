@@ -105,6 +105,16 @@ TABLE_CELLS = [
      "0.90", None, "cal_length=15 "),
     ("m3", "darts", "30", "outputs/probe_output_real_data_darts_m3_monthly.txt",
      "0.90", None, "cal_length=30 "),
+    # Fig. 5 draws every darts cell at 0.90 on both archives, so it needs the M3
+    # cells no table prints. Appended, so no line above moves.
+    ("m3", "darts", "10", "outputs/probe_output_real_data_darts_m3_monthly.txt",
+     "0.90", None, "cal_length=10 "),
+    ("m3", "darts", "35", "outputs/probe_output_real_data_darts_m3_monthly.txt",
+     "0.90", None, "cal_length=35 "),
+    ("m3", "darts", "50", "outputs/probe_output_real_data_darts_m3_monthly.txt",
+     "0.90", None, "cal_length=50 "),
+    ("m3", "darts", "55", "outputs/probe_output_real_data_darts_m3_monthly.txt",
+     "0.90", None, "cal_length=55 "),
 ]
 
 _NOMINAL = re.compile(r"nominal (\d\.\d+)")
