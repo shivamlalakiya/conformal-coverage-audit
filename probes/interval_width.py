@@ -50,6 +50,7 @@ do so the ordering has moved and execution halts.
 
 import math
 import os
+from fractions import Fraction
 
 import numpy as np
 
@@ -263,6 +264,25 @@ def main():
         f"k*={worst_i['k']})")
     say(f"  corrected, mean cell        {mean_c:.5f}x")
     say("")
+
+    # Exact arithmetic and no draws, so nothing above moves: one rank short of k*
+    # costs 1/(n+1) of coverage everywhere, but the exceedance a report prints is
+    # (n+1-k*)/(n+1), and the same rank multiplies it by (n+2-k*)/(n+1-k*).
+    say("(4) ONE RANK SHORT, READ AS THE EXCEEDANCE A REPORT PRINTS")
+    say("-" * 100)
+    say("Exact arithmetic over this probe's (n, level) cells. The guarantee one rank")
+    say("below k* leaves (n+2-k*)/(n+1) uncovered against the (n+1-k*)/(n+1) the")
+    say("request allows; the factor is their ratio.")
+    exc = []
+    for n, q in sorted({(r["n"], r["q"]) for r in allr}, key=lambda c: (c[1], c[0])):
+        k = math.ceil((n + 1) * Fraction(str(q)))
+        f = Fraction(n + 2 - k, n + 1 - k)
+        exc.append((n, q, k, f))
+        say(f"  exceedance  n={n:<4} level {q:.2f}  k*={k:<4} factor {str(f):>5} "
+            f"= {float(f):.5f}")
+    worked = next(e for e in exc if e[0] == 50 and e[1] == HEADLINE)
+    worst = max(exc, key=lambda e: (e[3], e[1]))
+    say("")
     say("A fixed line for whatever reads this file. Everything above is wording and")
     say("wording gets revised; anything keyed to a sentence snaps when it does.")
     say(f"MACHINE iw_cells={len(allr)} iw_interior={len(inter)} iw_laws={len(L)} "
@@ -275,6 +295,9 @@ def main():
     say(f"MACHINE iw_worst_law={worst_c['law']} iw_worst_n={worst_c['n']} "
         f"iw_worst_level={worst_c['q']:.2f} iw_interior_law={worst_i['law']} "
         f"iw_interior_n={worst_i['n']} iw_interior_level={worst_i['q']:.2f}")
+    say(f"MACHINE iw_exc_worked={worked[3]} iw_exc_worked_n={worked[0]} "
+        f"iw_exc_worked_level={worked[1]:.2f} iw_exc_worst={worst[3]} "
+        f"iw_exc_worst_n={worst[0]} iw_exc_worst_level={worst[1]:.2f}")
 
     path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                         OUT)

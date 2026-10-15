@@ -700,6 +700,23 @@ nonconformist AbsErrorErrFunc.apply_inverse
   REACHES the required rank/span at every feasible n: yes  [10 of 10 cells]
   EXACT on it (paired delta zero): no  [9 of 10 cells]
 
+========================================================================================================
+LITERAL ALPHA: the nonconformist helper handed alpha as a caller types it
+========================================================================================================
+Scores 1..n, so the value returned is its own rank. 'harness' passes 1 - coverage
+in doubles, as the arm above does; 'literal' passes the decimal alpha.
+  coverage 0.90  alpha 0.1   size 20   required rank 19   literal 19   harness 19
+  coverage 0.90  alpha 0.1   size 30   required rank 28   literal 28   harness 28
+  coverage 0.90  alpha 0.1   size 49   required rank 45   literal 45   harness 46
+  coverage 0.90  alpha 0.1   size 50   required rank 46   literal 46   harness 46
+  coverage 0.90  alpha 0.1   size 200  required rank 181  literal 181  harness 181
+  coverage 0.95  alpha 0.05  size 20   required rank 20   literal 20   harness 20
+  coverage 0.95  alpha 0.05  size 30   required rank 30   literal 30   harness 30
+  coverage 0.95  alpha 0.05  size 49   required rank 48   literal 48   harness 48
+  coverage 0.95  alpha 0.05  size 50   required rank 49   literal 49   harness 49
+  coverage 0.95  alpha 0.05  size 200  required rank 191  literal 191  harness 191
+  LITERAL lands on the required rank in 10 of 10 cells
+
 Reading this table
 ------------------
 puncc is the control: it appends +inf and takes the inverted_cdf, so it lands

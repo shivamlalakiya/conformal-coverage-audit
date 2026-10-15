@@ -70,8 +70,21 @@ crowd together.
   corrected, worst below k*=n 1.39015x  (pareto1.5, n=20, level 0.90, k*=19)
   corrected, mean cell        1.15487x
 
+(4) ONE RANK SHORT, READ AS THE EXCEEDANCE A REPORT PRINTS
+----------------------------------------------------------------------------------------------------
+Exact arithmetic over this probe's (n, level) cells. The guarantee one rank
+below k* leaves (n+2-k*)/(n+1) uncovered against the (n+1-k*)/(n+1) the
+request allows; the factor is their ratio.
+  exceedance  n=20   level 0.90  k*=19   factor   3/2 = 1.50000
+  exceedance  n=50   level 0.90  k*=46   factor   6/5 = 1.20000
+  exceedance  n=100  level 0.90  k*=91   factor 11/10 = 1.10000
+  exceedance  n=200  level 0.90  k*=181  factor 21/20 = 1.05000
+  exceedance  n=100  level 0.95  k*=96   factor   6/5 = 1.20000
+  exceedance  n=100  level 0.99  k*=100  factor     2 = 2.00000
+
 A fixed line for whatever reads this file. Everything above is wording and
 wording gets revised; anything keyed to a sentence snaps when it does.
 MACHINE iw_cells=30 iw_interior=25 iw_laws=5 iw_sizes=4 iw_reps=100000
 MACHINE iw_weibull_worst=2.55827 iw_weibull_mean=1.14672 iw_corrected_worst=2.57417 iw_corrected_mean=1.15487 iw_corrected_interior_worst=1.39015
 MACHINE iw_worst_law=pareto1.5 iw_worst_n=100 iw_worst_level=0.99 iw_interior_law=pareto1.5 iw_interior_n=20 iw_interior_level=0.90
+MACHINE iw_exc_worked=6/5 iw_exc_worked_n=50 iw_exc_worked_level=0.90 iw_exc_worst=2 iw_exc_worst_n=100 iw_exc_worst_level=0.99

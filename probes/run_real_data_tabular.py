@@ -725,6 +725,35 @@ def main():
             f"{'yes' if deltas and all(d == 0 for d in deltas) else 'no'}"
             f"  [{sum(1 for d in deltas if d == 0)} of {len(deltas)} cells]")
 
+    # The nonconformist arm above hands apply_inverse 1 - coverage computed in
+    # doubles, which sits just below alpha, and at n_cal=49 floor(alpha(n+1))
+    # then returns 4 where exact arithmetic gives 5: its one-rank-long cell is the
+    # harness's float. The helper is rank-determined, so what it does at the alpha
+    # a caller types is read off tie-free scores 1..n, with no data and no RNG,
+    # and printed apart so no configuration parser meets it.
+    from nonconformist.nc import AbsErrorErrFunc
+    say("")
+    say("=" * 104)
+    say("LITERAL ALPHA: the nonconformist helper handed alpha as a caller types it")
+    say("=" * 104)
+    say("Scores 1..n, so the value returned is its own rank. 'harness' passes 1 - coverage")
+    say("in doubles, as the arm above does; 'literal' passes the decimal alpha.")
+    on = cells = 0
+    for coverage in COVERAGE:
+        literal = round(1 - coverage, 2)
+        for n in n_cals:
+            k = math.ceil((n + 1) * (1 - F(str(literal))))
+            if k > n:
+                continue
+            got = {name: int(np.asarray(AbsErrorErrFunc().apply_inverse(
+                np.arange(1.0, n + 1), a)).ravel()[0])
+                for name, a in (("harness", 1 - coverage), ("literal", literal))}
+            cells += 1
+            on += got["literal"] == k
+            say(f"  coverage {coverage:.2f}  alpha {literal:<5} size {n:<4} required rank "
+                f"{k:<4} literal {got['literal']:<4} harness {got['harness']}")
+    say(f"  LITERAL lands on the required rank in {on} of {cells} cells")
+
     say("")
     say("Reading this table")
     say("------------------")
