@@ -83,6 +83,9 @@ identifiers:
   - type: doi
     value: 10.5281/zenodo.23406399
     description: "Version v1.5.13 -- nonconformist at the literal alpha beside the tabular arm; exact exceedance factor per width cell"
+  - type: doi
+    value: 10.5281/zenodo.23407002
+    description: "Version v1.5.14 -- per-series darts width ratio printed apart from the pooled widths; tabular n_cal=49 recorded as post hoc"
 # verified against the live remote
 repository-code: "https://github.com/shivamlalakiya/conformal-coverage-audit"
 # This is what GitHub's cite widget and the indexers read. Left at v1.1.0 it sent a
