@@ -194,6 +194,7 @@ def main():
     say("    1 = it lands one rank short;  inf = no valid finite bound exists at that n")
     say("")
 
+    ratios = []
     for coverage in LEVELS:
         say("")
         say(f"nominal {coverage:.2f}   quantiles={quantiles_for(coverage)}")
@@ -203,6 +204,22 @@ def main():
             s = summarize(recs)
             for ln in format_cell(f"cal_length={cal:<3}", s):
                 say(ln)
+            # The widths line above pools raw widths, and M1/M3 series span several
+            # decades of scale, so a handful of big series dominate it. Each
+            # series' own B/A ratio is scale-free; it is printed apart, below.
+            r = [x["b_width"] / x["a_width"] for x in recs
+                 if x and "error" not in x and math.isfinite(x["b_width"])
+                 and x["a_width"] > 0]
+            ratios.append((coverage, cal, len(r), float(np.mean(r)) if r else None,
+                           float(np.median(r)) if r else None))
+
+    say("")
+    say("WIDTH RATIO PER SERIES: arm B's width over arm A's, series by series, so no")
+    say("series' scale weights the figure. Units with a finite arm B and a nonzero")
+    say("arm A width only.")
+    for coverage, cal, k, mean, med in ratios:
+        say(f"  ratio  nominal {coverage:.2f}  cal_length {cal:<3}  units {k:<4} "
+            + (f"mean {mean:.4f}  median {med:.4f}" if k else "no finite unit"))
 
     say("")
     say("A positive delta means the required rank covers more than the shipped call.")

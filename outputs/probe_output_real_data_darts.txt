@@ -119,6 +119,22 @@ nominal 0.95   quantiles=[0.025, 0.5, 0.975]
       status changed in 9 of 250 units: gains=9 losses=0   [arm B contains arm A: losses must be 0]
       widths:  A 8764   B 9611
 
+WIDTH RATIO PER SERIES: arm B's width over arm A's, series by series, so no
+series' scale weights the figure. Units with a finite arm B and a nonzero
+arm A width only.
+  ratio  nominal 0.90  cal_length 10   units 250  mean 1.0000  median 1.0000
+  ratio  nominal 0.90  cal_length 15   units 250  mean 1.3684  median 1.2568
+  ratio  nominal 0.90  cal_length 30   units 250  mean 1.0000  median 1.0000
+  ratio  nominal 0.90  cal_length 35   units 250  mean 1.1431  median 1.0754
+  ratio  nominal 0.90  cal_length 50   units 250  mean 1.0000  median 1.0000
+  ratio  nominal 0.90  cal_length 55   units 250  mean 1.0845  median 1.0530
+  ratio  nominal 0.95  cal_length 10   units 0    no finite unit
+  ratio  nominal 0.95  cal_length 15   units 0    no finite unit
+  ratio  nominal 0.95  cal_length 30   units 250  mean 1.2132  median 1.1430
+  ratio  nominal 0.95  cal_length 35   units 250  mean 1.1996  median 1.1445
+  ratio  nominal 0.95  cal_length 50   units 250  mean 1.1304  median 1.0807
+  ratio  nominal 0.95  cal_length 55   units 250  mean 1.1183  median 1.0702
+
 A positive delta means the required rank covers more than the shipped call.
 Raw archive series do not support assigning an absolute miss to the
 convention on its own -- the paired delta is what carries the claim.

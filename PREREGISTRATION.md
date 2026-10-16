@@ -8,7 +8,7 @@ after seeing output, names the second kind, and says what each one would have lo
 like had it gone the other way.
 
 The honest summary: the arithmetic results were fixed in advance and could not have
-been tuned. Several of the *measurement* choices were not, and two of them changed a
+been tuned. Several of the *measurement* choices were not, and three of them changed a
 reported number.
 
 ---
@@ -116,11 +116,25 @@ in a called helper.
 earned. This is the one item in this document where the *first* version of the
 measurement was actively misleading rather than merely less informative.
 
+### 7. The tabular arm's calibration grid
+
+**After.** The tabular suite first ran at `n_cal` in `{20, 30, 50, 200}`. At level 0.90
+none of those makes `alpha * (n + 1)` an integer, so a helper landing on the required
+rank and one landing a rank above it gave identical intervals, and every single-rail
+configuration read as exact. `n_cal = 49` was added on noticing that gap, after the
+first grid's output had been read. At that size four of the seven configurations sit
+one rank above the requirement; all seven still reach it.
+
+**Counterfactual.** Without the added size the arm would have reported one exactness
+figure where there are two properties, reaching the rank and landing on it, and the
+over-coverage of four configurations would not have been visible. The probe now prints
+REACHES and EXACT as separate lines and the build parses them separately.
+
 ---
 
 ## Decisions taken after seeing data that changed a published number
 
-Two, and both are recorded in the manuscripts at the point where the number appears.
+Three, and each is recorded in the manuscripts at the point where the number appears.
 
 1. **A ratio derived by hand from two rounded fields.** Two macros were computed by
    dividing values already rounded for display, and shipped values the probe had never
@@ -133,6 +147,11 @@ Two, and both are recorded in the manuscripts at the point where the number appe
    inference was not; the quantity it relied on exceeds the claimed bound by a factor
    of eighteen at one end of the parameter range. It was replaced by a proved bound,
    and the retracted wording is now one of the phrases the build refuses to reinstate.
+
+3. **An exactness count read off a grid that could not separate two properties.** The
+   tabular arm's first grid made every single-rail configuration look exact. Adding the
+   one size where the two properties differ split the count into configurations that
+   reach the rank and the smaller set that land on it (item 7 above).
 
 ---
 
