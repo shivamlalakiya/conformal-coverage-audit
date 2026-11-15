@@ -28,6 +28,12 @@ For every (law, size) pairing, across independent draws:
     default     numpy.quantile(scores, 1-alpha)                  method='linear'
     weibull     numpy.quantile(scores, 1-alpha, 'weibull')
     corrected   numpy.quantile(scores, (1-alpha)(n+1)/n, 'inverted_cdf')
+    ceiled      numpy.quantile(scores, ceil((1-alpha)(n+1))/n)  method='linear'
+
+The fourth call is the default definition handed the ceiled level, the third
+recommendation: keep the shipped call and change only the level. It is computed
+on the same draws as the other three and draws nothing of its own, so adding it
+moved no number printed before it; it is printed in its own block, (5).
 
 Printed as the baseline averaged in whatever units the law carries, together with
 each substitute over the baseline, divided draw by draw and then averaged. Dividing
@@ -99,6 +105,11 @@ def required_rank(n, q):
     return math.ceil((n + 1) * q)
 
 
+def ceiled_level(n, q):
+    """ceil((1-alpha)(n+1))/n, the ceiling taken in floating point as published."""
+    return min(math.ceil(q * (n + 1)) / n, 1.0)
+
+
 def self_check():
     # (1) each of the three positions matches its published formula, taken from
     #     numpy at sizes picked near the satisfiability boundary, not round ones.
@@ -141,6 +152,18 @@ def self_check():
     assert corrected_level(9, 0.90) == 1.0
     assert min(SIZES) > 9
 
+    # (5) the default at the ceiled level lands on k*: its position is
+    #     k* + 1 - k*/n, whose floor is k* for every k* <= n.
+    #     This is the identity block (5) prices; a break means the fourth call
+    #     is not the guarantee it is printed as.
+    for n in SIZES:
+        for q in LEVELS:
+            k = required_rank(n, q)
+            if k > n:
+                continue
+            assert math.floor(virtual_index(n, ceiled_level(n, q), "linear")
+                              + 1e-9) == k, (n, q, k)
+
 
 self_check()
 
@@ -148,8 +171,9 @@ self_check()
 def cell(name, law, n, q):
     """Average baseline cutoff, plus the two averaged per-draw span quotients."""
     qc = corrected_level(n, q)
-    tot_d = tot_w = tot_c = 0.0
-    sq_w = sq_c = 0.0
+    qe = ceiled_level(n, q)
+    tot_d = tot_w = tot_c = tot_e = 0.0
+    sq_w = sq_c = sq_e = 0.0
     done = 0
     while done < REPS:
         r = min(CHUNK, REPS - done)
@@ -157,7 +181,10 @@ def cell(name, law, n, q):
         d = np.quantile(S, q, axis=1, method="linear")
         w = np.quantile(S, q, axis=1, method="weibull")
         c = np.quantile(S, qc, axis=1, method="inverted_cdf")
-        rw, rc = w / d, c / d
+        e = np.quantile(S, qe, axis=1, method="linear")
+        rw, rc, re_ = w / d, c / d, e / d
+        tot_e += float(re_.sum())
+        sq_e += float((re_ ** 2).sum())
         tot_d += float(d.sum())
         tot_w += float(rw.sum())
         tot_c += float(rc.sum())
@@ -167,10 +194,13 @@ def cell(name, law, n, q):
     mean_w, mean_c = tot_w / REPS, tot_c / REPS
     se_w = math.sqrt(max(sq_w / REPS - mean_w ** 2, 0.0) / REPS)
     se_c = math.sqrt(max(sq_c / REPS - mean_c ** 2, 0.0) / REPS)
+    mean_e = tot_e / REPS
+    se_e = math.sqrt(max(sq_e / REPS - mean_e ** 2, 0.0) / REPS)
     k = required_rank(n, q)
     return {"law": name, "n": n, "q": q, "k": k, "at_max": k == n,
             "default": tot_d / REPS,
-            "weibull": mean_w, "corrected": mean_c, "se_w": se_w, "se_c": se_c}
+            "weibull": mean_w, "corrected": mean_c, "se_w": se_w, "se_c": se_c,
+            "ceiled": mean_e, "se_e": se_e, "qe": qe}
 
 
 def main():
@@ -283,6 +313,46 @@ def main():
     worked = next(e for e in exc if e[0] == 50 and e[1] == HEADLINE)
     worst = max(exc, key=lambda e: (e[3], e[1]))
     say("")
+
+    # Monte Carlo error of the two means above. Every cell draws its own samples,
+    # so the cells are independent and the variance of a mean over N of them is
+    # the sum of their squared standard errors over N squared.
+    N = len(allr)
+    mean_w_se = math.sqrt(sum(r["se_w"] ** 2 for r in allr)) / N
+    mean_c_se = math.sqrt(sum(r["se_c"] ** 2 for r in allr)) / N
+
+    # The default definition at the ceiled level, on the draws above.
+    for r in allr:
+        assert r["ceiled"] >= 1.0, ("the default at the ceiled level came back "
+                                    "narrower than at the raw level", r)
+    worst_e = max(allr, key=lambda r: r["ceiled"])
+    worst_ei = max(inter, key=lambda r: r["ceiled"])
+    mean_e = sum(r["ceiled"] for r in allr) / N
+    mean_e_se = math.sqrt(sum(r["se_e"] ** 2 for r in allr)) / N
+    say("(5) THE THIRD RECOMMENDATION: THE DEFAULT DEFINITION AT THE CEILED LEVEL")
+    say("-" * 100)
+    say("numpy.quantile(scores, ceil((1-alpha)(n+1))/n), method left at 'linear',")
+    say("over the default on the same draws. Its position k* + 1 - k*/n floors to k*")
+    say("(self_check (5)), so it carries the guarantee and interpolates part of the")
+    say("way to the next draw; where k* = n it returns the largest draw.")
+    say(f"{'':<10}{'law':<14}{'n':>5}{'level':>7}{'k*':>5}{'ceiled lvl':>12}"
+        f"{'linear@ceil /':>16}{'s.e.':>9}")
+    say(f"{'':<10}{'':<14}{'':>5}{'':>7}{'':>5}{'':>12}{'default':>16}{'':>9}")
+    say("-" * 100)
+    for r in allr:
+        say(f"  ceiled  {r['law']:<14}{r['n']:>5}{r['q']:>7.2f}{r['k']:>5}"
+            f"{r['qe']:>12.5f}{r['ceiled']:>16.5f}{r['se_e']:>9.5f}")
+    say("")
+    say(f"  ceiled, worst cell          {worst_e['ceiled']:.5f}x  "
+        f"({worst_e['law']}, n={worst_e['n']}, level {worst_e['q']:.2f}, "
+        f"k*={worst_e['k']})")
+    say(f"  ceiled, worst below k*=n    {worst_ei['ceiled']:.5f}x  "
+        f"({worst_ei['law']}, n={worst_ei['n']}, level {worst_ei['q']:.2f}, "
+        f"k*={worst_ei['k']})")
+    say(f"  ceiled, mean cell           {mean_e:.5f}x   s.e. {mean_e_se:.5f}")
+    say(f"  weibull, mean cell s.e.     {mean_w_se:.5f}")
+    say(f"  corrected, mean cell s.e.   {mean_c_se:.5f}")
+    say("")
     say("A fixed line for whatever reads this file. Everything above is wording and")
     say("wording gets revised; anything keyed to a sentence snaps when it does.")
     say(f"MACHINE iw_cells={len(allr)} iw_interior={len(inter)} iw_laws={len(L)} "
@@ -298,6 +368,11 @@ def main():
     say(f"MACHINE iw_exc_worked={worked[3]} iw_exc_worked_n={worked[0]} "
         f"iw_exc_worked_level={worked[1]:.2f} iw_exc_worst={worst[3]} "
         f"iw_exc_worst_n={worst[0]} iw_exc_worst_level={worst[1]:.2f}")
+    say(f"MACHINE iw_weibull_mean_se={mean_w_se:.5f} "
+        f"iw_corrected_mean_se={mean_c_se:.5f} "
+        f"iw_ceiled_worst={worst_e['ceiled']:.5f} iw_ceiled_mean={mean_e:.5f} "
+        f"iw_ceiled_mean_se={mean_e_se:.5f} "
+        f"iw_ceiled_interior_worst={worst_ei['ceiled']:.5f}")
 
     path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                         OUT)
