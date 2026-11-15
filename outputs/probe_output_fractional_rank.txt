@@ -171,6 +171,8 @@ higher                         46.000     0.9020     0.9020    0.9017    0.8980 
 midpoint                       45.500     0.8824     0.8922    0.8939    0.9184      0.9020      no
 nearest                        45.000     0.8824     0.8824    0.8820    0.9082      0.9020     yes
 
+    'measured' binomial standard error, largest over these rows: 0.00102
+
     'exact? yes' marks a definition whose index is a whole rank at the raw
     level AND at the corrected one -- both conditions, not the second alone.
     averaged_inverted_cdf reaches rank 46 at its corrected level and still

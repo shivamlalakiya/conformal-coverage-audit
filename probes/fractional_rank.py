@@ -557,10 +557,12 @@ def main():
     n, alpha = 50, 0.10
     say(f"{'method':<28}{'h(raw)':>9}{'guarantee':>11}{'delivered':>11}"
         f"{'measured':>10}{'q needed':>10}{'floor at q':>12}{'exact?':>8}")
+    se_max = 0.0
     for method in list(HF) + list(ROUNDING):
         h = virtual_index(n, 1 - alpha, method)
-        got, _ = measure(S["normal"], n, 1 - alpha, method,
-                        reps=REPS_ALLDEFS)
+        got, se = measure(S["normal"], n, 1 - alpha, method,
+                          reps=REPS_ALLDEFS)
+        se_max = max(se_max, se)
         qd = q_needed(n, alpha, method)
         integer = abs(h - round(h)) < 1e-12
         qs = "---" if qd is None else f"{qd:.4f}"
@@ -576,6 +578,8 @@ def main():
         say(f"{method:<28}{h:>9.3f}{math.floor(h) / (n + 1):>11.4f}"
             f"{h / (n + 1):>11.4f}{got:>10.4f}{qs:>10}{fq:>12}"
             f"{'yes' if integer_at_q else 'no':>8}")
+    say("")
+    say(f"    'measured' binomial standard error, largest over these rows: {se_max:.5f}")
     say("")
     say("    'exact? yes' marks a definition whose index is a whole rank at the raw")
     say("    level AND at the corrected one -- both conditions, not the second alone.")
