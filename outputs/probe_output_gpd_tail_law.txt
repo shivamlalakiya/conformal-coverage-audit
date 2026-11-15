@@ -23,7 +23,8 @@ W14  ONE LAW FOR pi -- the two cases of W12 are a single family
    0.667  Frechet                 0.7452    0.6580    0.6156    0.5748    0.5395    0.5082
    1.250  Frechet (heavy)         0.7896    0.6985    0.6494    0.5990    0.5531    0.5111
 
-    Every column decreases toward gamma = 0.5 with depth while rows increase with xi. So xi orders the family while depth flattens it.
+    Every column decreases toward gamma = 0.5 with depth, and every row
+    increases with xi. So xi orders the family while depth flattens it.
 
 --------------------------------------------------------------------------------------------------------
 (ii) MEASURED against the law, on distributions with KNOWN xi. The last
@@ -68,6 +69,7 @@ pareto0.8       1.250   500  0.995   3   0.505   0.6538    0.6537  -0.0002     0
 
     worst |error|:  unified law 0.000542   assuming xi=0 0.165497   (305x)
     mean  |error|:  unified law 0.00010   assuming xi=0 0.03893
+    measured s.e.:  largest 0.000313   at the worst law cell 0.000306   (that error is 1.77 s.e.)
 
 --------------------------------------------------------------------------------------------------------
 (iii) THE BRACKET W12 COULD ONLY REPORT. normal and lognormal are
@@ -108,8 +110,9 @@ lognormal       5000  50   0.010    0.0102     0.0102     0.2439   above xi=0: h
     0.667    0.25     -0.2060     -0.1651     -0.1185     -0.0268     +0.0471
     0.667    0.50     -0.1618     -0.1184     -0.0785     -0.0162     +0.0274
 
-    The sensitivity is mild: mis-stating xi by 0.25 moves pi by only tiny rank fractions, which is roughly ten times smaller than the
-    gamma-vs-pi correction gap so a rough tail estimate -- or a
+    The sensitivity is mild: mis-stating xi by 0.25 moves pi by a few
+    hundredths of a rank, which is roughly ten times smaller than the
+    gamma-vs-pi gap being corrected. So a rough tail estimate -- or a
     conservative bound on it -- recovers most of the benefit, and the
     distribution-free floor floor(h)/(n+1) is unaffected either way.
 

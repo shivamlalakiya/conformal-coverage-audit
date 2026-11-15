@@ -181,12 +181,21 @@ def cases(rng):
 
 
 def measure_pi(samp, F, n, i, gam, reps=REPS):
-    """pi as the ratio of expectations the coverage identity requires."""
+    """pi as the ratio of expectations the coverage identity requires.
+
+    Returns the ratio and its delta-method Monte Carlo standard error, the
+    latter from the same draws: num/den has variance var(num - pi den)/den^2
+    per replicate, to first order.
+    """
     S = np.sort(samp((reps, n)), axis=1)
     j = n - i
     a, b = S[:, j - 1], S[:, j]
     T = a + gam * (b - a)
-    return float(np.mean(F(T) - F(a))) / float(np.mean(F(b) - F(a)))
+    num, den = F(T) - F(a), F(b) - F(a)
+    mden = float(np.mean(den))
+    pi = float(np.mean(num)) / mden
+    se = float(np.std(num - pi * den)) / math.sqrt(reps) / mden
+    return pi, se
 
 
 GRID = [(200, 0.99), (50, 0.95), (50, 0.99), (500, 0.995)]
@@ -240,9 +249,9 @@ def main():
             h, j, gam, i = decompose(n, q)
             law = pi_gpd(xi, i, gam)
             g0 = pi_gpd(0.0, i, gam)
-            got = measure_pi(samp, F, n, i, gam)
+            got, se = measure_pi(samp, F, n, i, gam)
             rows.append({"dist": name, "xi": xi, "n": n, "q": q, "i": i,
-                         "gam": gam, "law": law, "got": got,
+                         "gam": gam, "law": law, "got": got, "se": se,
                          "err": got - law, "err0": got - g0})
             say(f"{name:<14}{xi:>7.3f}{n:>6}{q:>7.3f}{i:>4}{gam:>8.3f}"
                 f"{law:>9.4f}{got:>10.4f}{got - law:>+9.4f}{g0:>11.4f}"
@@ -259,6 +268,14 @@ def main():
     say(f"    mean  |error|:  unified law "
         f"{sum(abs(r['err']) for r in rows) / len(rows):.5f}"
         f"   assuming xi=0 {sum(abs(r['err0']) for r in rows) / len(rows):.5f}")
+    # Monte Carlo error of the measured column, from the same draws. The law's
+    # worst error is read against its own cell's s.e.: where that is near one,
+    # the law's error is Monte Carlo noise and the multiple above is a floor
+    # set by the replicate count, not a property of the law.
+    wr = max(rows, key=lambda r: abs(r["err"]))
+    say(f"    measured s.e.:  largest {max(r['se'] for r in rows):.6f}"
+        f"   at the worst law cell {wr['se']:.6f}"
+        f"   (that error is {abs(wr['err']) / wr['se']:.2f} s.e.)")
     say("")
 
     # ---------------- (iii) the bracket, explained -----------------------
@@ -277,7 +294,7 @@ def main():
                            lambda x: lognorm.cdf(x, 1))):
         for n in (50, 200, 1000, 5000):
             h, j, gam, i = decompose(n, 0.99)
-            got = measure_pi(samp, F, n, i, gam, reps=200_000)
+            got, _ = measure_pi(samp, F, n, i, gam, reps=200_000)
             g0 = pi_gpd(0.0, i, gam)
             try:
                 xi_hat = optimize.brentq(lambda x: pi_gpd(x, i, gam) - got,
