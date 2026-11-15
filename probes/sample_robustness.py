@@ -46,6 +46,15 @@ rather than dropped silently.
     # the darts arm runs in its own venv, on the same series, single origin:
     .venv-probe/bin/python probes/sample_robustness.py --export-npz /tmp/m3_full.npz
     ../.venv-darts/bin/python probes/run_real_data_darts.py /tmp/m3_full.npz
+
+The headline M1 monthly archive gets the same run with `--dataset
+m1_monthly_dataset`, written to probe_output_sample_robustness_m1.txt (the
+335-of-1428 figure above is M3's; the M1 output prints its own):
+
+    .venv-probe/bin/python probes/sample_robustness.py --dataset m1_monthly_dataset
+    .venv-probe/bin/python probes/sample_robustness.py --dataset m1_monthly_dataset \
+        --export-npz /tmp/m1_full.npz
+    ../.venv-darts/bin/python probes/run_real_data_darts.py /tmp/m1_full.npz
 """
 
 import math
@@ -66,6 +75,8 @@ ORIGINS = 4                      # test points per series; K in the docstring
 MIN_LEN = 73                     # darts' 70-point floor + (ORIGINS - 1)
 SK_WINDOWS = (20, 40)            # identical to the committed sktime arm
 OUT = "outputs/probe_output_sample_robustness.txt"
+# Non-default archives, each to its own file so M3's output stays byte-identical.
+OUT_FOR = {"m1_monthly_dataset": "outputs/probe_output_sample_robustness_m1.txt"}
 
 
 # --------------------------------------------------------------------------
@@ -280,6 +291,11 @@ def cell_line(prefix, r):
 
 
 def main():
+    global DATASET
+    if "--dataset" in sys.argv:
+        DATASET = sys.argv[sys.argv.index("--dataset") + 1]
+        assert DATASET in OUT_FOR, f"no output file registered for {DATASET}"
+    out_rel = OUT_FOR.get(DATASET, OUT)
     export = None
     if "--export-npz" in sys.argv:
         export = sys.argv[sys.argv.index("--export-npz") + 1]
@@ -386,9 +402,11 @@ def main():
     say("delta, not the exchangeability caveat, which no amount of data can remove.")
     say("")
     say("The darts arm runs the same series in its own venv at a single origin, so its")
-    say("standard error needs no clustering; see probe_output_real_data_darts_m3_full.txt.")
+    darts_out = ("probe_output_real_data_darts_m3_full.txt" if out_rel == OUT else
+                 f"probe_output_real_data_darts_{DATASET.replace('_dataset', '')}_full.txt")
+    say(f"standard error needs no clustering; see {darts_out}.")
 
-    out = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), OUT)
+    out = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), out_rel)
     with open(out, "w") as fh:
         fh.write("\n".join(lines) + "\n")
     print(f"\nwritten -> {out}")
