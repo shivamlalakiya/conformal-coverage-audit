@@ -1,0 +1,60 @@
+================================================================================================
+TORCHCP'S TWO WEIGHTED RESOLUTION SITES, RUN ON UNIT WEIGHTS
+================================================================================================
+torchcp 1.2.1; score set 1..n, every weight one, so k* is known
+exact   = returns the k*-th score;  inf = returns +inf;  raise = ValueError;
+bracket = returns the root-finder's bracket edge (1000), above every score
+h-k=d   = the threshold sits d ranks from k*; a positive d over-covers by d/(n+1)
+A row is printed wherever either site is not exact.
+
+ROW alpha=0.1 n=2 region=below k=none naps=raise weighted=inf naps_q=raise warnings=0
+ROW alpha=0.1 n=3 region=below k=none naps=raise weighted=inf naps_q=raise warnings=0
+ROW alpha=0.1 n=4 region=below k=none naps=raise weighted=inf naps_q=raise warnings=0
+ROW alpha=0.1 n=5 region=below k=none naps=raise weighted=inf naps_q=raise warnings=0
+ROW alpha=0.1 n=6 region=below k=none naps=raise weighted=inf naps_q=raise warnings=0
+ROW alpha=0.1 n=7 region=below k=none naps=raise weighted=inf naps_q=raise warnings=0
+ROW alpha=0.1 n=8 region=below k=none naps=raise weighted=inf naps_q=raise warnings=0
+ROW alpha=0.1 n=9 region=at k=9 naps=bracket weighted=inf naps_q=1000.0 warnings=0
+ROW alpha=0.1 n=19 region=above k=18 naps=h-k=+1.000 weighted=exact naps_q=18.999999999999137 warnings=0
+ROW alpha=0.1 n=29 region=above k=27 naps=h-k=+0.355 weighted=h-k=+1.000 naps_q=27.35522283018015 warnings=0
+ROW alpha=0.1 n=39 region=above k=36 naps=h-k=+1.000 weighted=exact naps_q=36.99999999999958 warnings=0
+ROW alpha=0.1 n=59 region=above k=54 naps=h-k=+1.000 weighted=exact naps_q=54.999999999998934 warnings=0
+ROW alpha=0.05 n=2 region=below k=none naps=raise weighted=inf naps_q=raise warnings=0
+ROW alpha=0.05 n=3 region=below k=none naps=raise weighted=inf naps_q=raise warnings=0
+ROW alpha=0.05 n=4 region=below k=none naps=raise weighted=inf naps_q=raise warnings=0
+ROW alpha=0.05 n=5 region=below k=none naps=raise weighted=inf naps_q=raise warnings=0
+ROW alpha=0.05 n=6 region=below k=none naps=raise weighted=inf naps_q=raise warnings=0
+ROW alpha=0.05 n=7 region=below k=none naps=raise weighted=inf naps_q=raise warnings=0
+ROW alpha=0.05 n=8 region=below k=none naps=raise weighted=inf naps_q=raise warnings=0
+ROW alpha=0.05 n=9 region=below k=none naps=raise weighted=inf naps_q=raise warnings=0
+ROW alpha=0.05 n=10 region=below k=none naps=raise weighted=inf naps_q=raise warnings=0
+ROW alpha=0.05 n=11 region=below k=none naps=raise weighted=inf naps_q=raise warnings=0
+ROW alpha=0.05 n=12 region=below k=none naps=raise weighted=inf naps_q=raise warnings=0
+ROW alpha=0.05 n=13 region=below k=none naps=raise weighted=inf naps_q=raise warnings=0
+ROW alpha=0.05 n=14 region=below k=none naps=raise weighted=inf naps_q=raise warnings=0
+ROW alpha=0.05 n=15 region=below k=none naps=raise weighted=inf naps_q=raise warnings=0
+ROW alpha=0.05 n=16 region=below k=none naps=raise weighted=inf naps_q=raise warnings=0
+ROW alpha=0.05 n=17 region=below k=none naps=raise weighted=inf naps_q=raise warnings=0
+ROW alpha=0.05 n=18 region=below k=none naps=raise weighted=inf naps_q=raise warnings=0
+ROW alpha=0.05 n=19 region=at k=19 naps=bracket weighted=exact naps_q=1000.0 warnings=0
+ROW alpha=0.05 n=39 region=above k=38 naps=h-k=+0.846 weighted=exact naps_q=38.84562878953905 warnings=0
+ROW alpha=0.05 n=59 region=above k=57 naps=h-k=+0.093 weighted=exact naps_q=57.093145314359745 warnings=0
+
+TALLY over n in 2..60 (alpha, site, region relative to the floor, result: count)
+TALLY alpha=0.05 site=naps region=above result=exact count=39
+TALLY alpha=0.05 site=naps region=above result=h-k=+0.093 count=1
+TALLY alpha=0.05 site=naps region=above result=h-k=+0.846 count=1
+TALLY alpha=0.05 site=naps region=at result=bracket count=1
+TALLY alpha=0.05 site=naps region=below result=raise count=17
+TALLY alpha=0.05 site=weighted region=above result=exact count=41
+TALLY alpha=0.05 site=weighted region=at result=exact count=1
+TALLY alpha=0.05 site=weighted region=below result=inf count=17
+TALLY alpha=0.1 site=naps region=above result=exact count=47
+TALLY alpha=0.1 site=naps region=above result=h-k=+0.355 count=1
+TALLY alpha=0.1 site=naps region=above result=h-k=+1.000 count=3
+TALLY alpha=0.1 site=naps region=at result=bracket count=1
+TALLY alpha=0.1 site=naps region=below result=raise count=7
+TALLY alpha=0.1 site=weighted region=above result=exact count=50
+TALLY alpha=0.1 site=weighted region=above result=h-k=+1.000 count=1
+TALLY alpha=0.1 site=weighted region=at result=inf count=1
+TALLY alpha=0.1 site=weighted region=below result=inf count=7
