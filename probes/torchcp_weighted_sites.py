@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Run torchcp's two weighted resolution sites rather than read them.
 
-A second reader found two torchcp expressions that turn a requested level into a
-position in calibration scores and were missing from the census:
+A second reader found two torchcp expressions that map the requested level onto an
+index of the calibration scores and were missing from the census:
 
   WeightedPredictor.predict      classification/predictor/weight.py:120
       i_T = argmax(cumsum(normalised weights, test weight appended) >= 1 - alpha),
