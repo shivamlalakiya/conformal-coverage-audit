@@ -386,6 +386,7 @@ def alignment_block(rng, say, reps=300, L=80):
 
     # statistical: on a random walk the variance must be (offset+1) sigma^2
     var = {0: [], 1: [], 2: []}
+    sizes = {0: set(), 1: set(), 2: set()}
     for _ in range(reps):
         v = np.cumsum(rng.standard_normal(L))
         yy = pd.Series(v, index=pd.RangeIndex(L))
@@ -398,18 +399,30 @@ def alignment_block(rng, say, reps=300, L=80):
         for off in var:
             d = np.diagonal(M, offset=off)
             d = d[~np.isnan(d)]
+            sizes[off].add(d.size)
             var[off].append(float(np.var(d)))
     say("")
     say(f"    statistical, random walk with unit innovation variance, {reps} series:")
+    # The entries of diag(offset=k) are (k+1)-step sums over consecutive origins, so
+    # they overlap, and np.var subtracts their own mean. The expected value is then
+    # (k+1) - (1/m^2) sum_ij max(0, k+1-|i-j|), not k+1; this column is that
+    # expectation, exact for unit innovations at the diagonal length m printed.
+    def expected_var(k, m):
+        i = np.arange(m)
+        cov = np.maximum(0, k + 1 - np.abs(i[:, None] - i[None, :]))
+        return (k + 1) - cov.sum() / m ** 2
     say(f"{'diagonal':>18}{'mean Var':>12}{'if (k+1)-step':>15}{'if k-step':>12}"
-        f"{'s.e.':>8}")
+        f"{'s.e.':>8}{'m':>5}{'(k+1) after mean':>18}")
     for off in sorted(var):
+        assert len(sizes[off]) == 1, (off, sizes[off])
+        m_off = sizes[off].pop()
+        ev = expected_var(off, m_off)
         mv = float(np.mean(var[off]))
         # s.e. of the mean over the series: the sample sd of the per-series
         # variances over sqrt(reps)
         se = float(np.std(var[off], ddof=1) / np.sqrt(len(var[off])))
         say(f"{'diag(offset=' + str(off) + ')':>18}{mv:>12.3f}"
-            f"{off + 1:>15}{(off if off else 0):>12}{se:>8.3f}")
+            f"{off + 1:>15}{(off if off else 0):>12}{se:>8.3f}{m_off:>5}{ev:>18.3f}")
         assert abs(mv - (off + 1)) < 0.25, (off, mv)
     say("")
     say("    Every offset matches the (k+1)-step column and misses the k-step one.")

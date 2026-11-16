@@ -14,10 +14,10 @@ W10  HORIZON FEASIBILITY -- the floor scales with what you divide alpha by
       diag(offset=2): index pairs [(32, 29), (33, 30), (34, 31), (35, 32)]   spans [3, 3, 3, 3]   -> 3-step residuals
 
     statistical, random walk with unit innovation variance, 300 series:
-          diagonal    mean Var  if (k+1)-step   if k-step    s.e.
-    diag(offset=0)       0.978              1           0   0.012
-    diag(offset=1)       1.899              2           1   0.028
-    diag(offset=2)       2.782              3           2   0.048
+          diagonal    mean Var  if (k+1)-step   if k-step    s.e.    m  (k+1) after mean
+    diag(offset=0)       0.978              1           0   0.012   50             0.980
+    diag(offset=1)       1.899              2           1   0.028   49             1.919
+    diag(offset=2)       2.782              3           2   0.048   48             2.816
 
     Every offset matches the (k+1)-step column and misses the k-step one.
     The misalignment is real. Which way it errs: on an integrated series a
