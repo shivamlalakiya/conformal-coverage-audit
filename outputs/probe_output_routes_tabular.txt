@@ -26,14 +26,10 @@ mapie get_quantile [allow_infinite_bounds=True]        finite      -
 mapie LAC quantiles [prefit/mean -> delegates]         raises      -
 mapie LAC quantiles [cv=5/crossval -> count scale]     raises      -
 mapie _beta_optimize + get_quantile (composed)         raises      -
-numpy method='linear' (sktime, statsforecast, neuralforecast)   finite      -
-numpy method='higher' (darts)                          finite      -
 
-rows with a public route returning a finite number in silence: 4 of 13 on this arm
+rows with a public route returning a finite number in silence: 2 of 11 on this arm
       nonconformist AbsErrorErrFunc.apply_inverse
       mapie get_quantile [allow_infinite_bounds=True]
-      numpy method='linear' (sktime, statsforecast, neuralforecast)
-      numpy method='higher' (darts)
 
 Routes tried, per row
 ----------------------------------------------------------------------------------------------------
@@ -45,18 +41,18 @@ Routes tried, per row
       finite  silent  nonconformist.icp.IcpRegressor.predict(significance=0.10)
   puncc BaseCalibrator.compute_quantile
       raises  silent  deel.puncc.regression.SplitCP.predict(alpha=0.10)
-              ValueError: Alpha is too small: (alpha=0.09999999999999998, n=8) 0.099999999999999
+              ValueError: Alpha is too small: (alpha=0.1, n=8) 0.1 < 0.1111111111111111 for at l
       raises  silent  deel.puncc.regression.LocallyAdaptiveCP.predict
-              ValueError: Alpha is too small: (alpha=0.09999999999999998, n=8) 0.099999999999999
+              ValueError: Alpha is too small: (alpha=0.1, n=8) 0.1 < 0.1111111111111111 for at l
       raises  silent  deel.puncc.regression.CVPlus.predict
-              ValueError: Alpha is too small: (alpha=0.09999999999999998, n=8) 0.099999999999999
+              ValueError: Alpha is too small: (alpha=0.1, n=8) 0.1 < 0.1111111111111111 for at l
   puncc api/utils.py quantile (shared utility)
       raises  silent  deel.puncc.regression.SplitCP.predict(alpha=0.10)
-              ValueError: Alpha is too small: (alpha=0.09999999999999998, n=8) 0.099999999999999
+              ValueError: Alpha is too small: (alpha=0.1, n=8) 0.1 < 0.1111111111111111 for at l
       raises  silent  deel.puncc.regression.LocallyAdaptiveCP.predict
-              ValueError: Alpha is too small: (alpha=0.09999999999999998, n=8) 0.099999999999999
+              ValueError: Alpha is too small: (alpha=0.1, n=8) 0.1 < 0.1111111111111111 for at l
       raises  silent  deel.puncc.regression.CVPlus.predict
-              ValueError: Alpha is too small: (alpha=0.09999999999999998, n=8) 0.099999999999999
+              ValueError: Alpha is too small: (alpha=0.1, n=8) 0.1 < 0.1111111111111111 for at l
   torchcp calculate_conformal_value
       +inf    warns   torchcp.regression.SplitPredictor.calibrate(alpha=0.10)
   mapie get_quantile
@@ -73,9 +69,3 @@ Routes tried, per row
   mapie _beta_optimize + get_quantile (composed)
       raises  silent  SplitConformalRegressor.predict_interval(minimize_interval_width=True)
               ValueError: Number of samples of the score is too low, 1/confidence_level and 1/(1
-  numpy method='linear' (sktime, statsforecast, neuralforecast)
-      finite  silent  statsforecast ConformalIntervals(n_windows=2) via StatsForecast.forecast(level=[90])  [CITED, not executed here]
-              probe_output_real_data_statsforecast.txt: the shipped default at two calibration windows, where the floor is nine, returns a finite interval and delivers 0.5840 against 0.90
-  numpy method='higher' (darts)
-      finite  silent  darts ConformalNaiveModel(cal_length=10).predict(predict_likelihood_parameters=True)  [CITED, not executed here]
-              probe_output_real_data_darts.txt: nominal 0.95, cal_length=10, floor 19 -- the required rank exceeds n in 250 of 250 cells and the shipped route returns a finite interval in every one, delivering 0.8960

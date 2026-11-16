@@ -35,15 +35,16 @@ proof of unreachability -- which is why the routes tried are printed per row rat
 than summarised. Where a library offers several high-level predictors, more than one
 is called and all of them are printed.
 
-Two rows are CITED rather than executed, and named as citations. `numpy` is not a
-conformal library and its two rows carry their consumers in their labels; the
-consumers' public routes were executed in the paired real-data arms, below the floor,
-and those outputs are committed. Re-executing them here would measure the same call a
-second time and let the two answers drift.
+The two `numpy` rows are not conformal libraries; each carries its consumers in its
+label and is called here through one consumer's public route at the same n = 8 and
+0.90, so no row of this table is a citation: statsforecast's ConformalIntervals on
+the forecasting arm, darts' ConformalNaiveModel on the darts arm (darts is pinned in
+its own environment).
 
     python route_reachability.py --arm tabular       # crepes, puncc, torchcp,
                                                      # nonconformist, mapie
     python route_reachability.py --arm forecasting   # statsforecast
+    python route_reachability.py --arm darts         # darts, in .venv-darts
 """
 
 import argparse
@@ -58,6 +59,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 
 LEVEL = 0.90
+# The miscoverage as the double nearest one tenth, typed rather than computed:
+# 1 - 0.90 in floating point is 0.09999999999999998, which is not the alpha a
+# caller writes and which a guard such as puncc's then reports back to them.
+ALPHA = 0.10
 RAISED = "raises"
 NCAL = 8            # the floor at 0.90 is n >= 9, so 8 is infeasible
 LINES = []
@@ -168,7 +173,7 @@ def tabular_routes():
             icp = IcpRegressor(NcFactory.create_nc(m))
             icp.fit(Xtr, ytr)
             icp.calibrate(Xc, yc)
-            return icp.predict(Xt, significance=1 - LEVEL)
+            return icp.predict(Xt, significance=ALPHA)
 
         out.append(("nonconformist AbsErrorErrFunc.apply_inverse",
                     "nonconformist.icp.IcpRegressor.predict(significance=0.10)",
@@ -184,18 +189,18 @@ def tabular_routes():
             m = LR().fit(Xtr, ytr)
             cp = SplitCP(BasePredictor(m, is_trained=True), train=False)
             cp.fit(X_calib=Xc, y_calib=yc)
-            return cp.predict(Xt, alpha=1 - LEVEL)[1]
+            return cp.predict(Xt, alpha=ALPHA)[1]
 
         def puncc_lacp():
             mv = MeanVarPredictor([LR(), LR()])
             cp = LocallyAdaptiveCP(mv, train=True)
             cp.fit(X_fit=Xtr, y_fit=ytr, X_calib=Xc, y_calib=yc)
-            return cp.predict(Xt, alpha=1 - LEVEL)[1]
+            return cp.predict(Xt, alpha=ALPHA)[1]
 
         def puncc_cvplus():
             cp = CVPlus(BasePredictor(LR()), K=4, random_state=0)
             cp.fit(X=Xc, y=yc)
-            return cp.predict(Xt, alpha=1 - LEVEL)[1]
+            return cp.predict(Xt, alpha=ALPHA)[1]
 
         # Both puncc rows sit under the same three high-level predictors: the
         # api/utils.py quantile is what BaseCalibrator calls, and BaseCalibrator
@@ -223,7 +228,7 @@ def tabular_routes():
                               torch.tensor(yc, dtype=torch.float32)),
                 batch_size=NCAL)
             p = SplitPredictor(score_function=ABS(), model=model)
-            p.calibrate(cal, alpha=1 - LEVEL)
+            p.calibrate(cal, alpha=ALPHA)
             # q_hat is read before predict(), because predict() is where an
             # infinite q_hat fails and the threshold is the quantity in question.
             q = float(p.q_hat)
@@ -316,32 +321,60 @@ def forecasting_routes():
                     ".forecast(level=[90])", sf_csp))
     except Exception as exc:
         skipped.append(("statsforecast ConformalSeasonalPool", type(exc).__name__))
+    try:
+        from statsforecast.models import Naive
+        from statsforecast.utils import ConformalIntervals
+
+        def sf_intervals():
+            # h = 1 and n_windows = 8 leave eight conformity scores, the n of
+            # every other row; the interval is resolved by numpy 'linear'
+            rng = np.random.default_rng(3)
+            y = 10 + np.cumsum(rng.normal(size=60))
+            m = Naive(prediction_intervals=ConformalIntervals(n_windows=NCAL, h=1))
+            res = m.forecast(y=y, h=1, level=[int(LEVEL * 100)])
+            return float(res[f"hi-{int(LEVEL * 100)}"][0])
+
+        out.append(("numpy method='linear' (sktime, statsforecast, neuralforecast)",
+                    "statsforecast Naive(prediction_intervals=ConformalIntervals"
+                    "(n_windows=8, h=1)).forecast(level=[90])", sf_intervals))
+    except Exception as exc:
+        skipped.append(("statsforecast ConformalIntervals", type(exc).__name__))
     return out, skipped
 
 
-# Rows whose public route was executed in another committed output. Named, with
-# the output and the cell, so a reader checks the claim where it was measured.
-CITED = {
-    "numpy method='linear' (sktime, statsforecast, neuralforecast)": (
-        "statsforecast ConformalIntervals(n_windows=2) via "
-        "StatsForecast.forecast(level=[90])",
-        "finite", False,
-        "probe_output_real_data_statsforecast.txt: the shipped default at two "
-        "calibration windows, where the floor is nine, returns a finite interval "
-        "and delivers 0.5840 against 0.90"),
-    "numpy method='higher' (darts)": (
-        "darts ConformalNaiveModel(cal_length=10).predict"
-        "(predict_likelihood_parameters=True)",
-        "finite", False,
-        "probe_output_real_data_darts.txt: nominal 0.95, cal_length=10, floor 19 "
-        "-- the required rank exceeds n in 250 of 250 cells and the shipped route "
-        "returns a finite interval in every one, delivering 0.8960"),
-}
+def darts_routes():
+    out, skipped = [], []
+    try:
+        from darts import TimeSeries
+        from darts.models import ConformalNaiveModel, LinearRegressionModel
+
+        def darts_naive():
+            # a two-sided 0.90 interval is the quantile pair 0.05 / 0.95, and
+            # cal_length = 8 is eight conformity scores; the per-rail level is
+            # resolved by numpy 'higher'
+            rng = np.random.default_rng(3)
+            y = rng.standard_normal(80)
+            base = LinearRegressionModel(lags=1)
+            base.fit(TimeSeries.from_values(y))
+            half = (1 - LEVEL) / 2
+            cm = ConformalNaiveModel(model=base, quantiles=[half, 0.5, 1 - half],
+                                     cal_length=NCAL)
+            pred = cm.predict(n=1, predict_likelihood_parameters=True,
+                              num_samples=1)
+            return pred.values().ravel()
+
+        out.append(("numpy method='higher' (darts)",
+                    "darts ConformalNaiveModel(quantiles=[0.05, 0.5, 0.95], "
+                    "cal_length=8).predict(predict_likelihood_parameters=True)",
+                    darts_naive))
+    except Exception as exc:
+        skipped.append(("darts ConformalNaiveModel", type(exc).__name__))
+    return out, skipped
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--arm", choices=("tabular", "forecasting"), default="tabular")
+    ap.add_argument("--arm", choices=("tabular", "forecasting", "darts"), default="tabular")
     ap.add_argument("--out", default=None)
     args = ap.parse_args()
     out = args.out or os.path.join(
@@ -366,8 +399,8 @@ def main():
     say("exists anywhere.")
     say("")
 
-    routes, skipped = (tabular_routes() if args.arm == "tabular"
-                       else forecasting_routes())
+    routes, skipped = {"tabular": tabular_routes, "forecasting": forecasting_routes,
+                       "darts": darts_routes}[args.arm]()
     seen = {}
     order = []
     for row, entry, fn in routes:
@@ -375,12 +408,6 @@ def main():
         seen.setdefault(row, []).append((entry, verdict, warned, value))
         if row not in order:
             order.append(row)
-
-    if args.arm == "tabular":
-        for row, (entry, verdict, warned, why) in CITED.items():
-            seen.setdefault(row, []).append((entry, verdict, warned, "cited"))
-            if row not in order:
-                order.append(row)
 
     say(f"{'helper row':<52} {'route':>8} {'warns':>6}")
     say("-" * 100)
@@ -408,13 +435,9 @@ def main():
     for row in order:
         say(f"  {row}")
         for entry, verdict, warned, value in seen[row]:
-            note = "" if value != "cited" else "  [CITED, not executed here]"
-            say(f"      {verdict:<7} {'warns' if warned else 'silent':<7} "
-                f"{entry}{note}")
-            if isinstance(value, str) and value not in ("cited",):
+            say(f"      {verdict:<7} {'warns' if warned else 'silent':<7} {entry}")
+            if isinstance(value, str):
                 say(f"              {value}")
-        if row in CITED:
-            say(f"              {CITED[row][3]}")
     if skipped:
         say("")
         say(f"routes not loaded on this arm ({len(skipped)}) -- reported, not dropped:")

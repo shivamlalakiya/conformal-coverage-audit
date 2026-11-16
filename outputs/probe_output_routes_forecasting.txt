@@ -16,11 +16,15 @@ exists anywhere.
 helper row                                              route  warns
 ----------------------------------------------------------------------------------------------------
 statsforecast _oriented_index                          finite      -
+numpy method='linear' (sktime, statsforecast, neuralforecast)   finite      -
 
-rows with a public route returning a finite number in silence: 1 of 1 on this arm
+rows with a public route returning a finite number in silence: 2 of 2 on this arm
       statsforecast _oriented_index
+      numpy method='linear' (sktime, statsforecast, neuralforecast)
 
 Routes tried, per row
 ----------------------------------------------------------------------------------------------------
   statsforecast _oriented_index
       finite  silent  statsforecast.models.ConformalSeasonalPool(n_samples=8).forecast(level=[90])
+  numpy method='linear' (sktime, statsforecast, neuralforecast)
+      finite  silent  statsforecast Naive(prediction_intervals=ConformalIntervals(n_windows=8, h=1)).forecast(level=[90])
