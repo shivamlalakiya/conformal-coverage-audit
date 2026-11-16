@@ -55,8 +55,15 @@ m1_monthly_dataset`, written to probe_output_sample_robustness_m1.txt (the
     .venv-probe/bin/python probes/sample_robustness.py --dataset m1_monthly_dataset \
         --export-npz /tmp/m1_full.npz
     ../.venv-darts/bin/python probes/run_real_data_darts.py /tmp/m1_full.npz
+
+The sktime arm again with arm B on the aligned one-step residuals (offset 0), to
+test whether the index prediction holds once sktime's misalignment is removed:
+
+    .venv-probe/bin/python probes/sample_robustness.py --offset 0
+    .venv-probe/bin/python probes/sample_robustness.py --dataset m1_monthly_dataset --offset 0
 """
 
+import functools
 import math
 import os
 import sys
@@ -77,6 +84,12 @@ SK_WINDOWS = (20, 40)            # identical to the committed sktime arm
 OUT = "outputs/probe_output_sample_robustness.txt"
 # Non-default archives, each to its own file so M3's output stays byte-identical.
 OUT_FOR = {"m1_monthly_dataset": "outputs/probe_output_sample_robustness_m1.txt"}
+# `--offset 0` reads sktime's aligned one-step residual diagonal for arm B instead of
+# the offset-1 diagonal the shipped call uses (run_real_data.fit_series says why the
+# two differ). Only the sktime arm reads that diagonal, so only it is run, to its
+# own file per archive; the default offset-1 outputs above do not move.
+OFFSET_OUT = {"m3_monthly_dataset": "outputs/probe_output_sample_robustness_offset0.txt",
+              "m1_monthly_dataset": "outputs/probe_output_sample_robustness_m1_offset0.txt"}
 
 
 # --------------------------------------------------------------------------
@@ -167,7 +180,7 @@ def eligible_pool():
 # --------------------------------------------------------------------------
 # one series, all its origins, all sktime cells -- the parallel unit
 # --------------------------------------------------------------------------
-def sktime_series(s):
+def sktime_series(s, offset=1):
     """Every sktime cell for one series, over its origins.
 
     `run_cells` fits once per (origin, window, method) and reads every level off
@@ -182,7 +195,7 @@ def sktime_series(s):
         warnings.simplefilter("ignore")
         for method in ("empirical", "conformal"):
             for iw in SK_WINDOWS:
-                per = [SK.run_cells(o, iw, method, SK.LEVELS)
+                per = [SK.run_cells(o, iw, method, SK.LEVELS, offset=offset)
                        for o in origins(s, ORIGINS)]
                 for cov in SK.LEVELS:
                     out[(method, cov, iw)] = [
@@ -295,7 +308,11 @@ def main():
     if "--dataset" in sys.argv:
         DATASET = sys.argv[sys.argv.index("--dataset") + 1]
         assert DATASET in OUT_FOR, f"no output file registered for {DATASET}"
-    out_rel = OUT_FOR.get(DATASET, OUT)
+    offset = 1
+    if "--offset" in sys.argv:
+        offset = int(sys.argv[sys.argv.index("--offset") + 1])
+        assert offset in (0, 1), f"--offset {offset}: only 0 and 1 are defined"
+    out_rel = OUT_FOR.get(DATASET, OUT) if offset == 1 else OFFSET_OUT[DATASET]
     export = None
     if "--export-npz" in sys.argv:
         export = sys.argv[sys.argv.index("--export-npz") + 1]
@@ -364,6 +381,14 @@ def main():
     say("-" * 104)
     say("(i) sktime ConformalIntervals -- arm A shipped, arm B its own residuals at the required rank")
     say("-" * 104)
+    if offset != 1:
+        say(f"arm B reads residual diagonal offset={offset}, the aligned one-step set; arm A")
+        say("is the library's own interval, built on the offset-1 diagonal. The two arms")
+        say("therefore use different score sets, arm B need not contain arm A, and losses")
+        say("may be nonzero. pred_delta and pred_a locate arm A's threshold within the")
+        say("aligned set, so delta against pred_delta tests whether the index prediction")
+        say("holds once the misalignment is removed from the scores it is read against.")
+        say("")
     # Each worker holds a fitted sktime object plus its residual matrix, so the
     # pool's footprint scales with the count. Overlapping this run with another
     # probe exhausted swap and the OS killed both, silently, mid-cell. PROBE_WORKERS
@@ -371,7 +396,8 @@ def main():
     workers = int(os.environ.get("PROBE_WORKERS") or max(1, (os.cpu_count() or 4) - 4))
     assert workers >= 1, f"PROBE_WORKERS={workers} is not a usable pool size"
     with ProcessPoolExecutor(max_workers=workers) as ex:
-        sk_cells = list(ex.map(sktime_series, pool, chunksize=8))
+        sk_cells = list(ex.map(functools.partial(sktime_series, offset=offset),
+                               pool, chunksize=8))
 
     for method in ("empirical", "conformal"):
         for cov in SK.LEVELS:
@@ -379,6 +405,14 @@ def main():
                 r = fold(sk_cells, (method, cov, iw))
                 say(cell_line(f"CELL arm=sktime method={method} level={cov:.2f} "
                               f"window={iw}", r))
+
+    if offset != 1:
+        out = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                           out_rel)
+        with open(out, "w") as fh:
+            fh.write("\n".join(lines) + "\n")
+        print(f"\nwritten -> {out}")
+        return 0
 
     # ---- statsforecast arm ----------------------------------------------
     say("")

@@ -259,7 +259,12 @@ def run_cells(series, initial_window, method, coverages, offset=1,
     if fitted is None or isinstance(fitted, dict):
         return {c: fitted for c in coverages}
     intervals, point, resid, y_test = fitted
-    return {c: _score(intervals[c], point, resid, y_test, c, method)
+    # Arm B contains arm A only when both are read off the same score set, which is
+    # the shipped offset-1 diagonal. At offset 0 arm B uses the aligned one-step
+    # residuals and arm A keeps the library's own interval, so containment is not a
+    # property of the construction and is not asserted.
+    return {c: _score(intervals[c], point, resid, y_test, c, method,
+                      contained=(offset == 1))
             for c in coverages}
 
 
@@ -267,7 +272,7 @@ def run_cell(series, initial_window, coverage, method):
     return run_cells(series, initial_window, method, (coverage,))[coverage]
 
 
-def _score(interval, point, resid, y_test, coverage, method):
+def _score(interval, point, resid, y_test, coverage, method, contained=True):
     resid = np.asarray(resid, dtype=float)
     resid = resid[np.isfinite(resid)]
     n = resid.size
@@ -300,13 +305,13 @@ def _score(interval, point, resid, y_test, coverage, method):
         # difference non-negative. self_check() establishes the index inequality
         # behind it for every n before any data is read; this catches a series
         # whose residual set breaks an assumption that sweep did not model.
-        assert lo_b <= lo_a + 1e-9 and hi_b >= hi_a - 1e-9, (
+        assert not contained or (lo_b <= lo_a + 1e-9 and hi_b >= hi_a - 1e-9), (
             n, coverage, lo_a, lo_b, hi_a, hi_b)
         return {
             "n": n,
             "required_rank": k,          # a span in gaps, not a rank
             "two_rail": True,
-            "nests": True,               # asserted above, per fit, on the values
+            "nests": contained,          # asserted above, per fit, on the values
             "feasible": feasible,
             "a_covered": a_covered,
             "a_width": hi_a - lo_a,
@@ -327,13 +332,14 @@ def _score(interval, point, resid, y_test, coverage, method):
     else:
         half_b = float(np.sort(scores)[k - 1])
         cov_b, feasible = abs(y_test - point) <= half_b, True
-        assert half_b >= half_a - 1e-9, (n, coverage, half_a, half_b)
+        assert not contained or half_b >= half_a - 1e-9, (
+            n, coverage, half_a, half_b)
 
     return {
         "n": n,
         "required_rank": k,
         "two_rail": False,
-        "nests": True,
+        "nests": contained,
         "feasible": feasible,
         "a_covered": a_covered,
         "a_width": hi_a - lo_a,
