@@ -1,0 +1,128 @@
+====================================================================================================
+WHAT THE FOUR-SIZE CERTIFICATE CANNOT SEE: NUMPY RULES OUTSIDE THE SIXTEEN
+====================================================================================================
+numpy 2.4.6; score set 1..n; level = exact rational rounded once to a double
+A numpy rule is SCREENED AS a candidate when it delivers that candidate's rank at
+every certificate size; it is BLIND when it is screened as one yet differs from it
+somewhere in the complete checked range. short = sizes in the range where the
+numpy rule delivers fewer than k* ranks.
+
+----------------------------------------------------------------------------------------------------
+alpha = 1/10   certificate S = [10, 20, 21, 39]   complete range 10..59 (50 sizes)
+----------------------------------------------------------------------------------------------------
+FLOATDRIFT alpha=1/10 cells=0
+RULE alpha=1/10 rail=one-sided corr=raw method=inverted_cdf screened_as=one-sided/corrected/linear differs=0 differs_short=0 short=45 first_diff=none
+RULE alpha=1/10 rail=one-sided corr=raw method=averaged_inverted_cdf screened_as=one-sided/corrected/linear differs=0 differs_short=0 short=45 first_diff=none
+RULE alpha=1/10 rail=one-sided corr=raw method=closest_observation screened_as=one-sided/raw/linear differs=18 differs_short=18 short=50 first_diff=12
+RULE alpha=1/10 rail=one-sided corr=raw method=interpolated_inverted_cdf screened_as=none short=50
+RULE alpha=1/10 rail=one-sided corr=raw method=hazen screened_as=one-sided/raw/linear differs=20 differs_short=20 short=50 first_diff=12
+RULE alpha=1/10 rail=one-sided corr=raw method=weibull screened_as=one-sided/corrected/linear differs=0 differs_short=0 short=45 first_diff=none
+RULE alpha=1/10 rail=one-sided corr=raw method=linear screened_as=one-sided/raw/linear differs=0 differs_short=0 short=50 first_diff=none
+RULE alpha=1/10 rail=one-sided corr=raw method=median_unbiased screened_as=one-sided/raw/linear differs=25 differs_short=25 short=50 first_diff=12
+RULE alpha=1/10 rail=one-sided corr=raw method=normal_unbiased screened_as=one-sided/raw/linear differs=25 differs_short=25 short=50 first_diff=12
+RULE alpha=1/10 rail=one-sided corr=raw method=lower screened_as=one-sided/raw/linear differs=0 differs_short=0 short=50 first_diff=none
+RULE alpha=1/10 rail=one-sided corr=raw method=higher screened_as=one-sided/raw/higher differs=0 differs_short=0 short=40 first_diff=none
+RULE alpha=1/10 rail=one-sided corr=raw method=midpoint screened_as=one-sided/raw/linear differs=0 differs_short=0 short=50 first_diff=none
+RULE alpha=1/10 rail=one-sided corr=raw method=nearest screened_as=one-sided/raw/linear differs=23 differs_short=23 short=50 first_diff=12
+RULE alpha=1/10 rail=one-sided corr=corrected method=inverted_cdf screened_as=one-sided/corrected/inverted_cdf differs=0 differs_short=0 short=0 first_diff=none
+RULE alpha=1/10 rail=one-sided corr=corrected method=averaged_inverted_cdf screened_as=one-sided/corrected/inverted_cdf differs=0 differs_short=0 short=0 first_diff=none
+RULE alpha=1/10 rail=one-sided corr=corrected method=closest_observation screened_as=one-sided/corrected/inverted_cdf differs=22 differs_short=22 short=22 first_diff=15
+RULE alpha=1/10 rail=one-sided corr=corrected method=interpolated_inverted_cdf screened_as=one-sided/corrected/linear differs=0 differs_short=0 short=45 first_diff=none
+RULE alpha=1/10 rail=one-sided corr=corrected method=hazen screened_as=one-sided/corrected/inverted_cdf differs=20 differs_short=20 short=20 first_diff=15
+RULE alpha=1/10 rail=one-sided corr=corrected method=weibull screened_as=one-sided/corrected/inverted_cdf differs=0 differs_short=0 short=0 first_diff=none
+RULE alpha=1/10 rail=one-sided corr=corrected method=linear screened_as=one-sided/corrected/linear differs=0 differs_short=0 short=45 first_diff=none
+RULE alpha=1/10 rail=one-sided corr=corrected method=median_unbiased screened_as=one-sided/corrected/inverted_cdf differs=15 differs_short=15 short=15 first_diff=16
+RULE alpha=1/10 rail=one-sided corr=corrected method=normal_unbiased screened_as=one-sided/corrected/inverted_cdf differs=15 differs_short=15 short=15 first_diff=16
+RULE alpha=1/10 rail=one-sided corr=corrected method=lower screened_as=one-sided/corrected/linear differs=0 differs_short=0 short=45 first_diff=none
+RULE alpha=1/10 rail=one-sided corr=corrected method=higher screened_as=one-sided/corrected/higher differs=0 differs_short=0 short=0 first_diff=none
+RULE alpha=1/10 rail=one-sided corr=corrected method=midpoint screened_as=one-sided/corrected/linear differs=0 differs_short=0 short=45 first_diff=none
+RULE alpha=1/10 rail=one-sided corr=corrected method=nearest screened_as=one-sided/corrected/inverted_cdf differs=20 differs_short=20 short=20 first_diff=15
+RULE alpha=1/10 rail=two-sided corr=raw method=inverted_cdf screened_as=two-sided/corrected/linear differs=0 differs_short=0 short=47 first_diff=none
+RULE alpha=1/10 rail=two-sided corr=raw method=averaged_inverted_cdf screened_as=two-sided/corrected/linear differs=0 differs_short=0 short=47 first_diff=none
+RULE alpha=1/10 rail=two-sided corr=raw method=closest_observation screened_as=none short=50
+RULE alpha=1/10 rail=two-sided corr=raw method=interpolated_inverted_cdf screened_as=none short=50
+RULE alpha=1/10 rail=two-sided corr=raw method=hazen screened_as=none short=50
+RULE alpha=1/10 rail=two-sided corr=raw method=weibull screened_as=two-sided/corrected/linear differs=0 differs_short=0 short=47 first_diff=none
+RULE alpha=1/10 rail=two-sided corr=raw method=linear screened_as=two-sided/raw/linear differs=0 differs_short=0 short=50 first_diff=none
+RULE alpha=1/10 rail=two-sided corr=raw method=median_unbiased screened_as=none short=50
+RULE alpha=1/10 rail=two-sided corr=raw method=normal_unbiased screened_as=none short=50
+RULE alpha=1/10 rail=two-sided corr=raw method=lower screened_as=two-sided/raw/linear differs=0 differs_short=0 short=50 first_diff=none
+RULE alpha=1/10 rail=two-sided corr=raw method=higher screened_as=two-sided/raw/higher differs=0 differs_short=0 short=45 first_diff=none
+RULE alpha=1/10 rail=two-sided corr=raw method=midpoint screened_as=two-sided/raw/linear differs=0 differs_short=0 short=50 first_diff=none
+RULE alpha=1/10 rail=two-sided corr=raw method=nearest screened_as=none short=50
+RULE alpha=1/10 rail=two-sided corr=corrected method=inverted_cdf screened_as=two-sided/corrected/inverted_cdf differs=0 differs_short=0 short=9 first_diff=none
+RULE alpha=1/10 rail=two-sided corr=corrected method=averaged_inverted_cdf screened_as=two-sided/corrected/inverted_cdf differs=0 differs_short=0 short=9 first_diff=none
+RULE alpha=1/10 rail=two-sided corr=corrected method=closest_observation screened_as=two-sided/corrected/inverted_cdf differs=19 differs_short=19 short=28 first_diff=29
+RULE alpha=1/10 rail=two-sided corr=corrected method=interpolated_inverted_cdf screened_as=two-sided/corrected/linear differs=0 differs_short=0 short=47 first_diff=none
+RULE alpha=1/10 rail=two-sided corr=corrected method=hazen screened_as=two-sided/corrected/inverted_cdf differs=18 differs_short=18 short=27 first_diff=30
+RULE alpha=1/10 rail=two-sided corr=corrected method=weibull screened_as=two-sided/corrected/inverted_cdf differs=0 differs_short=0 short=9 first_diff=none
+RULE alpha=1/10 rail=two-sided corr=corrected method=linear screened_as=two-sided/corrected/linear differs=0 differs_short=0 short=47 first_diff=none
+RULE alpha=1/10 rail=two-sided corr=corrected method=median_unbiased screened_as=two-sided/corrected/inverted_cdf differs=12 differs_short=12 short=21 first_diff=33
+RULE alpha=1/10 rail=two-sided corr=corrected method=normal_unbiased screened_as=two-sided/corrected/inverted_cdf differs=14 differs_short=14 short=23 first_diff=32
+RULE alpha=1/10 rail=two-sided corr=corrected method=lower screened_as=two-sided/corrected/linear differs=0 differs_short=0 short=47 first_diff=none
+RULE alpha=1/10 rail=two-sided corr=corrected method=higher screened_as=two-sided/corrected/higher differs=0 differs_short=0 short=9 first_diff=none
+RULE alpha=1/10 rail=two-sided corr=corrected method=midpoint screened_as=two-sided/corrected/linear differs=0 differs_short=0 short=47 first_diff=none
+RULE alpha=1/10 rail=two-sided corr=corrected method=nearest screened_as=two-sided/corrected/inverted_cdf differs=18 differs_short=18 short=27 first_diff=30
+TOTAL alpha=1/10 rules=52 screened=45 blind=15
+
+----------------------------------------------------------------------------------------------------
+alpha = 1/20   certificate S = [20, 40, 41, 79]   complete range 20..119 (100 sizes)
+----------------------------------------------------------------------------------------------------
+FLOATDRIFT alpha=1/20 cells=0
+RULE alpha=1/20 rail=one-sided corr=raw method=inverted_cdf screened_as=one-sided/corrected/linear differs=0 differs_short=0 short=95 first_diff=none
+RULE alpha=1/20 rail=one-sided corr=raw method=averaged_inverted_cdf screened_as=one-sided/corrected/linear differs=0 differs_short=0 short=95 first_diff=none
+RULE alpha=1/20 rail=one-sided corr=raw method=closest_observation screened_as=one-sided/raw/linear differs=42 differs_short=42 short=100 first_diff=22
+RULE alpha=1/20 rail=one-sided corr=raw method=interpolated_inverted_cdf screened_as=none short=100
+RULE alpha=1/20 rail=one-sided corr=raw method=hazen screened_as=one-sided/raw/linear differs=45 differs_short=45 short=100 first_diff=22
+RULE alpha=1/20 rail=one-sided corr=raw method=weibull screened_as=one-sided/corrected/linear differs=0 differs_short=0 short=95 first_diff=none
+RULE alpha=1/20 rail=one-sided corr=raw method=linear screened_as=one-sided/raw/linear differs=0 differs_short=0 short=100 first_diff=none
+RULE alpha=1/20 rail=one-sided corr=raw method=median_unbiased screened_as=one-sided/raw/linear differs=58 differs_short=58 short=100 first_diff=22
+RULE alpha=1/20 rail=one-sided corr=raw method=normal_unbiased screened_as=one-sided/raw/linear differs=55 differs_short=55 short=100 first_diff=22
+RULE alpha=1/20 rail=one-sided corr=raw method=lower screened_as=one-sided/raw/linear differs=0 differs_short=0 short=100 first_diff=none
+RULE alpha=1/20 rail=one-sided corr=raw method=higher screened_as=one-sided/raw/higher differs=0 differs_short=0 short=90 first_diff=none
+RULE alpha=1/20 rail=one-sided corr=raw method=midpoint screened_as=one-sided/raw/linear differs=0 differs_short=0 short=100 first_diff=none
+RULE alpha=1/20 rail=one-sided corr=raw method=nearest screened_as=one-sided/raw/linear differs=47 differs_short=47 short=100 first_diff=22
+RULE alpha=1/20 rail=one-sided corr=corrected method=inverted_cdf screened_as=one-sided/corrected/inverted_cdf differs=0 differs_short=0 short=0 first_diff=none
+RULE alpha=1/20 rail=one-sided corr=corrected method=averaged_inverted_cdf screened_as=one-sided/corrected/inverted_cdf differs=0 differs_short=0 short=0 first_diff=none
+RULE alpha=1/20 rail=one-sided corr=corrected method=closest_observation screened_as=one-sided/corrected/inverted_cdf differs=48 differs_short=48 short=48 first_diff=29
+RULE alpha=1/20 rail=one-sided corr=corrected method=interpolated_inverted_cdf screened_as=one-sided/corrected/linear differs=0 differs_short=0 short=95 first_diff=none
+RULE alpha=1/20 rail=one-sided corr=corrected method=hazen screened_as=one-sided/corrected/inverted_cdf differs=45 differs_short=45 short=45 first_diff=30
+RULE alpha=1/20 rail=one-sided corr=corrected method=weibull screened_as=one-sided/corrected/inverted_cdf differs=0 differs_short=0 short=0 first_diff=none
+RULE alpha=1/20 rail=one-sided corr=corrected method=linear screened_as=one-sided/corrected/linear differs=0 differs_short=0 short=95 first_diff=none
+RULE alpha=1/20 rail=one-sided corr=corrected method=median_unbiased screened_as=one-sided/corrected/inverted_cdf differs=30 differs_short=30 short=30 first_diff=33
+RULE alpha=1/20 rail=one-sided corr=corrected method=normal_unbiased screened_as=one-sided/corrected/inverted_cdf differs=35 differs_short=35 short=35 first_diff=32
+RULE alpha=1/20 rail=one-sided corr=corrected method=lower screened_as=one-sided/corrected/linear differs=0 differs_short=0 short=95 first_diff=none
+RULE alpha=1/20 rail=one-sided corr=corrected method=higher screened_as=one-sided/corrected/higher differs=0 differs_short=0 short=0 first_diff=none
+RULE alpha=1/20 rail=one-sided corr=corrected method=midpoint screened_as=one-sided/corrected/linear differs=0 differs_short=0 short=95 first_diff=none
+RULE alpha=1/20 rail=one-sided corr=corrected method=nearest screened_as=one-sided/corrected/inverted_cdf differs=45 differs_short=45 short=45 first_diff=30
+RULE alpha=1/20 rail=two-sided corr=raw method=inverted_cdf screened_as=two-sided/corrected/linear differs=0 differs_short=0 short=97 first_diff=none
+RULE alpha=1/20 rail=two-sided corr=raw method=averaged_inverted_cdf screened_as=two-sided/corrected/linear differs=0 differs_short=0 short=97 first_diff=none
+RULE alpha=1/20 rail=two-sided corr=raw method=closest_observation screened_as=none short=100
+RULE alpha=1/20 rail=two-sided corr=raw method=interpolated_inverted_cdf screened_as=none short=100
+RULE alpha=1/20 rail=two-sided corr=raw method=hazen screened_as=none short=100
+RULE alpha=1/20 rail=two-sided corr=raw method=weibull screened_as=none short=99
+RULE alpha=1/20 rail=two-sided corr=raw method=linear screened_as=two-sided/raw/linear differs=0 differs_short=0 short=100 first_diff=none
+RULE alpha=1/20 rail=two-sided corr=raw method=median_unbiased screened_as=none short=100
+RULE alpha=1/20 rail=two-sided corr=raw method=normal_unbiased screened_as=none short=100
+RULE alpha=1/20 rail=two-sided corr=raw method=lower screened_as=two-sided/raw/linear differs=0 differs_short=0 short=100 first_diff=none
+RULE alpha=1/20 rail=two-sided corr=raw method=higher screened_as=two-sided/raw/higher differs=0 differs_short=0 short=95 first_diff=none
+RULE alpha=1/20 rail=two-sided corr=raw method=midpoint screened_as=two-sided/raw/linear differs=0 differs_short=0 short=100 first_diff=none
+RULE alpha=1/20 rail=two-sided corr=raw method=nearest screened_as=none short=100
+RULE alpha=1/20 rail=two-sided corr=corrected method=inverted_cdf screened_as=two-sided/corrected/inverted_cdf differs=0 differs_short=0 short=19 first_diff=none
+RULE alpha=1/20 rail=two-sided corr=corrected method=averaged_inverted_cdf screened_as=two-sided/corrected/inverted_cdf differs=0 differs_short=0 short=19 first_diff=none
+RULE alpha=1/20 rail=two-sided corr=corrected method=closest_observation screened_as=two-sided/corrected/inverted_cdf differs=39 differs_short=39 short=58 first_diff=59
+RULE alpha=1/20 rail=two-sided corr=corrected method=interpolated_inverted_cdf screened_as=two-sided/corrected/linear differs=0 differs_short=0 short=97 first_diff=none
+RULE alpha=1/20 rail=two-sided corr=corrected method=hazen screened_as=two-sided/corrected/inverted_cdf differs=38 differs_short=38 short=57 first_diff=60
+RULE alpha=1/20 rail=two-sided corr=corrected method=weibull screened_as=two-sided/corrected/inverted_cdf differs=0 differs_short=0 short=19 first_diff=none
+RULE alpha=1/20 rail=two-sided corr=corrected method=linear screened_as=two-sided/corrected/linear differs=0 differs_short=0 short=97 first_diff=none
+RULE alpha=1/20 rail=two-sided corr=corrected method=median_unbiased screened_as=two-sided/corrected/inverted_cdf differs=26 differs_short=26 short=45 first_diff=66
+RULE alpha=1/20 rail=two-sided corr=corrected method=normal_unbiased screened_as=two-sided/corrected/inverted_cdf differs=30 differs_short=30 short=49 first_diff=64
+RULE alpha=1/20 rail=two-sided corr=corrected method=lower screened_as=two-sided/corrected/linear differs=0 differs_short=0 short=97 first_diff=none
+RULE alpha=1/20 rail=two-sided corr=corrected method=higher screened_as=two-sided/corrected/higher differs=0 differs_short=0 short=19 first_diff=none
+RULE alpha=1/20 rail=two-sided corr=corrected method=midpoint screened_as=two-sided/corrected/linear differs=0 differs_short=0 short=97 first_diff=none
+RULE alpha=1/20 rail=two-sided corr=corrected method=nearest screened_as=two-sided/corrected/inverted_cdf differs=38 differs_short=38 short=57 first_diff=60
+TOTAL alpha=1/20 rules=52 screened=44 blind=15
+
+Read: a BLIND rule passes the four-size screen as a candidate it is not. The
+full checked range is the criterion; the certificate is a screen for the
+sixteen candidates and says nothing about a rule outside them.
