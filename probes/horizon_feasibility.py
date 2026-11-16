@@ -401,11 +401,15 @@ def alignment_block(rng, say, reps=300, L=80):
             var[off].append(float(np.var(d)))
     say("")
     say(f"    statistical, random walk with unit innovation variance, {reps} series:")
-    say(f"{'diagonal':>18}{'mean Var':>12}{'if (k+1)-step':>15}{'if k-step':>12}")
+    say(f"{'diagonal':>18}{'mean Var':>12}{'if (k+1)-step':>15}{'if k-step':>12}"
+        f"{'s.e.':>8}")
     for off in sorted(var):
         mv = float(np.mean(var[off]))
+        # s.e. of the mean over the series: the sample sd of the per-series
+        # variances over sqrt(reps)
+        se = float(np.std(var[off], ddof=1) / np.sqrt(len(var[off])))
         say(f"{'diag(offset=' + str(off) + ')':>18}{mv:>12.3f}"
-            f"{off + 1:>15}{(off if off else 0):>12}")
+            f"{off + 1:>15}{(off if off else 0):>12}{se:>8.3f}")
         assert abs(mv - (off + 1)) < 0.25, (off, mv)
     say("")
     say("    Every offset matches the (k+1)-step column and misses the k-step one.")
@@ -478,6 +482,17 @@ def main():
                 f"{r['step1_D']:>8.4f}{r['sim_A']:>8.4f}{r['sim_C']:>8.4f}"
                 f"{r['finite_A']:>6.2f}")
         say("")
+
+    say("     s.e. per cell: binomial, sqrt(p(1-p)/n) over the n series the cell ran")
+    say(f"{'':>3}{'nom':>5}{'H':>4}{'n':>5}{'series':>8}{'seA':>8}{'seB':>8}{'seC':>8}"
+        f"{'seD':>8}{'seSimA':>8}{'seSimC':>8}")
+    for r in rows:
+        se = lambda p: float(np.sqrt(p * (1 - p) / r["total"]))
+        say(f"SE {r['coverage']:>5.2f}{r['H']:>4}{r['n_aligned']:>5}{r['total']:>8}"
+            f"{se(r['step1_A']):>8.4f}{se(r['step1_B']):>8.4f}"
+            f"{se(r['step1_C']):>8.4f}{se(r['step1_D']):>8.4f}"
+            f"{se(r['sim_A']):>8.4f}{se(r['sim_C']):>8.4f}")
+    say("")
 
     # ---------------- (iii) three failures, separated --------------------
     say("-" * 100)

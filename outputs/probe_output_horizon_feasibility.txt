@@ -14,10 +14,10 @@ W10  HORIZON FEASIBILITY -- the floor scales with what you divide alpha by
       diag(offset=2): index pairs [(32, 29), (33, 30), (34, 31), (35, 32)]   spans [3, 3, 3, 3]   -> 3-step residuals
 
     statistical, random walk with unit innovation variance, 300 series:
-          diagonal    mean Var  if (k+1)-step   if k-step
-    diag(offset=0)       0.978              1           0
-    diag(offset=1)       1.899              2           1
-    diag(offset=2)       2.782              3           2
+          diagonal    mean Var  if (k+1)-step   if k-step    s.e.
+    diag(offset=0)       0.978              1           0   0.012
+    diag(offset=1)       1.899              2           1   0.028
+    diag(offset=2)       2.782              3           2   0.048
 
     Every offset matches the (k+1)-step column and misses the k-step one.
     The misalignment is real. Which way it errs: on an integrated series a
@@ -83,6 +83,23 @@ W10  HORIZON FEASIBILITY -- the floor scales with what you divide alpha by
 
  0.90  24   68  0.99583    239    NO   0.9815  1.0000  1.0000  1.0000  0.9700  0.8367  1.0000  1.00
  0.95  24   68  0.99792    479    NO   0.9835  1.0000  1.0000  1.0000  0.9700  0.8367  1.0000  1.00
+
+     s.e. per cell: binomial, sqrt(p(1-p)/n) over the n series the cell ran
+     nom   H    n  series     seA     seB     seC     seD  seSimA  seSimC
+SE  0.90   1   15     300  0.0130  0.0093  0.0157  0.0217  0.0130  0.0157
+SE  0.95   1   15     300  0.0104  0.0000  0.0000  0.0190  0.0104  0.0000
+SE  0.90   1   61     300  0.0104  0.0098  0.0176  0.0183  0.0104  0.0176
+SE  0.95   1   61     300  0.0074  0.0066  0.0104  0.0144  0.0074  0.0104
+SE  0.90   6   26     300  0.0074  0.0000  0.0000  0.0147  0.0176  0.0000
+SE  0.95   6   26     300  0.0057  0.0000  0.0000  0.0133  0.0168  0.0000
+SE  0.90   6  136     300  0.0000  0.0000  0.0087  0.0104  0.0122  0.0147
+SE  0.95   6  136     300  0.0000  0.0000  0.0066  0.0087  0.0104  0.0118
+SE  0.90  12   38     300  0.0000  0.0000  0.0000  0.0093  0.0219  0.0000
+SE  0.95  12   38     300  0.0000  0.0000  0.0000  0.0081  0.0212  0.0000
+SE  0.90  12  250     300  0.0000  0.0000  0.0057  0.0074  0.0141  0.0157
+SE  0.95  12  250     300  0.0000  0.0000  0.0033  0.0057  0.0118  0.0130
+SE  0.90  24   68     300  0.0000  0.0000  0.0000  0.0098  0.0213  0.0000
+SE  0.95  24   68     300  0.0000  0.0000  0.0000  0.0098  0.0213  0.0000
 
 ----------------------------------------------------------------------------------------------------
 (iii) THREE DISTINCT FAILURES, separated
