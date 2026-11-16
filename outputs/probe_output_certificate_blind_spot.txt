@@ -125,4 +125,4 @@ TOTAL alpha=1/20 rules=52 screened=44 blind=15
 
 Read: a BLIND rule passes the four-size screen as a candidate it is not. The
 full checked range is the criterion; the certificate is a screen for the
-sixteen candidates and says nothing about a rule outside them.
+sixteen candidates; a rule that is none of them is outside its reach.

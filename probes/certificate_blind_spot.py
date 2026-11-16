@@ -161,7 +161,7 @@ def main():
         say("")
     say("Read: a BLIND rule passes the four-size screen as a candidate it is not. The")
     say("full checked range is the criterion; the certificate is a screen for the")
-    say("sixteen candidates and says nothing about a rule outside them.")
+    say("sixteen candidates; a rule that is none of them is outside its reach.")
     with open(OUT, "w", encoding="utf-8") as fh:
         fh.write("\n".join(lines) + "\n")
     print(f"\nwritten -> {OUT}")
