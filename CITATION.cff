@@ -86,6 +86,9 @@ identifiers:
   - type: doi
     value: 10.5281/zenodo.23407002
     description: "Version v1.5.14 -- per-series darts width ratio printed apart from the pooled widths; tabular n_cal=49 recorded as post hoc"
+  - type: doi
+    value: 10.5281/zenodo.24287593
+    description: "Version v1.5.15 -- offset-0 and M1 whole-archive sktime runs, Beta spread, 39-site census, numpy blind-spot certificate, off-class tail-law and width sizes, horizon diagonal s.e. and lengths"
 # verified against the live remote
 repository-code: "https://github.com/shivamlalakiya/conformal-coverage-audit"
 # This is what GitHub's cite widget and the indexers read. Left at v1.1.0 it sent a
