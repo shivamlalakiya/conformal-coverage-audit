@@ -1,0 +1,82 @@
+========================================================================================================
+SAMPLE ROBUSTNESS -- the whole eligible archive, with a rolling origin
+========================================================================================================
+self_check() passed at import
+
+dataset: m1_monthly_dataset
+series in archive: 617   eligible at min_len=73: 423   excluded as too short: 194
+selection: NONE -- every eligible series is used, so archive order cannot
+           bias the result and there is no sample to have chosen
+rolling origin: 4 test points per series, 4 distinct fits
+           origin j uses history s[:len(s)-1-j] and tests on s[len(s)-1-j]
+test points per cell: up to 1692   (committed arms: 250, one per series, archive order)
+
+eligible length min/median/max: 74 / 98 / 150
+
+Standard errors are CLUSTERED BY SERIES: the rolling origins of one series
+share their history, so each series contributes one mean paired difference
+and the s.e. is taken across series. se_naive treats every origin as an
+independent draw; it is printed so the dependence is visible rather than
+assumed. se exceeds se_naive where origins within a series are positively
+correlated and falls below it where they are not, so se_ratio goes BOTH ways
+and this output used to claim the two coincide off the positive side. They do
+not: read se_ratio per cell. The sharp narrowing sits in the cells where arm
+B is vacuous at every point, where the paired difference is 1 minus a
+coverage indicator rather than a comparison of two index rules.
+
+req_med=0 marks a cell with no feasible required rank at all -- read it with
+the infeasible count on the same line, never as a rank of zero.
+
+unit=rank when absolute-score bands are symmetric; unit=span for a helper
+resolving a pair of levels on signed residuals, so arm B uses the span
+of gaps that the required coverage asks for. An asymmetric half-width
+does not pick any order statistic, so those two figures stay apart.
+gains/losses/changed are counted over the test points. `changed` is NOT
+delta x points: a clustered mean of per-series means does not equal that, and
+gains - losses is the net rather than the count. losses must read 0 wherever
+arm B contains arm A, which each arm asserts per fit.
+
+--------------------------------------------------------------------------------------------------------
+(i) sktime ConformalIntervals -- arm A shipped, arm B its own residuals at the required rank
+--------------------------------------------------------------------------------------------------------
+CELL arm=sktime method=empirical level=0.90 window=20 series=423 points=1692 n_med=74 a_cov=0.8842 b_cov=0.9149 delta=+0.0307 se=0.0044 se_naive=0.0042 se_ratio=1.0513 pred_delta=+0.0294 pred_a=0.8757 a_rank_med=65 req_med=68 unit=span gains=52 losses=0 changed=52 infeasible=0
+CELL arm=sktime method=empirical level=0.90 window=40 series=423 points=1692 n_med=54 a_cov=0.8865 b_cov=0.9309 delta=+0.0443 se=0.0054 se_naive=0.0050 se_ratio=1.0816 pred_delta=+0.0408 pred_a=0.8663 a_rank_med=47 req_med=50 unit=span gains=75 losses=0 changed=75 infeasible=0
+CELL arm=sktime method=empirical level=0.95 window=20 series=423 points=1692 n_med=74 a_cov=0.9350 b_cov=0.9592 delta=+0.0242 se=0.0039 se_naive=0.0037 se_ratio=1.0380 pred_delta=+0.0305 pred_a=0.9250 a_rank_med=69 req_med=72 unit=span gains=41 losses=0 changed=41 infeasible=0
+CELL arm=sktime method=empirical level=0.95 window=40 series=423 points=1692 n_med=54 a_cov=0.9303 b_cov=0.9693 delta=+0.0390 se=0.0052 se_naive=0.0047 se_ratio=1.1078 pred_delta=+0.0376 pred_a=0.9144 a_rank_med=49 req_med=61 unit=span gains=66 losses=0 changed=66 infeasible=291
+CELL arm=sktime method=conformal level=0.90 window=20 series=423 points=1692 n_med=74 a_cov=0.9054 b_cov=0.9173 delta=+0.0118 se=0.0027 se_naive=0.0026 se_ratio=1.0331 pred_delta=+0.0144 pred_a=0.8906 a_rank_med=66 req_med=68 unit=rank gains=20 losses=0 changed=20 infeasible=0
+CELL arm=sktime method=conformal level=0.90 window=40 series=423 points=1692 n_med=54 a_cov=0.9125 b_cov=0.9285 delta=+0.0160 se=0.0031 se_naive=0.0030 se_ratio=1.0141 pred_delta=+0.0208 pred_a=0.8863 a_rank_med=48 req_med=50 unit=rank gains=27 losses=0 changed=27 infeasible=0
+CELL arm=sktime method=conformal level=0.95 window=20 series=423 points=1692 n_med=74 a_cov=0.9421 b_cov=0.9604 delta=+0.0183 se=0.0034 se_naive=0.0033 se_ratio=1.0380 pred_delta=+0.0167 pred_a=0.9387 a_rank_med=70 req_med=72 unit=rank gains=31 losses=0 changed=31 infeasible=0
+CELL arm=sktime method=conformal level=0.95 window=40 series=423 points=1692 n_med=54 a_cov=0.9480 b_cov=0.9710 delta=+0.0230 se=0.0036 se_naive=0.0036 se_ratio=0.9917 pred_delta=+0.0240 pred_a=0.9338 a_rank_med=51 req_med=53 unit=rank gains=39 losses=0 changed=39 infeasible=0
+
+--------------------------------------------------------------------------------------------------------
+(ii) statsforecast ConformalIntervals -- same construction, its own captured scores
+--------------------------------------------------------------------------------------------------------
+CELL arm=statsforecast method=conformal_distribution level=0.90 n_windows=2 series=423 points=1692 n_med=2 a_cov=0.6229 b_cov=1.0000 delta=+0.3771 se=0.0105 se_naive=0.0118 se_ratio=0.8921 pred_delta=nan pred_a=0.6173 a_rank_med=1 req_med=0 unit=rank gains=638 losses=0 changed=638 infeasible=1692
+CELL arm=statsforecast method=conformal_distribution level=0.90 n_windows=5 series=423 points=1692 n_med=5 a_cov=0.7595 b_cov=1.0000 delta=+0.2405 se=0.0108 se_naive=0.0104 se_ratio=1.0395 pred_delta=nan pred_a=0.7596 a_rank_med=4 req_med=0 unit=rank gains=407 losses=0 changed=407 infeasible=1692
+CELL arm=statsforecast method=conformal_distribution level=0.90 n_windows=10 series=423 points=1692 n_med=10 a_cov=0.8073 b_cov=0.8948 delta=+0.0875 se=0.0068 se_naive=0.0069 se_ratio=0.9903 pred_delta=+0.0850 pred_a=0.8241 a_rank_med=9 req_med=10 unit=rank gains=148 losses=0 changed=148 infeasible=0
+CELL arm=statsforecast method=conformal_distribution level=0.90 n_windows=20 series=423 points=1692 n_med=20 a_cov=0.8540 b_cov=0.8948 delta=+0.0408 se=0.0052 se_naive=0.0048 se_ratio=1.0848 pred_delta=+0.0433 pred_a=0.8614 a_rank_med=18 req_med=19 unit=rank gains=69 losses=0 changed=69 infeasible=0
+CELL arm=statsforecast method=conformal_distribution level=0.90 n_windows=50 series=423 points=1692 n_med=50 a_cov=0.8676 b_cov=0.8848 delta=+0.0171 se=0.0031 se_naive=0.0032 se_ratio=0.9744 pred_delta=+0.0169 pred_a=0.8850 a_rank_med=45 req_med=46 unit=rank gains=29 losses=0 changed=29 infeasible=0
+CELL arm=statsforecast method=conformal_distribution level=0.95 n_windows=2 series=423 points=1692 n_med=2 a_cov=0.6413 b_cov=1.0000 delta=+0.3587 se=0.0105 se_naive=0.0117 se_ratio=0.8960 pred_delta=nan pred_a=0.6420 a_rank_med=1 req_med=0 unit=rank gains=607 losses=0 changed=607 infeasible=1692
+CELL arm=statsforecast method=conformal_distribution level=0.95 n_windows=5 series=423 points=1692 n_med=5 a_cov=0.7861 b_cov=1.0000 delta=+0.2139 se=0.0103 se_naive=0.0100 se_ratio=1.0315 pred_delta=nan pred_a=0.7965 a_rank_med=4 req_med=0 unit=rank gains=362 losses=0 changed=362 infeasible=1692
+CELL arm=statsforecast method=conformal_distribution level=0.95 n_windows=10 series=423 points=1692 n_med=10 a_cov=0.8652 b_cov=1.0000 delta=+0.1348 se=0.0087 se_naive=0.0083 se_ratio=1.0500 pred_delta=nan pred_a=0.8666 a_rank_med=9 req_med=0 unit=rank gains=228 losses=0 changed=228 infeasible=1692
+CELL arm=statsforecast method=conformal_distribution level=0.95 n_windows=20 series=423 points=1692 n_med=20 a_cov=0.8954 b_cov=0.9439 delta=+0.0485 se=0.0052 se_naive=0.0052 se_ratio=0.9885 pred_delta=+0.0452 pred_a=0.9072 a_rank_med=19 req_med=20 unit=rank gains=82 losses=0 changed=82 infeasible=0
+CELL arm=statsforecast method=conformal_distribution level=0.95 n_windows=50 series=423 points=1692 n_med=50 a_cov=0.9184 b_cov=0.9450 delta=+0.0266 se=0.0039 se_naive=0.0039 se_ratio=1.0056 pred_delta=+0.0279 pred_a=0.9329 a_rank_med=47 req_med=49 unit=rank gains=45 losses=0 changed=45 infeasible=0
+CELL arm=statsforecast method=conformal_error level=0.90 n_windows=2 series=423 points=1692 n_med=2 a_cov=0.6330 b_cov=1.0000 delta=+0.3670 se=0.0104 se_naive=0.0117 se_ratio=0.8907 pred_delta=nan pred_a=0.6338 a_rank_med=1 req_med=0 unit=rank gains=621 losses=0 changed=621 infeasible=1692
+CELL arm=statsforecast method=conformal_error level=0.90 n_windows=5 series=423 points=1692 n_med=5 a_cov=0.7654 b_cov=1.0000 delta=+0.2346 se=0.0109 se_naive=0.0103 se_ratio=1.0563 pred_delta=nan pred_a=0.7678 a_rank_med=4 req_med=0 unit=rank gains=397 losses=0 changed=397 infeasible=1692
+CELL arm=statsforecast method=conformal_error level=0.90 n_windows=10 series=423 points=1692 n_med=10 a_cov=0.8150 b_cov=0.8948 delta=+0.0798 se=0.0065 se_naive=0.0066 se_ratio=0.9834 pred_delta=+0.0806 pred_a=0.8285 a_rank_med=9 req_med=10 unit=rank gains=135 losses=0 changed=135 infeasible=0
+CELL arm=statsforecast method=conformal_error level=0.90 n_windows=20 series=423 points=1692 n_med=20 a_cov=0.8564 b_cov=0.8948 delta=+0.0384 se=0.0051 se_naive=0.0047 se_ratio=1.0818 pred_delta=+0.0410 pred_a=0.8637 a_rank_med=18 req_med=19 unit=rank gains=65 losses=0 changed=65 infeasible=0
+CELL arm=statsforecast method=conformal_error level=0.90 n_windows=50 series=423 points=1692 n_med=50 a_cov=0.8682 b_cov=0.8848 delta=+0.0165 se=0.0030 se_naive=0.0031 se_ratio=0.9753 pred_delta=+0.0160 pred_a=0.8859 a_rank_med=45 req_med=46 unit=rank gains=28 losses=0 changed=28 infeasible=0
+CELL arm=statsforecast method=conformal_error level=0.95 n_windows=2 series=423 points=1692 n_med=2 a_cov=0.6442 b_cov=1.0000 delta=+0.3558 se=0.0105 se_naive=0.0116 se_ratio=0.8995 pred_delta=nan pred_a=0.6502 a_rank_med=1 req_med=0 unit=rank gains=602 losses=0 changed=602 infeasible=1692
+CELL arm=statsforecast method=conformal_error level=0.95 n_windows=5 series=423 points=1692 n_med=5 a_cov=0.7908 b_cov=1.0000 delta=+0.2092 se=0.0101 se_naive=0.0099 se_ratio=1.0218 pred_delta=nan pred_a=0.8006 a_rank_med=4 req_med=0 unit=rank gains=354 losses=0 changed=354 infeasible=1692
+CELL arm=statsforecast method=conformal_error level=0.95 n_windows=10 series=423 points=1692 n_med=10 a_cov=0.8664 b_cov=1.0000 delta=+0.1336 se=0.0087 se_naive=0.0083 se_ratio=1.0543 pred_delta=nan pred_a=0.8688 a_rank_med=9 req_med=0 unit=rank gains=226 losses=0 changed=226 infeasible=1692
+CELL arm=statsforecast method=conformal_error level=0.95 n_windows=20 series=423 points=1692 n_med=20 a_cov=0.8972 b_cov=0.9439 delta=+0.0467 se=0.0051 se_naive=0.0051 se_ratio=0.9938 pred_delta=+0.0440 pred_a=0.9083 a_rank_med=19 req_med=20 unit=rank gains=79 losses=0 changed=79 infeasible=0
+CELL arm=statsforecast method=conformal_error level=0.95 n_windows=50 series=423 points=1692 n_med=50 a_cov=0.9184 b_cov=0.9450 delta=+0.0266 se=0.0039 se_naive=0.0039 se_ratio=1.0056 pred_delta=+0.0275 pred_a=0.9333 a_rank_med=47 req_med=49 unit=rank gains=45 losses=0 changed=45 infeasible=0
+
+A positive delta means the required rank covers more than the shipped call.
+Raw series lack exchangeability, so an absolute coverage figure is still not
+attributable to the convention -- the paired delta is what carries the claim.
+What this probe removes is the selection and resolution objections to that
+delta, not the exchangeability caveat, which no amount of data can remove.
+
+The darts arm runs the same series in its own venv at a single origin, so its
+standard error needs no clustering; see probe_output_real_data_darts_m1_monthly_full.txt.
