@@ -14,6 +14,7 @@ mapie 1.4.1           BaseConformityScore.get_quantile                     b    
 mapie 1.4.1           _compute_quantiles                                   a        -    yes  OK
 mapie 1.4.1           LACConformityScore.get_conformity_score_quantiles [p a        -    yes  OK
 mapie 1.4.1           LACConformityScore.get_prediction_sets [cv/crossval] count    -    yes  OK
+mapie 1.4.1           APSConformityScore.get_conformity_score_quantiles [c count    -    yes  OK
 mapie 1.4.1           BaseRegressionScore._beta_optimize                   b        -    yes  OK
 mapie 1.4.1           _MapieQuantileRegressor.predict                      a        -    yes  OK
 mapie 1.4.1           _check_alpha_and_n_samples                           a        -    -    OK
@@ -34,6 +35,8 @@ puncc 0.9.3           EnbPI.predict (online update)                        d    
 torchcp 1.2.1         calculate_conformal_value                            c        yes  yes  OK
 torchcp 1.2.1         compute_p_values                                     e/f      yes  -    OK
 torchcp 1.2.1         ClusterPredictor.__embed_all_classes                 d        -    -    OK
+torchcp 1.2.1         WeightedPredictor.predict                            c        -    yes  OK
+torchcp 1.2.1         NAPSPredictor._get_weighted_quantile                 a        -    yes  OK
 nonconformist 2.1.0   IcpClassifier.predict                                e/f      yes  yes  OK
 nonconformist 2.1.0   AbsErrorErrFunc.apply_inverse                        b        -    yes  OK
 nonconformist 2.1.0   SignErrorErrFunc.apply_inverse                       b        -    yes  OK
@@ -64,6 +67,9 @@ neuralforecast 3.2.1  add_conformal_error_intervals                        d    
   mapie 1.4.1  LACConformityScore.get_prediction_sets [cv/crossval]
       mapie/conformity_scores/sets/lac.py:214
       rule: the crossval branch compares an INCLUSION COUNT against alpha*(n-1), a count-scale threshold carrying no (n+1) correction and not the (n+1)(1-alpha) computed at line 158. That line's value is exposed as the public `quantiles_` attribute and never read here -- scaling it by 1000 leaves the sets identical. No branch letter applies; conformance_suite.py labels the count-returning helper `count`
+  mapie 1.4.1  APSConformityScore.get_conformity_score_quantiles [cv/crossval]
+      mapie/conformity_scores/sets/aps.py:201
+      rule: the corrected count (n+1)(1-alpha), compared at aps.py:415-421 against the number of folds in which a label is included; a count scale, not a rank, read from source
   mapie 1.4.1  BaseRegressionScore._beta_optimize
       mapie/conformity_scores/regression.py:211
       rule: beta grid alpha/(n+1)..alpha, then nanquantile(upper, 1-alpha+betas, 'higher') and nanquantile(lower, betas, 'lower'). It returns a BETA, not a threshold: it selects the level get_quantile then resolves, so it is one step removed. Composed with get_quantile and run, the pair is branch (b) -- corrected level, clamped at the boundary. Reached via predict_interval(minimize_interval_width=True)
@@ -124,6 +130,12 @@ neuralforecast 3.2.1  add_conformal_error_intervals                        d    
   torchcp 1.2.1  ClusterPredictor.__embed_all_classes
       torchcp/classification/predictor/cluster.py:278
       rule: UNCORRECTED ceil(n*q) rank, but it builds clustering embeddings; the returned qhats come from calculate_conformal_value
+  torchcp 1.2.1  WeightedPredictor.predict
+      torchcp/classification/predictor/weight.py:120
+      rule: first index whose cumulative normalised weight, test weight included, reaches 1-alpha, gathered from sorted scores with +inf appended; the required rank at unit weights, +inf below the floor
+  torchcp 1.2.1  NAPSPredictor._get_weighted_quantile
+      torchcp/graph/predictor/naps.py:221
+      rule: root of sum(w/(sum w + 1) [score <= q]) - (1-alpha) on [-1000, 1000]; the required rank at unit weights, ValueError below the floor, and the bracket edge 1000 at the floor itself
   nonconformist 2.1.0  IcpClassifier.predict
       nonconformist/icp.py:241
       rule: n_gt/(n_cal+1), smoothed term added at :244, non-smoothed at :246
@@ -180,23 +192,23 @@ neuralforecast 3.2.1  add_conformal_error_intervals                        d    
 COUNTS
 ============================================================================================================
   P1  sites documented before this census                        21   (19 of them determine a returned bound)
-  P2  sites determining a returned bound, pinned versions        36   <-- USE THIS ONE, and say so
-  P3  public API entry points routing through a P2 site          36
+  P2  sites determining a returned bound, pinned versions        39   <-- USE THIS ONE, and say so
+  P3  public API entry points routing through a P2 site          38
 
-  new in this census, absent from the map: 17 of the 36 P2 sites
+  new in this census, absent from the map: 20 of the 39 P2 sites
   unclassified branch ('?') and therefore open audit work: 0
 
   P2 by library:
       crepes 0.9.1              6   (2 new)
       darts 0.46.1              2
-      mapie 1.4.1               6   (5 new)
+      mapie 1.4.1               7   (6 new)
       neuralforecast 3.2.1      2
       nonconformist 2.1.0       3   (2 new)
       puncc 0.9.3               6   (6 new)
       river 0.25.0              1
       sktime 1.1.0              5   (1 new)
       statsforecast 2.1.1       4   (1 new)
-      torchcp 1.2.1             1
+      torchcp 1.2.1             3   (2 new)
 
   --------------------------------------------------------------------------------------------------------
   HOW THE P2 SITES REACH THE CONFORMANCE TABLE
@@ -209,7 +221,7 @@ COUNTS
   driven    12   the suite constructs this helper and calls it
   shared    11   resolves through a numpy quantile expression the table carries once
   pvalue     3   a p-value denominator: no threshold, so no rank to report
-  absent    10   not in the conformance table; the suite does not reach it
+  absent    13   not in the conformance table; the suite does not reach it
 
       driven    mapie          BaseConformityScore.get_quantile             mapie get_quantile
       driven    mapie          _compute_quantiles                           mapie LAC quantiles [prefit/mean -> delegates]
@@ -237,6 +249,7 @@ COUNTS
       pvalue    crepes         ConformalClassifier.predict_set              
       pvalue    crepes         p_values_batch                               
       pvalue    nonconformist  IcpClassifier.predict                        
+      absent    mapie          APSConformityScore.get_conformity_score_quan 
       absent    mapie          _MapieQuantileRegressor.predict              
       absent    crepes         ConformalRegressor.predict_int_online        
       absent    crepes         ConformalPredictiveSystem.predict_int_online 
@@ -244,6 +257,8 @@ COUNTS
       absent    puncc          ScoreCalibrator.is_conformal                 
       absent    puncc          EnbPI.predict                                
       absent    puncc          EnbPI.predict (online update)                
+      absent    torchcp        WeightedPredictor.predict                    
+      absent    torchcp        NAPSPredictor._get_weighted_quantile         
       absent    nonconformist  SignErrorErrFunc.apply_inverse               
       absent    river          RegressionJackknife.predict_one              
       absent    statsforecast  ConformalSeasonalPool._intervals_from_sample 
@@ -256,7 +271,7 @@ COUNTS
                         ->  14 call paths, which is what the table's rows count
 
   So a proportion over 14 call paths is not a proportion over
-  36 sites and not a proportion of the ecosystem. The manuscript must say
+  39 sites and not a proportion of the ecosystem. The manuscript must say
   which, and the two rows below are the ones that stand for more than one site.
       numpy method='higher'                                       2 site(s)
       numpy method='linear'                                       9 site(s)
@@ -302,6 +317,7 @@ COUNTS
       GraphSplitPredictor.calibrate
       IcpClassifier.predict
       IcpRegressor.predict
+      NAPSPredictor.predict
       NeuralForecast.predict(prediction_intervals=PredictionIntervals())
       RC3P.calibrate
       RegressionJackknife.predict_one
@@ -312,15 +328,16 @@ COUNTS
       SplitConformalRegressor.predict_interval
       SplitPredictor.calibrate
       StatsForecast.forecast(prediction_intervals=ConformalIntervals())
+      WeightedPredictor.predict
 
 all sites verified at the recorded line
 
 What replaces "seven have a distinct quantile/p-value helper"
 ------------------------------------------------------------------------------------------------------------
   "Across the ten packages that derive a coverage guarantee from a calibration
-  array, we count 36 distinct resolution sites -- expressions mapping a
-  requested level to an index into the calibration set -- reachable through 36 public
+  array, we count 39 distinct resolution sites -- expressions mapping a
+  requested level to an index into the calibration set -- reachable through 38 public
   API entry points."
 
-  19 of the 36 were already documented by this audit; the other
-  17 this census located. "Seven" understated the surface by 5.1x.
+  19 of the 39 were already documented by this audit; the other
+  20 this census located. "Seven" understated the surface by 5.6x.

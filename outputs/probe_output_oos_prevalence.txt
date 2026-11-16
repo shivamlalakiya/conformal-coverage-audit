@@ -15,18 +15,18 @@ CALIBRATION -- the enumerator against the census, which is known-positive
 package               candidates  census sites  recovered
 crepes                        50             6          3
 darts                         28             2          2
-mapie                         23             6          2
+mapie                         23             7          2
 neuralforecast                18             2          2
 nonconformist                 14             3          2
 puncc                         30             6          4
 river                         18             1          0
 sktime                       143             5          5
 statsforecast                 29             4          3
-torchcp                       25             1          1
+torchcp                       25             3          2
 
-  census sites                 36
-  recovered by the enumerator  24
-  lost                         12
+  census sites                 39
+  recovered by the enumerator  25
+  lost                         14
 
 --------------------------------------------------------------------------------------------------------
 HOW A REAL SITE ESCAPES A MECHANICAL READ
@@ -55,12 +55,13 @@ not in one statement in the first place.
     _add_conformal_distribution_intervals
     the level becomes a list of cut points, which then reaches the ordering call as an argument
 
-  every site the enumerator lost, in full (12):
+  every site the enumerator lost, in full (14):
     crepes           crepes/base.py:340
     crepes           crepes/base.py:2909
     crepes           crepes/base.py:1525
     mapie            mapie/conformity_scores/sets/lac.py:156
     mapie            mapie/conformity_scores/sets/lac.py:214
+    mapie            mapie/conformity_scores/sets/aps.py:201
     mapie            mapie/conformity_scores/regression.py:211
     mapie            mapie/regression/quantile_regression.py:1037
     nonconformist    nonconformist/icp.py:241
@@ -68,6 +69,7 @@ not in one statement in the first place.
     puncc            deel/puncc/api/calibration.py:592
     river            river/conf/jackknife.py:97
     statsforecast    statsforecast/models.py:127
+    torchcp          torchcp/graph/predictor/naps.py:221
 
 --------------------------------------------------------------------------------------------------------
 THE UNAUDITED SIDE -- candidate surface, which is not a site count
@@ -129,9 +131,9 @@ public entry point and none of them ruled on here:
 ========================================================================================================
 THE COUNTS
 ========================================================================================================
-  census sites offered              36
-  enumerator recovered              24
-  enumerator lost                   12
+  census sites offered              39
+  enumerator recovered              25
+  enumerator lost                   14
   loss mechanisms reproduced        4
   unaudited packages enumerated     12
   fortuna conformal expressions     12

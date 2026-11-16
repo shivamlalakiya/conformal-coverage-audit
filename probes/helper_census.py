@@ -122,6 +122,18 @@ MANIFEST = [
       "sets identical. No branch letter applies; conformance_suite.py labels the "
       "count-returning helper `count`",
       "count", False, True, ["CrossConformalClassifier.predict_set"]),
+    # ADDED on a second reader's finding (c6, C3). The comment above already called
+    # this line a genuine site and the manifest did not carry it. On the crossval
+    # path the returned set compares an inclusion count against this value
+    # (aps.py:415-421), so unlike lac.py:158 it decides the set. Branch read from
+    # source: no run reaches it.
+    S("mapie 1.4.1", "mapie/conformity_scores/sets/aps.py", 201,
+      "APSConformityScore.get_conformity_score_quantiles [cv/crossval]",
+      "quantiles_ = (n + 1) * (1 - alpha_np)",
+      "the corrected count (n+1)(1-alpha), compared at aps.py:415-421 against the "
+      "number of folds in which a label is included; a count scale, not a rank, "
+      "read from source",
+      "count", False, True, ["CrossConformalClassifier.predict_set"]),
     S("mapie 1.4.1", "mapie/conformity_scores/regression.py", 211,
       "BaseRegressionScore._beta_optimize",
       "_alpha = float(_alpha)",
@@ -272,6 +284,27 @@ MANIFEST = [
       "UNCORRECTED ceil(n*q) rank, but it builds clustering embeddings; the "
       "returned qhats come from calculate_conformal_value",
       "d", False, False, []),
+
+    # ADDED on a second reader's finding (c6, C3): two weighted sites the census
+    # missed. Both reduce to split conformal at unit weights, and
+    # probes/torchcp_weighted_sites.py runs them there: at or above the required
+    # rank at every feasible n it tries, conservative where (n+1)(1-alpha) is an
+    # integer; below the floor the first returns +inf without a warning and the
+    # second raises.
+    S("torchcp 1.2.1", "torchcp/classification/predictor/weight.py", 120,
+      "WeightedPredictor.predict",
+      "i_T = torch.argmax((p_sorted_acc >= 1.0 - self.alpha).int(), dim=1, keepdim=True)",
+      "first index whose cumulative normalised weight, test weight included, reaches "
+      "1-alpha, gathered from sorted scores with +inf appended; the required rank at "
+      "unit weights, +inf below the floor",
+      "c", False, True, ["WeightedPredictor.predict"]),
+    S("torchcp 1.2.1", "torchcp/graph/predictor/naps.py", 221,
+      "NAPSPredictor._get_weighted_quantile",
+      "q = brentq(critical_point_quantile, -1000, 1000)",
+      "root of sum(w/(sum w + 1) [score <= q]) - (1-alpha) on [-1000, 1000]; the "
+      "required rank at unit weights, ValueError below the floor, and the bracket "
+      "edge 1000 at the floor itself",
+      "a", False, True, ["NAPSPredictor.predict"]),
 
     # --------------------------------------------------------- nonconformist --
     S("nonconformist 2.1.0", "nonconformist/icp.py", 241,
@@ -459,6 +492,7 @@ SUITE_DISPOSITION = {
     "BaseRegressionScore._beta_optimize":
         ("driven", "mapie _beta_optimize + get_quantile (composed)"),
     "_MapieQuantileRegressor.predict": ("absent", ""),
+    "APSConformityScore.get_conformity_score_quantiles [cv/crossval]": ("absent", ""),
     # ---- crepes ----------------------------------------------------------
     "ConformalClassifier.predict_set": ("pvalue", ""),
     "p_values_batch": ("pvalue", ""),
@@ -476,6 +510,8 @@ SUITE_DISPOSITION = {
     "EnbPI.predict (online update)": ("absent", ""),
     # ---- torchcp ---------------------------------------------------------
     "calculate_conformal_value": ("driven", "torchcp calculate_conformal_value"),
+    "WeightedPredictor.predict": ("absent", ""),
+    "NAPSPredictor._get_weighted_quantile": ("absent", ""),
     # ---- nonconformist ---------------------------------------------------
     "IcpClassifier.predict": ("pvalue", ""),
     "AbsErrorErrFunc.apply_inverse": ("driven", "nonconformist AbsErrorErrFunc.apply_inverse"),

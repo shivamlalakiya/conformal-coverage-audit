@@ -29,6 +29,7 @@ need in order to disagree.
 THE COUNTS
 ========================================================================================================
   sites in the census            36
+  sites added after the draw     3
   drawn into the worksheet       12
   seed                           20260901
   source lines of context each   4

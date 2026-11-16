@@ -122,8 +122,23 @@ def say(s=""):
     LINES.append(s)
 
 
+# Sites added to the census after the worksheet was drawn and a sheet came back.
+# The sample is drawn from the census as it stood at the draw, so adding a site
+# cannot reshuffle a sheet a coder has already filled in and scored.
+ADDED_AFTER_DRAW = {
+    ("mapie/conformity_scores/sets/aps.py", 201),
+    ("torchcp/classification/predictor/weight.py", 120),
+    ("torchcp/graph/predictor/naps.py", 221),
+}
+
+
+def drawn_population():
+    return [s for s in HC.MANIFEST
+            if s["output"] and (s["path"], s["line"]) not in ADDED_AFTER_DRAW]
+
+
 def sample_sites():
-    sites = [s for s in HC.MANIFEST if s["output"]]
+    sites = drawn_population()
     rng = random.Random(SEED)
     return rng.sample(sorted(sites, key=lambda s: (s["lib"], s["path"], s["line"])),
                       min(SAMPLE, len(sites)))
@@ -387,7 +402,9 @@ def main():
     say("=" * 104)
     say("THE COUNTS")
     say("=" * 104)
-    say(f"  sites in the census            {len([s for s in HC.MANIFEST if s['output']])}")
+    say(f"  sites in the census            {len(drawn_population())}")
+    if ADDED_AFTER_DRAW:
+        say(f"  sites added after the draw     {len(ADDED_AFTER_DRAW)}")
     say(f"  drawn into the worksheet       {len(sites)}")
     say(f"  seed                           {SEED}")
     say(f"  source lines of context each   {CONTEXT}")
