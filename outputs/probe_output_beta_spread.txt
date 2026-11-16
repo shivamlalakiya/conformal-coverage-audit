@@ -1,0 +1,47 @@
+====================================================================================================
+THE ONE-RANK GAP AGAINST THE BETA SPREAD OF ONE CALIBRATION DRAW'S COVERAGE
+====================================================================================================
+self_check() passed at import: the Beta tail equals the binomial tail at every
+k < n for n in {5, 50, 500}, the Beta mean is k/(n+1), and k* is the smallest
+rank with k/(n+1) >= L, in exact rationals.
+
+gap          1/(n+1), one rank of predicted coverage
+sd           sd of Beta(k*, n+1-k*), the spread of one calibration set's coverage
+ratio        gap / sd
+p_below_k    P(realised coverage < L) at the required rank k*
+p_below_km1  the same one rank short, the deficit this audit measures
+k_tol        smallest k with P(realised coverage >= L) >= 0.90 (Wilks)
+A cell with k* > n is infeasible and printed as such.
+
+CELL L=0.80 n=10 k=9 gap=0.0909 sd=0.1113 ratio=0.8165 p_below_k=0.3758 p_below_km1=0.6778 k_tol=none
+CELL L=0.80 n=20 k=17 gap=0.0476 sd=0.0837 ratio=0.5688 p_below_k=0.4114 p_below_km1=0.6296 k_tol=19
+CELL L=0.80 n=50 k=41 gap=0.0196 sd=0.0551 ratio=0.3561 p_below_k=0.4437 p_below_km1=0.5836 k_tol=45
+CELL L=0.80 n=100 k=81 gap=0.0099 sd=0.0395 ratio=0.2509 p_below_k=0.4602 p_below_km1=0.5595 k_tol=86
+CELL L=0.80 n=250 k=201 gap=0.0040 sd=0.0252 ratio=0.1583 p_below_k=0.4748 p_below_km1=0.5378 k_tol=209
+CELL L=0.80 n=1000 k=801 gap=0.0010 sd=0.0126 ratio=0.0791 p_below_k=0.4874 p_below_km1=0.5189 k_tol=817
+CELL L=0.80 n=5000 k=4001 gap=0.0002 sd=0.0057 ratio=0.0354 p_below_k=0.4944 p_below_km1=0.5085 k_tol=4037
+CELL L=0.90 n=10 k=10 gap=0.0909 sd=0.0830 ratio=1.0954 p_below_k=0.3487 p_below_km1=0.7361 k_tol=none
+CELL L=0.90 n=20 k=19 gap=0.0476 sd=0.0626 ratio=0.7609 p_below_k=0.3917 p_below_km1=0.6769 k_tol=none
+CELL L=0.90 n=50 k=46 gap=0.0196 sd=0.0412 ratio=0.4755 p_below_k=0.4312 p_below_km1=0.6161 k_tol=49
+CELL L=0.90 n=100 k=91 gap=0.0099 sd=0.0296 ratio=0.3348 p_below_k=0.4513 p_below_km1=0.5832 k_tol=95
+CELL L=0.90 n=250 k=226 gap=0.0040 sd=0.0189 ratio=0.2112 p_below_k=0.4692 p_below_km1=0.5530 k_tol=232
+CELL L=0.90 n=1000 k=901 gap=0.0010 sd=0.0095 ratio=0.1055 p_below_k=0.4846 p_below_km1=0.5266 k_tol=913
+CELL L=0.90 n=5000 k=4501 gap=0.0002 sd=0.0042 ratio=0.0471 p_below_k=0.4931 p_below_km1=0.5119 k_tol=4528
+CELL L=0.95 n=10 infeasible
+CELL L=0.95 n=20 k=20 gap=0.0476 sd=0.0454 ratio=1.0488 p_below_k=0.3585 p_below_km1=0.7358 k_tol=none
+CELL L=0.95 n=50 k=49 gap=0.0196 sd=0.0269 ratio=0.7284 p_below_k=0.2794 p_below_km1=0.5405 k_tol=50
+CELL L=0.95 n=100 k=96 gap=0.0099 sd=0.0215 ratio=0.4610 p_below_k=0.4360 p_below_km1=0.6160 k_tol=99
+CELL L=0.95 n=250 k=239 gap=0.0040 sd=0.0134 ratio=0.2964 p_below_k=0.4016 p_below_km1=0.5175 k_tol=243
+CELL L=0.95 n=1000 k=951 gap=0.0010 sd=0.0069 ratio=0.1452 p_below_k=0.4797 p_below_km1=0.5375 k_tol=960
+CELL L=0.95 n=5000 k=4751 gap=0.0002 sd=0.0031 ratio=0.0649 p_below_k=0.4909 p_below_km1=0.5168 k_tol=4771
+CELL L=0.99 n=10 infeasible
+CELL L=0.99 n=20 infeasible
+CELL L=0.99 n=50 infeasible
+CELL L=0.99 n=100 k=100 gap=0.0099 sd=0.0098 ratio=1.0100 p_below_k=0.3660 p_below_km1=0.7358 k_tol=none
+CELL L=0.99 n=250 k=249 gap=0.0040 sd=0.0056 ratio=0.7114 p_below_k=0.2858 p_below_km1=0.5432 k_tol=250
+CELL L=0.99 n=1000 k=991 gap=0.0010 sd=0.0031 ratio=0.3180 p_below_k=0.4573 p_below_km1=0.5830 k_tol=995
+CELL L=0.99 n=5000 k=4951 gap=0.0002 sd=0.0014 ratio=0.1421 p_below_k=0.4809 p_below_km1=0.5375 k_tol=4960
+
+Read: the gap is one rank of the AVERAGE over calibration sets. A caller holds
+one calibration set, whose coverage spreads by sd; ratio is how much of that
+spread one rank is, and it falls with n like 1/sqrt(n L (1-L)).
