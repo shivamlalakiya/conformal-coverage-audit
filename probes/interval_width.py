@@ -66,6 +66,9 @@ SEED = 20260906
 REPS = 100_000
 CHUNK = 10_000
 SIZES = (20, 50, 100, 200)
+# SIZES are all multiples of ten, one residue class of the period in n; these
+# sit off it and run at the headline level on a second random stream.
+OFF_SIZES = (23, 53, 101, 199)
 LEVELS = (0.90, 0.95, 0.99)
 HEADLINE = 0.90
 
@@ -373,6 +376,26 @@ def main():
         f"iw_ceiled_worst={worst_e['ceiled']:.5f} iw_ceiled_mean={mean_e:.5f} "
         f"iw_ceiled_mean_se={mean_e_se:.5f} "
         f"iw_ceiled_interior_worst={worst_ei['ceiled']:.5f}")
+
+    # Off the residue class, on a second stream so nothing above moves.
+    say("")
+    say("(6) OFF THE RESIDUE CLASS: SIZES THAT ARE NOT MULTIPLES OF TEN")
+    say("-" * 100)
+    say(f"Headline level {HEADLINE:.2f}, sizes {OFF_SIZES}, seed [SEED, 1].")
+    L2 = laws(np.random.default_rng([SEED, 1]))
+    offr = []
+    for name, fn in L2.items():
+        for n in OFF_SIZES:
+            r = cell(name, fn, n, HEADLINE)
+            offr.append(r)
+            say(f"OFF {name:<14}{n:>5}{HEADLINE:>7.2f}{r['k']:>5}"
+                f"{r['default']:>11.4f}{r['weibull']:>12.5f}{r['se_w']:>9.5f}"
+                f"{r['corrected']:>16.5f}{r['se_c']:>9.5f}")
+    off_worst = max(offr, key=lambda r: r["corrected"])
+    say(f"MACHINE iw_off_cells={len(offr)} "
+        f"iw_off_corrected_mean={sum(r['corrected'] for r in offr) / len(offr):.5f} "
+        f"iw_off_corrected_worst={off_worst['corrected']:.5f} "
+        f"iw_off_at_max={sum(1 for r in offr if r['at_max'])}")
 
     path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                         OUT)

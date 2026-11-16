@@ -199,6 +199,10 @@ def measure_pi(samp, F, n, i, gam, reps=REPS):
 
 
 GRID = [(200, 0.99), (50, 0.95), (50, 0.99), (500, 0.995)]
+# Every size in GRID is a multiple of ten, so every cell above shares one residue
+# class of the period in n. These sit off it, at the same levels, and run on a
+# second random stream so no cell of GRID moves.
+OFF_GRID = [(199, 0.99), (53, 0.95), (47, 0.99), (503, 0.995)]
 
 
 def main():
@@ -350,6 +354,28 @@ def main():
     say("  condition of the earlier results states a fact about the shape index.")
     say(f"  Measured to {wl:.5f} over {len(rows)} cells and seven distributions,")
     say(f"  against {w0:.5f} for the xi = 0 form.")
+
+    # ---------------- (vi) off the residue class, second stream ----------
+    say("")
+    say("-" * 104)
+    say("(vi) OFF THE RESIDUE CLASS. The sizes of (ii) are all multiples of ten.")
+    say("     The same check at sizes off that class, on a second random stream")
+    say("     (seed [SEED, 1]) so that nothing printed above moves.")
+    say("-" * 104)
+    rng2 = np.random.default_rng([SEED, 1])
+    off = []
+    for name, xi, samp, F in cases(rng2):
+        for n, q in OFF_GRID:
+            h, j, gam, i = decompose(n, q)
+            law = pi_gpd(xi, i, gam)
+            got, se = measure_pi(samp, F, n, i, gam)
+            off.append({"err": got - law, "se": se})
+            say(f"OFF {name:<14}{xi:>7.3f}{n:>6}{q:>7.3f}{i:>4}{gam:>8.3f}"
+                f"{law:>9.4f}{got:>10.4f}{got - law:>+9.4f}{se:>10.6f}")
+    wo = max(off, key=lambda r: abs(r["err"]))
+    say(f"MACHINE gl_off_cells={len(off)} gl_off_worst={abs(wo['err']):.5f} "
+        f"gl_off_worst_z={abs(wo['err']) / wo['se']:.2f} "
+        f"gl_off_mean={sum(abs(r['err']) for r in off) / len(off):.5f}")
     with open(OUT, "w", encoding="utf-8") as fh:
         fh.write("\n".join(LINES) + "\n")
     print(f"\nwrote {OUT}", file=sys.stderr)

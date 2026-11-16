@@ -294,7 +294,8 @@ def main():
 
     # ---------------- (iii) the payoff: coverage --------------------------
     say("-" * 106)
-    say("(iii) COVERAGE. The prediction the manuscript currently makes is")
+    say("(iii) COVERAGE, 200000 replicates per cell (the s.e. column is over")
+    say("      these, not the header's reps). The prediction the manuscript currently makes is")
     say("      (j+gamma)/(n+1) = h/(n+1). The tail law replaces gamma by pi.")
     say("-" * 106)
     say(f"{'dist':<12}{'n':>6}{'q':>7}{'i':>4}{'measured':>10}{'s.e.':>8}"

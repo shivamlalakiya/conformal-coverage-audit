@@ -135,3 +135,28 @@ MACHINE iw_weibull_worst=2.55827 iw_weibull_mean=1.14672 iw_corrected_worst=2.57
 MACHINE iw_worst_law=pareto1.5 iw_worst_n=100 iw_worst_level=0.99 iw_interior_law=pareto1.5 iw_interior_n=20 iw_interior_level=0.90
 MACHINE iw_exc_worked=6/5 iw_exc_worked_n=50 iw_exc_worked_level=0.90 iw_exc_worst=2 iw_exc_worst_n=100 iw_exc_worst_level=0.99
 MACHINE iw_weibull_mean_se=0.00041 iw_corrected_mean_se=0.00041 iw_ceiled_worst=2.57417 iw_ceiled_mean=1.16612 iw_ceiled_mean_se=0.00051 iw_ceiled_interior_worst=1.53553
+
+(6) OFF THE RESIDUE CLASS: SIZES THAT ARE NOT MULTIPLES OF TEN
+----------------------------------------------------------------------------------------------------
+Headline level 0.90, sizes (23, 53, 101, 199), seed [SEED, 1].
+OFF uniform          23   0.90   22     0.8665     1.03996  0.00010         1.06013  0.00017
+OFF uniform          53   0.90   49     0.8854     1.01697  0.00004         1.02548  0.00007
+OFF uniform         101   0.90   92     0.8922     1.00887  0.00003         1.01108  0.00004
+OFF uniform         199   0.90  180     0.8960     1.00450  0.00001         1.00450  0.00001
+OFF half-normal      23   0.90   22     1.5594     1.11374  0.00030         1.17568  0.00049
+OFF half-normal      53   0.90   49     1.6049     1.04638  0.00012         1.07062  0.00019
+OFF half-normal     101   0.90   92     1.6232     1.02402  0.00008         1.03002  0.00009
+OFF half-normal     199   0.90  180     1.6345     1.01181  0.00004         1.01181  0.00004
+OFF exponential      23   0.90   22     2.1654     1.17731  0.00050         1.27602  0.00083
+OFF exponential      53   0.90   49     2.2374     1.06969  0.00018         1.10651  0.00030
+OFF exponential     101   0.90   92     2.2690     1.03579  0.00011         1.04473  0.00014
+OFF exponential     199   0.90  180     2.2854     1.01766  0.00006         1.01766  0.00006
+OFF lognormal        23   0.90   22     3.4308     1.25558  0.00085         1.40214  0.00141
+OFF lognormal        53   0.90   49     3.5274     1.09420  0.00026         1.14476  0.00043
+OFF lognormal       101   0.90   92     3.5584     1.04792  0.00016         1.05989  0.00020
+OFF lognormal       199   0.90  180     3.5775     1.02327  0.00007         1.02327  0.00007
+OFF pareto1.5        23   0.90   22     4.6086     1.35331  0.00173         1.56305  0.00288
+OFF pareto1.5        53   0.90   49     4.6170     1.11465  0.00035         1.17729  0.00058
+OFF pareto1.5       101   0.90   92     4.6275     1.05687  0.00019         1.07109  0.00024
+OFF pareto1.5       199   0.90  180     4.6381     1.02708  0.00009         1.02708  0.00009
+MACHINE iw_off_cells=20 iw_off_corrected_mean=1.11514 iw_off_corrected_worst=1.56305 iw_off_at_max=0

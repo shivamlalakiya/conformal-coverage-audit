@@ -71,7 +71,8 @@ lognormal      200  0.950  10   0.050   0.0547    0.0563  +0.0015   above -- hea
     bracket is all (G) can claim away from its exact case.
 
 ----------------------------------------------------------------------------------------------------------
-(iii) COVERAGE. The prediction the manuscript currently makes is
+(iii) COVERAGE, 200000 replicates per cell (the s.e. column is over
+      these, not the header's reps). The prediction the manuscript currently makes is
       (j+gamma)/(n+1) = h/(n+1). The tail law replaces gamma by pi.
 ----------------------------------------------------------------------------------------------------------
 dist             n      q   i  measured    s.e.   h/(n+1)      err  (j+pi)/(n+1)      err  better
